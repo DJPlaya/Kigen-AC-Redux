@@ -97,9 +97,9 @@ Client_OnPluginStart()
 	RegConsoleCmd("autobuy", Client_Autobuy);
 }
 
-Client_OnPluginEnd()
+/*Client_OnPluginEnd()
 {
-}
+}*/
 
 //- Commands -//
 

@@ -31,9 +31,9 @@ Status_OnPluginStart()
 	RegAdminCmd("sm_kac_status", Status_Status, ADMFLAG_GENERIC, "Reports KAC's Status");
 }
 
-Status_OnPluginEnd()
+/*Status_OnPluginEnd()
 {
-}
+}*/
 
 Status_Register(String:f_sName[], String:f_sStatus[])
 {
@@ -49,10 +49,10 @@ Status_Report(f_iId, String:f_sStatus[])
 	SetArrayString(f_hArray, CELL_MODULESTATUS, f_sStatus);
 }
 
-stock Status_Unregister(f_iId)
+/*stock Status_Unregister(f_iId)
 {
 	RemoveFromArray(g_hStatusArray, f_iId);
-}
+}*/
 
 public Action:Status_Status(client, args)
 {

@@ -607,14 +607,3 @@ public Commands_CmdLogChange(Handle:convar, const String:oldValue[], const Strin
 {
 	g_bLogCmds = GetConVarBool(convar);
 }
-
-//- Private -//
-
-stock StringToLower(String:f_sInput[])
-{
-	new f_iSize = strlen(f_sInput);
-	for (new i = 0; i < f_iSize; i++)
-	f_sInput[i] = CharToLower(f_sInput[i]);
-}
-
-//- End of File -//

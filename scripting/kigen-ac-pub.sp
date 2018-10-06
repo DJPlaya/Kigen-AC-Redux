@@ -68,6 +68,7 @@ int g_iGame = GAME_OTHER; // Game identifier.
 #include "kigenac/network.sp"		// Network Module
 #include "kigenac/rcon.sp"		// RCON Module
 #include "kigenac/status.sp"		// Status Module
+#include "kigenac/stocks.sp"		// Stocks Module
 
 
 public Plugin myinfo = 
@@ -153,7 +154,7 @@ public OnPluginStart()
 	HookConVarChange(g_hCVarVersion, VersionChange);
 	
 	KAC_PrintToServer(KAC_LOADED);
-}
+} // You are here because of the Client_OnMapStart Warning right? Well, i really dont know why it spits that out but its on my TODO
 
 public OnAllPluginsLoaded()
 {
@@ -193,12 +194,12 @@ public OnAllPluginsLoaded()
 
 public OnPluginEnd()
 {
-	Client_OnPluginEnd();
+	//Client_OnPluginEnd(); // Currently unused
 	Commands_OnPluginEnd();
 	Eyetest_OnPluginEnd();
 	Network_OnPluginEnd();
 	RCON_OnPluginEnd();
-	Status_OnPluginEnd();
+	//Status_OnPluginEnd(); // Currently unused
 	#if defined PRIVATE
 	Private_OnPluginEnd();
 	#endif
@@ -227,7 +228,7 @@ public OnMapStart()
 {
 	g_bMapStarted = true;
 	CVars_CreateNewOrder();
-	Client_OnMapStart();
+	//Client_OnMapStart(); // Currently unused 
 	RCON_OnMap();
 }
 
@@ -240,9 +241,9 @@ public OnMapEnd()
 
 //- Client Functions -//
 
-public bool:OnClientConnect(client, String:rejectmsg[], size)
+public bool OnClientConnect(client, char[] rejectmsg, size)
 {
-	if (IsFakeClient(client)) // Bots suck.
+	if(IsFakeClient(client)) // Bots suck.
 	{
 		g_bIsFake[client] = true;
 		return true;
@@ -254,14 +255,15 @@ public bool:OnClientConnect(client, String:rejectmsg[], size)
 	return Client_OnClientConnect(client, rejectmsg, size);
 }
 
-public OnClientAuthorized(client, const String:auth[])
+public OnClientAuthorized(client, const char[] auth)
 {
-	if (IsFakeClient(client)) // Bots are annoying...
+	if(IsFakeClient(client)) // Bots are annoying...
 		return;
+		
+	Handle f_hTemp;
+	char f_sReason[256];
 	
-	decl Handle:f_hTemp, String:f_sReason[256];
-	
-	if (GetTrieString(g_hDenyArray, auth, f_sReason, sizeof(f_sReason)))
+	if(GetTrieString(g_hDenyArray, auth, f_sReason, sizeof(f_sReason)))
 	{
 		KickClient(client, "%s", f_sReason);
 		OnClientDisconnect(client);
@@ -270,12 +272,12 @@ public OnClientAuthorized(client, const String:auth[])
 	
 	g_bAuthorized[client] = true;
 	
-	if (g_bInGame[client])
+	if(g_bInGame[client])
 		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
-	
+		
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
-	if (f_hTemp != INVALID_HANDLE)
+	if(f_hTemp != INVALID_HANDLE)
 		CloseHandle(f_hTemp);
 }
 
@@ -285,35 +287,35 @@ public OnClientPutInServer(client)
 	
 	if (IsFakeClient(client)) // Death to them bots!
 		return;
-	
-	new String:f_sLang[8];
+		
+	char f_sLang[8];
 	
 	g_bInGame[client] = true;
 	
 	if (!g_bAuthorized[client]) // Not authorized yet?!?
 		g_hValidateTimer[client] = CreateTimer(10.0, KAC_ValidateTimer, client);
+		
 	else
 		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
-	
+		
 	GetLanguageInfo(GetClientLanguage(client), f_sLang, sizeof(f_sLang));
 	if (!GetTrieValue(g_hLanguages, f_sLang, g_hCLang[client]))
 		g_hCLang[client] = g_hSLang;
-	
 }
 
 public OnClientPostAdminCheck(client)
 {
-	if (IsFakeClient(client)) // Humans for the WIN!
+	if(IsFakeClient(client)) // Humans for the WIN!
 		return;
-	
-	if ((GetUserFlagBits(client) & ADMFLAG_GENERIC))
+		
+	if((GetUserFlagBits(client) & ADMFLAG_GENERIC))
 		g_bIsAdmin[client] = true;
 }
 
 public OnClientDisconnect(client)
 {
 	// if ( IsFake aww, screw it. :P
-	decl Handle:f_hTemp;
+	Handle f_hTemp;
 	
 	g_bConnected[client] = false;
 	g_bAuthorized[client] = false;
@@ -324,34 +326,23 @@ public OnClientDisconnect(client)
 	g_bShouldProcess[client] = false;
 	g_bHooked[client] = false;
 	
-	for (new i = 1; i <= MaxClients; i++)
-	if (g_bConnected[i] && (!IsClientConnected(i) || IsFakeClient(i)))
+	for(new i = 1; i <= MaxClients; i++)
+	if(g_bConnected[i] && (!IsClientConnected(i) || IsFakeClient(i)))
 		OnClientDisconnect(i);
-	
+		
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
-	if (f_hTemp != INVALID_HANDLE)
+	if(f_hTemp != INVALID_HANDLE)
 		CloseHandle(f_hTemp);
-	
+		
 	CVars_OnClientDisconnect(client);
 	Network_OnClientDisconnect(client);
 	
 }
 
-//- Global Private Functions -//
-
-KAC_Log(const String:format[], any:...)
-{
-	decl String:f_sBuffer[256], String:f_sPath[256];
-	VFormat(f_sBuffer, sizeof(f_sBuffer), format, 2);
-	BuildPath(Path_SM, f_sPath, sizeof(f_sPath), "logs/KAC.log");
-	LogMessage("%s", f_sBuffer);
-	LogToFileEx(f_sPath, "%s", f_sBuffer);
-}
-
 //- Timers -//
 
-public Action:KAC_ValidateTimer(Handle:timer, any:client)
+public Action KAC_ValidateTimer(Handle timer, any client)
 {
 	g_hValidateTimer[client] = INVALID_HANDLE;
 	
@@ -362,17 +353,15 @@ public Action:KAC_ValidateTimer(Handle:timer, any:client)
 	return Plugin_Stop;
 }
 
-public Action:KAC_ClearTimer(Handle:timer, any:nothing)
+public Action KAC_ClearTimer(Handle timer, any nothing)
 {
 	ClearTrie(g_hDenyArray);
 }
 
 //- ConVar Hook -//
 
-public VersionChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public VersionChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	if (!StrEqual(newValue, PLUGIN_VERSION))
 		SetConVarString(g_hCVarVersion, PLUGIN_VERSION);
 }
-
-//- End of File -//

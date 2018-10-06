@@ -881,7 +881,7 @@ bool:CVars_AddCVar(String:f_sName[], f_iComparisonType, f_iAction, const String:
 	return true;
 }
 
-stock bool:CVars_RemoveCVar(String:f_sName[])
+stock bool CVars_RemoveCVar(char[] f_sName)
 {
 	decl Handle:f_hConVar, f_iIndex;
 	
@@ -903,7 +903,7 @@ stock bool:CVars_RemoveCVar(String:f_sName[])
 	return true;
 }
 
-CVars_CreateNewOrder()
+stock CVars_CreateNewOrder()
 {
 	new Handle:f_hOrder[g_iSize], f_iCurrent;
 	new Handle:f_hPHigh, Handle:f_hPMedium, Handle:f_hPNormal, Handle:f_hCurrent;
@@ -965,7 +965,7 @@ CVars_CreateNewOrder()
 	CloseHandle(f_hPNormal);
 }
 
-CVars_ReplicateConVar(Handle:f_hConVar)
+stock CVars_ReplicateConVar(Handle f_hConVar)
 {
 	decl String:f_sCVarName[64], String:f_sValue[64];
 	GetConVarName(f_hConVar, f_sCVarName, sizeof(f_sCVarName));
@@ -981,5 +981,3 @@ CVars_ReplicateConVar(Handle:f_hConVar)
 		}
 	}
 }
-
-//- EoF -//

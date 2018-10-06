@@ -84,7 +84,7 @@ Eyetest_OnPluginEnd()
 		for (new i = 1; i <= MaxClients; i++)
 	if (g_bHooked[i])
 		SDKUnhook(i, SDKHook_SetTransmit, Eyetest_Transmit);
-	
+		
 	if (g_hEyeTimer != INVALID_HANDLE)
 		CloseHandle(g_hEyeTimer);
 }
