@@ -48,9 +48,7 @@ bool g_bAuthorized[MAXPLAYERS + 1] =  { false, ... }; // when I need to check on
 bool g_bInGame[MAXPLAYERS + 1] =  { false, ... }; // system resources as compared to these. - Kigen
 bool g_bIsAdmin[MAXPLAYERS + 1] =  { false, ... };
 bool g_bIsFake[MAXPLAYERS + 1] =  { false, ... };
-bool g_bSourceBans = false;
-bool g_bSourceBansPP = false;
-bool g_bMapStarted = false;
+bool g_bSourceBans, g_bSourceBansPP, g_bMapStarted;
 Handle g_hCLang[MAXPLAYERS + 1] =  { INVALID_HANDLE, ... };
 Handle g_hSLang = INVALID_HANDLE;
 Handle g_hValidateTimer[MAXPLAYERS + 1] =  { INVALID_HANDLE, ... };
