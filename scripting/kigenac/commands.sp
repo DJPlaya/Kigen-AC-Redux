@@ -196,7 +196,8 @@ Commands_OnPluginEnd()
 
 public Action:Commands_EventDisconnect(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	decl String:f_sReason[512], String:f_sTemp[512], f_iLength, client, String:f_sIP[64];
+	char f_sReason[512], f_sTemp[512], f_sIP[64];
+	int client, f_iLength;
 	client = GetClientOfUserId(GetEventInt(event, "userid"));
 	GetEventString(event, "reason", f_sReason, sizeof(f_sReason));
 	GetEventString(event, "name", f_sTemp, sizeof(f_sTemp));
@@ -413,7 +414,7 @@ public Action:Commands_BlockEntExploit(client, args)
 	return Plugin_Continue;
 }
 
-public Action:Commands_CommandListener(client, const String:command[], argc)
+public Action Commands_CommandListener(client, const char[] command, argc)
 {
 	if (!client || g_bIsFake[client])
 		return Plugin_Continue;
@@ -422,7 +423,8 @@ public Action:Commands_CommandListener(client, const String:command[], argc)
 	if (!g_bCmdEnabled)
 		return Plugin_Continue;
 	
-	decl bool:f_bBan, String:f_sCmd[64];
+	bool f_bBan;
+	char f_sCmd[64];
 	
 	strcopy(f_sCmd, sizeof(f_sCmd), command);
 	StringToLower(f_sCmd);
@@ -430,7 +432,7 @@ public Action:Commands_CommandListener(client, const String:command[], argc)
 	// Check to see if this person is command spamming.
 	if (g_iCmdSpam != 0 && !GetTrieValue(g_hIgnoredCmds, f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[client]++ > g_iCmdSpam)
 	{
-		decl String:f_sAuthID[64], String:f_sIP[64], String:f_sCmdString[128];
+		char f_sAuthID[64], f_sIP[64], f_sCmdString[128];
 		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
 		GetClientIP(client, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
