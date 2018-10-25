@@ -163,16 +163,16 @@ Client_OnMapEnd()
 {
 	g_bClientMapStarted = false;
 	
-	for (new i = 0; i < MAX_CONNECTIONS; i++)
+	for(new i = 0; i < MAX_CONNECTIONS; i++)
 	strcopy(g_sClientConnections[i], 64, "");
 	
-	if (g_iGame == GAME_CSS)
+	if(g_iGame == GAME_CSS)
 		Client_CleanEvent(INVALID_HANDLE, "", false);
 }
 
 //- Timers -//
 
-public Action:Client_AntiSpamConnectTimer(Handle:timer, any:i)
+public Action Client_AntiSpamConnectTimer(Handle timer, any i)
 {
 	strcopy(g_sClientConnections[i], 64, "");
 	return Plugin_Stop;

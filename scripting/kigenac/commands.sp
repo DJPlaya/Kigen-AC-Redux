@@ -196,7 +196,8 @@ Commands_OnPluginEnd()
 
 public Action:Commands_EventDisconnect(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	decl String:f_sReason[512], String:f_sTemp[512], f_iLength, client, String:f_sIP[64];
+	char f_sReason[512], f_sTemp[512], f_sIP[64];
+	int client, f_iLength;
 	client = GetClientOfUserId(GetEventInt(event, "userid"));
 	GetEventString(event, "reason", f_sReason, sizeof(f_sReason));
 	GetEventString(event, "name", f_sTemp, sizeof(f_sTemp));
@@ -426,7 +427,11 @@ public Action Commands_CommandListener(client, const char[] command, argc)
 		
 	if(!g_bCmdEnabled)
 		return Plugin_Continue;
+<<<<<<< HEAD
 		
+=======
+	
+>>>>>>> 95267ad86332a76f29442845477b8d1e8dff7ccc
 	bool f_bBan;
 	char f_sCmd[64];
 	
