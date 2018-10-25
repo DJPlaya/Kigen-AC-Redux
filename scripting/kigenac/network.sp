@@ -21,13 +21,13 @@
 // Old Network version, to be replaced soon.
 
 //- Global Variables -//
-new Handle:g_hCVarNetEnabled = INVALID_HANDLE;
-new Handle:g_hCVarNetUseBanlist = INVALID_HANDLE;
-new Handle:g_hCVarNetUseUpdate = INVALID_HANDLE;
-new Handle:g_hUpdateFile = INVALID_HANDLE;
-new Handle:g_hSocket = INVALID_HANDLE;
-new Handle:g_hTimer = INVALID_HANDLE;
-new Handle:g_hVTimer = INVALID_HANDLE;
+Handle g_hCVarNetEnabled = INVALID_HANDLE;
+Handle g_hCVarNetUseBanlist = INVALID_HANDLE;
+//Handle g_hCVarNetUseUpdate = INVALID_HANDLE;
+Handle g_hUpdateFile = INVALID_HANDLE;
+Handle g_hSocket = INVALID_HANDLE;
+Handle g_hTimer = INVALID_HANDLE;
+Handle g_hVTimer = INVALID_HANDLE;
 new bool:g_bCVarNetEnabled = true;
 new bool:g_bCVarNetUseBanlist = true;
 new bool:g_bCVarNetUseUpdate = true;
@@ -59,12 +59,12 @@ Network_OnPluginStart()
 	g_hCVarNetUseBanlist = CreateConVar("kac_net_usebanlist", "1", "Use the global banlist.");
 	g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
 	
-	g_hCVarNetUseUpdate = CreateConVar("kac_net_autoupdate", "1", "Use the Auto-Update feature.");
-	g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
+	//g_hCVarNetUseUpdate = CreateConVar("kac_net_autoupdate", "1", "Use the Auto-Update feature.");
+	//g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
 	
 	HookConVarChange(g_hCVarNetEnabled, Network_ConVarChange);
 	HookConVarChange(g_hCVarNetUseBanlist, Network_ConVarChange);
-	HookConVarChange(g_hCVarNetUseUpdate, Network_ConVarChange);
+	//HookConVarChange(g_hCVarNetUseUpdate, Network_ConVarChange);
 	#endif
 	
 	g_hTimer = CreateTimer(5.0, Network_Timer, _, TIMER_REPEAT);
@@ -100,7 +100,7 @@ public Network_ConVarChange(Handle:convar, const String:oldValue[], const String
 	new bool:f_bNetEnabled = g_bCVarNetEnabled;
 	
 	g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
-	g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
+	//g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
 	
 	if (!g_bCVarNetUseBanlist && !g_bCVarNetUseUpdate)
 		g_bCVarNetEnabled = false;
