@@ -1,5 +1,3 @@
- // Header to go here
-
 /*
     Kigen's Anti-Cheat
     Copyright (C) 2007-2011 CodingDirect LLC
@@ -48,9 +46,9 @@ bool g_bAuthorized[MAXPLAYERS + 1] =  { false, ... }; // when I need to check on
 bool g_bInGame[MAXPLAYERS + 1] =  { false, ... }; // system resources as compared to these. - Kigen
 bool g_bIsAdmin[MAXPLAYERS + 1] =  { false, ... };
 bool g_bIsFake[MAXPLAYERS + 1] =  { false, ... };
-bool g_bSourceBans = false;
-bool g_bSourceBansPP = false;
-bool g_bMapStarted = false;
+bool g_bSourceBans;
+bool g_bSourceBansPP;
+bool g_bMapStarted;
 Handle g_hCLang[MAXPLAYERS + 1] =  { INVALID_HANDLE, ... };
 Handle g_hSLang = INVALID_HANDLE;
 Handle g_hValidateTimer[MAXPLAYERS + 1] =  { INVALID_HANDLE, ... };
@@ -82,8 +80,7 @@ public Plugin myinfo =
 
 //- Plugin Functions -//
 
-// SourceMod 1.3 uses the new native AskPluginLoad2 so that APLRes can be used.
-public APLRes AskPluginLoad2(Handle myself, bool late, String:error[], err_max)
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	MarkNativeAsOptional("SDKHook");
 	MarkNativeAsOptional("SDKUnhook");
@@ -92,7 +89,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, String:error[], err_max)
 	return APLRes_Success;
 }
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	Handle f_hTemp;
 	char f_sGame[64], f_sLang[8];
@@ -154,8 +151,8 @@ public OnPluginStart()
 	HookConVarChange(g_hCVarVersion, VersionChange);
 	
 	KAC_PrintToServer(KAC_LOADED);
-} // You are here because of the Client_OnMapStart Warning right? Well, i really dont know why it spits that out but its on my TODO
-
+}
+// You are here because of the Client_OnMapStart Warning right? Well, i really dont know why it spits that out but its on my TODO
 public OnAllPluginsLoaded()
 {
 	char f_sReason[256], f_sAuthID[64];

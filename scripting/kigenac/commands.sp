@@ -404,7 +404,7 @@ public Action:Commands_BlockEntExploit(client, args)
 	{
 		if (g_bLogCmds)
 		{
-			decl String:f_sCmdName[64];
+			char f_sCmdName[64];
 			GetCmdArg(0, f_sCmdName, sizeof(f_sCmdName));
 			LogToFileEx(g_sCmdLogPath, "%L attempted command: %s %s", client, f_sCmdName, f_sCmd);
 		}
@@ -413,16 +413,22 @@ public Action:Commands_BlockEntExploit(client, args)
 	return Plugin_Continue;
 }
 
-public Action:Commands_CommandListener(client, const String:command[], argc)
+public Action Commands_CommandListener(client, const char[] command, argc)
 {
-	if (!client || g_bIsFake[client])
+	if(!client)
 		return Plugin_Continue;
-	if (!g_bInGame[client])
+		
+	if(g_bIsFake[client]) // We could have added this in the first Check but the Client index can be -1 and wont match any entry in the array
+		return Plugin_Continue;
+		
+	if(!g_bInGame[client])
 		return Plugin_Stop;
-	if (!g_bCmdEnabled)
+		
+	if(!g_bCmdEnabled)
 		return Plugin_Continue;
-	
-	decl bool:f_bBan, String:f_sCmd[64];
+		
+	bool f_bBan;
+	char f_sCmd[64];
 	
 	strcopy(f_sCmd, sizeof(f_sCmd), command);
 	StringToLower(f_sCmd);
@@ -430,7 +436,7 @@ public Action:Commands_CommandListener(client, const String:command[], argc)
 	// Check to see if this person is command spamming.
 	if (g_iCmdSpam != 0 && !GetTrieValue(g_hIgnoredCmds, f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[client]++ > g_iCmdSpam)
 	{
-		decl String:f_sAuthID[64], String:f_sIP[64], String:f_sCmdString[128];
+		char f_sAuthID[64], f_sIP[64], f_sCmdString[128];
 		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
 		GetClientIP(client, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
