@@ -142,7 +142,7 @@ public void OnPluginStart()
 	if (f_hTemp != INVALID_HANDLE)
 		SetConVarInt(f_hTemp, 1);
 	
-	AutoExecConfig(true, "kigenac");
+	AutoExecConfig(true, "Kigen_AC");
 	
 	g_hCVarVersion = CreateConVar("kac_version", PLUGIN_VERSION, "KAC version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
 	// "notify" - So that we appear on server tracking sites.  "dontrecord" - So that we don't get saved to the auto cfg.
