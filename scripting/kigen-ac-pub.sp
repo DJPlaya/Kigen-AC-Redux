@@ -1,21 +1,19 @@
- // Header to go here
-
 /*
-    Kigen's Anti-Cheat
-    Copyright (C) 2007-2011 CodingDirect LLC
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	Kigen's Anti-Cheat
+	Copyright (C) 2007-2011 CodingDirect LLC
+	
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 //- Pre-processor Defines -//
@@ -81,7 +79,7 @@ public Plugin myinfo =
 //- Plugin Functions -//
 
 // SourceMod 1.3 uses the new native AskPluginLoad2 so that APLRes can be used.
-public APLRes AskPluginLoad2(Handle myself, bool late, String:error[], err_max)
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	MarkNativeAsOptional("SDKHook");
 	MarkNativeAsOptional("SDKUnhook");
@@ -99,24 +97,30 @@ public OnPluginStart()
 	
 	//- Identify the game -//
 	GetGameFolderName(f_sGame, sizeof(f_sGame));
-	if (StrEqual(f_sGame, "cstrike"))
+	if(StrEqual(f_sGame, "cstrike"))
 		g_iGame = GAME_CSS;
-	else if (StrEqual(f_sGame, "dod"))
+		
+	else if(StrEqual(f_sGame, "dod"))
 		g_iGame = GAME_DOD;
-	else if (StrEqual(f_sGame, "tf"))
+		
+	else if(StrEqual(f_sGame, "tf"))
 		g_iGame = GAME_TF2;
-	else if (StrEqual(f_sGame, "insurgency"))
+		
+	else if(StrEqual(f_sGame, "insurgency"))
 		g_iGame = GAME_INS;
-	else if (StrEqual(f_sGame, "left4dead"))
+		
+	else if(StrEqual(f_sGame, "left4dead"))
 		g_iGame = GAME_L4D;
-	else if (StrEqual(f_sGame, "left4dead2"))
+		
+	else if(StrEqual(f_sGame, "left4dead2"))
 		g_iGame = GAME_L4D2;
-	else if (StrEqual(f_sGame, "hl2mp"))
+		
+	else if(StrEqual(f_sGame, "hl2mp"))
 		g_iGame = GAME_HL2DM;
-	else if (StrEqual(f_sGame, "csgo"))
+		
+	else if(StrEqual(f_sGame, "csgo"))
 		g_iGame = GAME_CSGO;
-	
-	
+		
 	//- Module Calls -//
 	Status_OnPluginStart();
 	Client_OnPluginStart()
@@ -132,17 +136,17 @@ public OnPluginStart()
 	
 	//- Get server language -//
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
-	if (!GetTrieValue(g_hLanguages, f_sLang, any:g_hSLang)) // If we can't find the server's language revert to English. - Kigen
+	if(!GetTrieValue(g_hLanguages, f_sLang, any:g_hSLang)) // If we can't find the server's language revert to English. - Kigen
 		GetTrieValue(g_hLanguages, "en", any:g_hSLang);
-	
+		
 	g_hClearTimer = CreateTimer(14400.0, KAC_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
 	
 	//- Prevent Speeds -//
 	f_hTemp = FindConVar("sv_max_usercmd_future_ticks");
-	if (f_hTemp != INVALID_HANDLE)
+	if(f_hTemp != INVALID_HANDLE)
 		SetConVarInt(f_hTemp, 1);
-	
+		
 	AutoExecConfig(true, "kigenac");
 	
 	g_hCVarVersion = CreateConVar("kac_version", PLUGIN_VERSION, "KAC version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
@@ -168,24 +172,24 @@ public OnAllPluginsLoaded()
 	Commands_OnAllPluginsLoaded();
 	
 	//- Late load stuff -//
-	for(new i = 1; i <= MaxClients; i++)
+	for(new iCount = 1; iCount <= MaxClients; iCount++)
 	{
-		if(IsClientConnected(i))
+		if(IsClientConnected(iCount))
 		{
-			if(!OnClientConnect(i, f_sReason, sizeof(f_sReason)))
+			if(!OnClientConnect(iCount, f_sReason, sizeof(f_sReason)))
 			{
-				KickClient(i, "%s", f_sReason);
+				KickClient(iCount, "%s", f_sReason);
 				continue;
 			}
 			
-			if(IsClientAuthorized(i) && GetClientAuthId(i, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID))) // GetClientAuthString(i, f_sAuthID, sizeof(f_sAuthID))
+			if(IsClientAuthorized(iCount) && GetClientAuthId(iCount, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID))) // GetClientAuthString(i, f_sAuthID, sizeof(f_sAuthID))
 			{
-				OnClientAuthorized(i, f_sAuthID);
-				OnClientPostAdminCheck(i);
+				OnClientAuthorized(iCount, f_sAuthID);
+				OnClientPostAdminCheck(iCount);
 			}
 			
-			if(IsClientInGame(i))
-				OnClientPutInServer(i);
+			if(IsClientInGame(iCount))
+				OnClientPutInServer(iCount);
 		}
 	}
 }
@@ -201,28 +205,29 @@ public OnPluginEnd()
 	#if defined PRIVATE
 	Private_OnPluginEnd();
 	#endif
-	for (new i = 0; i <= MaxClients; i++)
+	
+	for(new iClient = 0; iClient <= MaxClients; iClient++)
 	{
-		g_bConnected[i] = false;
-		g_bAuthorized[i] = false;
-		g_bInGame[i] = false;
-		g_bIsAdmin[i] = false;
-		g_hCLang[i] = g_hSLang;
-		g_bShouldProcess[i] = false;
+		g_bConnected[iClient] = false;
+		g_bAuthorized[iClient] = false;
+		g_bInGame[iClient] = false;
+		g_bIsAdmin[iClient] = false;
+		g_hCLang[iClient] = g_hSLang;
+		g_bShouldProcess[iClient] = false;
 		
-		if (g_hValidateTimer[i] != INVALID_HANDLE)
-			CloseHandle(g_hValidateTimer[i]);
-		
-		CVars_OnClientDisconnect(i);
+		if(g_hValidateTimer[iClient] != INVALID_HANDLE)
+			CloseHandle(g_hValidateTimer[iClient]);
+			
+		CVars_OnClientDisconnect(iClient);
 	}
 	
-	if (g_hClearTimer != INVALID_HANDLE)
+	if(g_hClearTimer != INVALID_HANDLE)
 		CloseHandle(g_hClearTimer);
 }
 
 //- Map Functions -//
 
-public OnMapStart()
+public void OnMapStart()
 {
 	g_bMapStarted = true;
 	CVars_CreateNewOrder();
@@ -230,7 +235,7 @@ public OnMapStart()
 	RCON_OnMap();
 }
 
-public OnMapEnd()
+public void OnMapEnd()
 {
 	g_bMapStarted = false;
 	Client_OnMapEnd();
@@ -275,6 +280,7 @@ public OnClientAuthorized(client, const char[] auth)
 		
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
+	
 	if(f_hTemp != INVALID_HANDLE)
 		CloseHandle(f_hTemp);
 }
@@ -283,21 +289,21 @@ public OnClientPutInServer(client)
 {
 	Eyetest_OnClientPutInServer(client); // Ok, we'll help them bots too.
 	
-	if (IsFakeClient(client)) // Death to them bots!
+	if(IsFakeClient(client)) // Death to them bots!
 		return;
 		
 	char f_sLang[8];
 	
 	g_bInGame[client] = true;
 	
-	if (!g_bAuthorized[client]) // Not authorized yet?!?
+	if(!g_bAuthorized[client]) // Not authorized yet?!?
 		g_hValidateTimer[client] = CreateTimer(10.0, KAC_ValidateTimer, client);
 		
 	else
 		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
 		
 	GetLanguageInfo(GetClientLanguage(client), f_sLang, sizeof(f_sLang));
-	if (!GetTrieValue(g_hLanguages, f_sLang, g_hCLang[client]))
+	if(!GetTrieValue(g_hLanguages, f_sLang, g_hCLang[client]))
 		g_hCLang[client] = g_hSLang;
 }
 
@@ -324,9 +330,9 @@ public OnClientDisconnect(client)
 	g_bShouldProcess[client] = false;
 	g_bHooked[client] = false;
 	
-	for(new i = 1; i <= MaxClients; i++)
-	if(g_bConnected[i] && (!IsClientConnected(i) || IsFakeClient(i)))
-		OnClientDisconnect(i);
+	for(new iCount = 1; iCount <= MaxClients; iCount++)
+		if(g_bConnected[iCount] && (!IsClientConnected(iCount) || IsFakeClient(iCount)))
+			OnClientDisconnect(iCount);
 		
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
@@ -344,9 +350,9 @@ public Action KAC_ValidateTimer(Handle timer, any client)
 {
 	g_hValidateTimer[client] = INVALID_HANDLE;
 	
-	if (!g_bInGame[client] || g_bAuthorized[client])
+	if(!g_bInGame[client] || g_bAuthorized[client])
 		return Plugin_Stop;
-	
+		
 	KAC_Kick(client, KAC_FAILEDAUTH);
 	return Plugin_Stop;
 }
@@ -360,6 +366,6 @@ public Action KAC_ClearTimer(Handle timer, any nothing)
 
 public VersionChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
-	if (!StrEqual(newValue, PLUGIN_VERSION))
+	if(!StrEqual(newValue, PLUGIN_VERSION))
 		SetConVarString(g_hCVarVersion, PLUGIN_VERSION);
 }
