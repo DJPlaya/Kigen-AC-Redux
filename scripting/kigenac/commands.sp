@@ -431,12 +431,22 @@ public Action Commands_BlockEntExploit(client, args)
 	return Plugin_Continue;
 }
 
-public Action Commands_CommandListener(client, const char[] command, argc)
+public Action Commands_CommandListener(iClient, const char[] command, argc)
 {
+<<<<<<< HEAD
 	if(!client || g_bIsFake[client])
 		return Plugin_Continue;
 		
 	if(!g_bInGame[client])
+=======
+	if(!iClient || iClient == -1)
+		return Plugin_Continue;
+		
+	if(g_bIsFake[iClient]) // We could have added this in the first Check but the Client index can be -1 and wont match any entry in the array
+		return Plugin_Continue;
+		
+	if(!g_bInGame[iClient])
+>>>>>>> 1a2415f9a579060593b4f0b5c7a13b2261779235
 		return Plugin_Stop;
 		
 	if(!g_bCmdEnabled)
@@ -449,15 +459,24 @@ public Action Commands_CommandListener(client, const char[] command, argc)
 	StringToLower(f_sCmd);
 	
 	// Check to see if this person is command spamming.
+<<<<<<< HEAD
 	if(g_iCmdSpam != 0 && !GetTrieValue(g_hIgnoredCmds, f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[client]++ > g_iCmdSpam)
+=======
+	if (g_iCmdSpam != 0 && !GetTrieValue(g_hIgnoredCmds, f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[iClient]++ > g_iCmdSpam)
+>>>>>>> 1a2415f9a579060593b4f0b5c7a13b2261779235
 	{
 		char f_sAuthID[64], f_sIP[64], f_sCmdString[128];
-		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
-		GetClientIP(client, f_sIP, sizeof(f_sIP));
+		GetClientAuthId(iClient, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(iClient, f_sAuthID, sizeof(f_sAuthID));
+		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
+<<<<<<< HEAD
 		KAC_Log("%N (ID: %s | IP: %s) was kicked for command spamming: %s %s", client, f_sAuthID, f_sIP, command, f_sCmdString);
 		KAC_Kick(client, KAC_KCMDSPAM);
 		
+=======
+		KAC_Log("%N (ID: %s | IP: %s) was kicked for command spamming: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
+		KAC_Kick(iClient, KAC_KCMDSPAM);
+>>>>>>> 1a2415f9a579060593b4f0b5c7a13b2261779235
 		return Plugin_Stop;
 	}
 	
@@ -466,11 +485,16 @@ public Action Commands_CommandListener(client, const char[] command, argc)
 		if(f_bBan)
 		{
 			char f_sAuthID[64], f_sIP[64], f_sCmdString[256];
+<<<<<<< HEAD
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
+=======
+			GetClientAuthId(iClient, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(iClient, f_sAuthID, sizeof(f_sAuthID));
+			GetClientIP(iClient, f_sIP, sizeof(f_sIP));
+>>>>>>> 1a2415f9a579060593b4f0b5c7a13b2261779235
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("%N (ID: %s | IP: %s) was banned for command usage violation of command: %s %s", client, f_sAuthID, f_sIP, command, f_sCmdString);
-			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Command %s violation", command);
+			KAC_Log("%N (ID: %s | IP: %s) was banned for command usage violation of command: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
+			KAC_Ban(iClient, 0, KAC_CBANNED, "KAC: Command %s violation", command);
 		}
 		
 		return Plugin_Stop;
@@ -480,7 +504,7 @@ public Action Commands_CommandListener(client, const char[] command, argc)
 	{
 		char f_sCmdString[256];
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		LogToFileEx(g_sCmdLogPath, "%L used command: %s %s", client, command, f_sCmdString);
+		LogToFileEx(g_sCmdLogPath, "%L used command: %s %s", iClient, command, f_sCmdString);
 	}
 	
 	return Plugin_Continue;

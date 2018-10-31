@@ -91,10 +91,11 @@ Eyetest_OnPluginEnd()
 
 //- Clients -//
 
-Eyetest_OnClientPutInServer(client)
+void Eyetest_OnClientPutInServer(client)
 {
-	if (!IsFakeClient(client) && IsPlayerAlive(client))
+	if(!IsFakeClient(client) && IsPlayerAlive(client))
 		g_bShouldProcess[client] = true;
+		
 	else
 		g_bShouldProcess[client] = false;
 	
@@ -114,15 +115,16 @@ Eyetest_OnClientPutInServer(client)
 
 //- Timer -//
 
-public Action:Eyetest_Timer(Handle:timer, any:we)
+public Action Eyetest_Timer(Handle timer, any we)
 {
-	if (!g_bEyeEnabled)
+	if(!g_bEyeEnabled)
 	{
 		g_hEyeTimer = INVALID_HANDLE;
 		return Plugin_Stop;
 	}
 	
-	decl Float:f_vAngles[3], Float:f_fX, Float:f_fZ, String:f_sAuthID[64], String:f_sIP[64];
+	float f_vAngles[3], f_fX, f_fZ;
+	char f_sAuthID[64], f_sIP[64];
 	for (new i = 1; i <= MaxClients; i++)
 	{
 		if (g_bShouldProcess[i] && GetClientEyeAngles(i, f_vAngles))
@@ -150,7 +152,7 @@ public Action:Eyetest_Timer(Handle:timer, any:we)
 
 //- Hooks -//
 
-public Eyetest_EnableChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public Eyetest_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bEyeEnabled = GetConVarBool(convar);
 	if (g_bEyeEnabled && g_hEyeTimer == INVALID_HANDLE)
