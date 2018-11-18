@@ -4,10 +4,12 @@
 Requires:
 Sockets 3.0.1+
 
-I have just fixed a few things on the last Dev Version of KAC.
-Ime still working on my own AC System, so dont exspect huge Changes here.
+Supports Sourcebans and Sourcebans++
 
-SMAC and KAC are outdated, VAC dosent do its Job and NoCheatz-4 is discontinued.
+I have just fixed a few things on the last Dev Version of KAC.
+Ime still working on my own AC System, so dont exspect huge Changes here, i either will merge this someday into my own AC or just do little fixes.
+
+SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small and pretty unstable.
 I hope this Plugin will help some People, i try to keep it up-to-date so there is at least one maintained Community AC Project.
 
 Since i havent implemented an Updater yet (or renewed the old one), watch this Project on GitHub so you will be informed about Updates.
