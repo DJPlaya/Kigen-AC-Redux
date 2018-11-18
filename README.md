@@ -1,6 +1,9 @@
 # Kigen Anti Cheat
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d02e2cc3856043a1a2b8277834f54bd5)](https://app.codacy.com/app/DJPlaya/kigen-ac-pub?utm_source=github.com&utm_medium=referral&utm_content=DJPlaya/kigen-ac-pub&utm_campaign=Badge_Grade_Dashboard)
 
+Requires:
+Sockets 3.0.1+
+
 I have just fixed a few things on the last Dev Version of KAC.
 Ime still working on my own AC System, so dont exspect huge Changes here.
 
