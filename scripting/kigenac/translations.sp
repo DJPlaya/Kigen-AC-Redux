@@ -1,19 +1,19 @@
 /*
-    Kigen's Anti-Cheat Translations Module
-    Copyright (C) 2007-2011 CodingDirect LLC
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	Kigen's Anti-Cheat Eye Test Module
+	Copyright (C) 2007-2011 CodingDirect LLC
+	
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define TRANSLATIONS
@@ -89,11 +89,11 @@
 #define KAC_FORCEDREVAL "KAC_FORCEDREVAL"
 #define KAC_CANNOTREVAL "KAC_CANNOTREVAL"
 
-new Handle:g_hLanguages = INVALID_HANDLE;
+Handle g_hLanguages = INVALID_HANDLE;
 
 Trans_OnPluginStart()
 {
-	new Handle:f_hTemp = INVALID_HANDLE;
+	Handle f_hTemp = INVALID_HANDLE;
 	g_hLanguages = CreateTrie();
 	
 	// Load languages into the adt_trie.
@@ -104,7 +104,7 @@ Trans_OnPluginStart()
 	//- English -//
 	if (!GetTrieValue(g_hLanguages, "en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 		SetFailState("Unable to create language tree for English");
-	
+		
 	// Load the phrases into Translations.
 	SetTrieString(f_hTemp, KAC_LOADED, "Kigen's Anti-Cheat has been loaded successfully.");
 	SetTrieString(f_hTemp, KAC_BANNED, "You have been banned for a cheating infraction");
@@ -178,9 +178,9 @@ Trans_OnPluginStart()
 	
 	//- French -//
 	// Thank you to vintage for this translation.  http://kigenac.com/memberlist.php?mode=viewprofile&u=1035
-	if (!GetTrieValue(g_hLanguages, "fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if(!GetTrieValue(g_hLanguages, "fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 		SetFailState("Unable to create language tree for French");
-	
+		
 	SetTrieString(f_hTemp, KAC_LOADED, "Kigen's Anti-Cheat est opérationnel.");
 	SetTrieString(f_hTemp, KAC_BANNED, "Vous avez été banni pour cheat détecté");
 	SetTrieString(f_hTemp, KAC_GBANNED, "Vous avez été banni de tous les serveurs protégés par Kigen's Anti-Cheat (KAC). Voir http://www.kigenac.com/ pour plus d'informations");
@@ -255,7 +255,7 @@ Trans_OnPluginStart()
 	// Thank you to asterix for this translation.  http://kigenac.com/memberlist.php?mode=viewprofile&u=116
 	if (!GetTrieValue(g_hLanguages, "it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 		SetFailState("Unable to create language tree for Italian");
-	
+		
 	SetTrieString(f_hTemp, KAC_LOADED, "L'anticheats Kigen è stato caricato con successo.");
 	SetTrieString(f_hTemp, KAC_BANNED, "Sei stato bannato per aver utilizzato dei trucchi");
 	SetTrieString(f_hTemp, KAC_GBANNED, "Sei bannato da tutti i server protetti dall'anticheats Kigen (KAC). Visita http://www.kigenac.com/ per ulteriori informazioni");

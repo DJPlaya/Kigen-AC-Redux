@@ -1,19 +1,19 @@
 /*
-    Kigen's Anti-Cheat Eye Test Module
-    Copyright (C) 2007-2011 CodingDirect LLC
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	Kigen's Anti-Cheat Eye Test Module
+	Copyright (C) 2007-2011 CodingDirect LLC
+	
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define EYETEST
@@ -24,43 +24,45 @@
 
 //- Global Variables -//
 
-new bool:g_bEyeEnabled = false;
-new bool:g_bAntiWall = false;
-new Handle:g_hEyeTimer = INVALID_HANDLE;
-new Handle:g_hCVarEyeEnable = INVALID_HANDLE;
-new Handle:g_hCVarAntiWall = INVALID_HANDLE;
-new bool:g_bIsVisible[MAXPLAYERS + 1][MAXPLAYERS + 1];
-new bool:g_bShouldProcess[MAXPLAYERS + 1];
-new bool:g_bHooked[MAXPLAYERS + 1];
-new bool:g_bAntiWallDisabled = true;
-new Float:g_vClientPos[MAXPLAYERS + 1][3];
-new Float:g_vClientEye[MAXPLAYERS + 1][3];
-new g_iVelOff;
-new g_iBaseVelOff;
-new g_iEyeStatus;
-new g_iAntiWHStatus;
-new g_iWeaponOwner[MAX_ENTITIES];
+bool g_bEyeEnabled = false;
+bool g_bAntiWall = false;
+Handle g_hEyeTimer = INVALID_HANDLE;
+Handle g_hCVarEyeEnable = INVALID_HANDLE;
+Handle g_hCVarAntiWall = INVALID_HANDLE;
+bool g_bIsVisible[MAXPLAYERS + 1][MAXPLAYERS + 1];
+bool g_bShouldProcess[MAXPLAYERS + 1];
+bool g_bHooked[MAXPLAYERS + 1];
+bool g_bAntiWallDisabled = true;
+float g_vClientPos[MAXPLAYERS + 1][3];
+float g_vClientEye[MAXPLAYERS + 1][3];
+int g_iVelOff;
+int g_iBaseVelOff;
+int g_iEyeStatus;
+int g_iAntiWHStatus;
+int g_iWeaponOwner[MAX_ENTITIES];
 
 //- Plugin Functions -//
 
 Eyetest_OnPluginStart()
 {
-	if (g_iGame != GAME_INS && g_iGame != GAME_CSS && g_iGame != GAME_L4D2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO)
+	if(g_iGame != GAME_INS && g_iGame != GAME_CSS && g_iGame != GAME_L4D2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO)
 	{
 		g_hCVarEyeEnable = CreateConVar("kac_eyes_enable", "0", "Enable the eye test detection routine.");
 		Eyetest_EnableChange(g_hCVarEyeEnable, "", "");
 		
-		if (g_bEyeEnabled)
+		if(g_bEyeEnabled)
 			g_iEyeStatus = Status_Register(KAC_EYEMOD, KAC_ON);
+			
 		else
 			g_iEyeStatus = Status_Register(KAC_EYEMOD, KAC_OFF);
-		
+			
 		HookConVarChange(g_hCVarEyeEnable, Eyetest_EnableChange);
 	}
+	
 	else
 		g_iEyeStatus = Status_Register(KAC_EYEMOD, KAC_DISABLED);
-	
-	if (GetMaxEntities() < MAX_ENTITIES)
+		
+	if(GetMaxEntities() < MAX_ENTITIES)
 	{
 		g_bAntiWallDisabled = false;
 		g_iAntiWHStatus = Status_Register(KAC_ANTIWH, KAC_OFF);
@@ -71,21 +73,22 @@ Eyetest_OnPluginStart()
 		
 		HookConVarChange(g_hCVarAntiWall, Eyetest_AntiWallChange);
 	}
+	
 	else
 		g_iAntiWHStatus = Status_Register(KAC_ANTIWH, KAC_DISABLED);
-	
+		
 	HookEvent("player_spawn", Eyetest_PlayerSpawn);
 	HookEvent("player_death", Eyetest_PlayerDeath);
 }
 
 Eyetest_OnPluginEnd()
 {
-	if (g_bAntiWall)
-		for (new i = 1; i <= MaxClients; i++)
-	if (g_bHooked[i])
-		SDKUnhook(i, SDKHook_SetTransmit, Eyetest_Transmit);
-		
-	if (g_hEyeTimer != INVALID_HANDLE)
+	if(g_bAntiWall)
+		for(new i = 1; i <= MaxClients; i++)
+			if(g_bHooked[i])
+				SDKUnhook(i, SDKHook_SetTransmit, Eyetest_Transmit);
+				
+	if(g_hEyeTimer != INVALID_HANDLE)
 		CloseHandle(g_hEyeTimer);
 }
 
@@ -98,13 +101,13 @@ void Eyetest_OnClientPutInServer(client)
 		
 	else
 		g_bShouldProcess[client] = false;
-	
-	if (!g_bAntiWallDisabled && g_iVelOff < 1)
+		
+	if(!g_bAntiWallDisabled && g_iVelOff < 1)
 	{
 		g_iVelOff = GetEntSendPropOffs(client, "m_vecVelocity[0]");
 		g_iBaseVelOff = GetEntSendPropOffs(client, "m_vecBaseVelocity");
 		
-		if (g_iVelOff == -1 || g_iBaseVelOff == -1)
+		if(g_iVelOff == -1 || g_iBaseVelOff == -1)
 		{
 			g_bAntiWallDisabled = true;
 			g_bAntiWall = false;
@@ -125,9 +128,9 @@ public Action Eyetest_Timer(Handle timer, any we)
 	
 	float f_vAngles[3], f_fX, f_fZ;
 	char f_sAuthID[64], f_sIP[64];
-	for (new i = 1; i <= MaxClients; i++)
+	for(new i = 1; i <= MaxClients; i++)
 	{
-		if (g_bShouldProcess[i] && GetClientEyeAngles(i, f_vAngles))
+		if(g_bShouldProcess[i] && GetClientEyeAngles(i, f_vAngles))
 		{
 			f_fX = f_vAngles[0];
 			f_fZ = f_vAngles[2];
@@ -137,13 +140,13 @@ public Action Eyetest_Timer(Handle timer, any we)
 				f_fZ -= 360.0;
 			if (f_fX > 90.0 || f_fX < -90.0 || f_fZ > 90.0 || f_fZ < -90.0)
 			{
-				GetClientAuthId(i, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(i, f_sAuthID, sizeof(f_sAuthID));
+				GetClientAuthId(i, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 				GetClientIP(i, f_sIP, sizeof(f_sIP));
 				KAC_Log("%N (ID: %s | IP: %s) was banned for cheating with their eye angles.  Eye Angles: %f %f %f", i, f_sAuthID, f_sIP, f_fX, f_vAngles[1], f_fZ);
 				KAC_Ban(i, 0, KAC_BANNED, "KAC: Eye Angles Violation");
-				#if defined PRIVATE
-				Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) was banned for bad eye angles: %f %f %f.", i, f_sAuthID, f_sIP, f_fX, f_vAngles[1], f_fZ);
-				#endif
+				// if defined PRIVATE
+				// Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) was banned for bad eye angles: %f %f %f.", i, f_sAuthID, f_sIP, f_fX, f_vAngles[1], f_fZ);
+				// #endif
 			}
 		}
 	}
@@ -155,12 +158,14 @@ public Action Eyetest_Timer(Handle timer, any we)
 public Eyetest_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bEyeEnabled = GetConVarBool(convar);
-	if (g_bEyeEnabled && g_hEyeTimer == INVALID_HANDLE)
+	
+	if(g_bEyeEnabled && g_hEyeTimer == INVALID_HANDLE)
 	{
 		g_hEyeTimer = CreateTimer(0.5, Eyetest_Timer, _, TIMER_REPEAT);
 		Status_Report(g_iEyeStatus, KAC_ON);
 	}
-	else if (!g_bEyeEnabled && g_hEyeTimer != INVALID_HANDLE)
+	
+	else if(!g_bEyeEnabled && g_hEyeTimer != INVALID_HANDLE)
 	{
 		CloseHandle(g_hEyeTimer);
 		g_hEyeTimer = INVALID_HANDLE;
@@ -168,7 +173,7 @@ public Eyetest_EnableChange(Handle convar, const char[] oldValue, const char[] n
 	}
 }
 
-public Eyetest_AntiWallChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	new bool:f_bEnabled = GetConVarBool(convar);
 	
@@ -253,7 +258,7 @@ public Action:Eyetest_Equip(client, weapon)
 	if (g_iWeaponOwner[weapon] == 0)
 	{
 		g_iWeaponOwner[weapon] = client;
-		SDKHook(weapon, SDKHook_SetTransmit, Eyetest_WeaponTransmit);
+		SDKHook(weapon, SDKHook_SetTransmit, Eyetest_WeaponTransmit); // ################# Crash reason
 	}
 }
 
@@ -464,5 +469,3 @@ Eyetest_Unhook(client)
 	SDKUnhook(client, SDKHook_WeaponEquip, Eyetest_Equip);
 	SDKUnhook(client, SDKHook_WeaponDrop, Eyetest_Drop);
 }
-
-//- EoF -//

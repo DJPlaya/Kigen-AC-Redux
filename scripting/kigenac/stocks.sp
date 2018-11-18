@@ -1,32 +1,33 @@
 /*
-    Kigen's Anti-Cheat Translations Module
-    Copyright (C) 2007-2011 CodingDirect LLC
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	Kigen's Anti-Cheat Eye Test Module
+	Copyright (C) 2007-2011 CodingDirect LLC
+	
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define STOCKS
 
-stock KAC_Translate(client, String:trans[], String:dest[], maxlen)
+stock KAC_Translate(client, char[] trans, char[] dest, maxlen)
 {
 	if (client)
 		GetTrieString(g_hCLang[client], trans, dest, maxlen);
+		
 	else
 		GetTrieString(g_hSLang, trans, dest, maxlen);
 }
 
-stock KAC_ReplyToCommand(client, const String:trans[], any:...)
+stock KAC_ReplyToCommand(client, const char[] trans, any:...)
 {
 	decl String:f_sBuffer[256], String:f_sFormat[256];
 	if (!client)
@@ -69,10 +70,10 @@ stock KAC_PrintToChatAdmins(const String:trans[], any:...)
 
 stock KAC_PrintToChatAll(const String:trans[], any:...)
 {
-	decl String:f_sBuffer[256], String:f_sFormat[256];
-	for (new i = 1; i <= MaxClients; i++)
+	char f_sBuffer[256], f_sFormat[256];
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		if (g_bInGame[i])
+		if(g_bInGame[i])
 		{
 			GetTrieString(g_hCLang[i], trans, f_sFormat, sizeof(f_sFormat));
 			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);

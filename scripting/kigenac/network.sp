@@ -1,19 +1,19 @@
 /*
-    Kigen's Anti-Cheat Network Module
-    Copyright (C) 2007-2011 CodingDirect LLC
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	Kigen's Anti-Cheat Eye Test Module
+	Copyright (C) 2007-2011 CodingDirect LLC
+	
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define NETWORK
@@ -31,11 +31,11 @@ Handle g_hVTimer = INVALID_HANDLE;
 new bool:g_bCVarNetEnabled = true;
 new bool:g_bCVarNetUseBanlist = true;
 new bool:g_bCVarNetUseUpdate = true;
-#if defined PRIVATE
-new bool:g_bVCheckDone = true;
-#else
+// #if defined PRIVATE
+// new bool:g_bVCheckDone = true;
+// #else
 new bool:g_bVCheckDone = false;
-#endif
+// #endif
 new bool:g_bChecked[MAXPLAYERS + 1] =  { false, ... };
 new g_iInError = 0;
 new g_iNetStatus;
@@ -52,27 +52,28 @@ new String:UpdatePath[256];
 
 Network_OnPluginStart()
 {
-	#if !defined PRIVATE
+	// #if !defined PRIVATE
 	g_hCVarNetEnabled = CreateConVar("kac_net_enable", "1", "Enable the Network module.");
 	g_bCVarNetEnabled = GetConVarBool(g_hCVarNetEnabled);
 	
 	g_hCVarNetUseBanlist = CreateConVar("kac_net_usebanlist", "1", "Use the global banlist.");
 	g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
 	
-	//g_hCVarNetUseUpdate = CreateConVar("kac_net_autoupdate", "1", "Use the Auto-Update feature.");
-	//g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
+	// g_hCVarNetUseUpdate = CreateConVar("kac_net_autoupdate", "1", "Use the Auto-Update feature.");
+	// g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
 	
 	HookConVarChange(g_hCVarNetEnabled, Network_ConVarChange);
 	HookConVarChange(g_hCVarNetUseBanlist, Network_ConVarChange);
-	//HookConVarChange(g_hCVarNetUseUpdate, Network_ConVarChange);
-	#endif
+	// HookConVarChange(g_hCVarNetUseUpdate, Network_ConVarChange);
+	// #endif
 	
 	g_hTimer = CreateTimer(5.0, Network_Timer, _, TIMER_REPEAT);
 	if (g_bCVarNetEnabled)
 		g_iNetStatus = Status_Register(KAC_NETMOD, KAC_ON);
+		
 	else
 		g_iNetStatus = Status_Register(KAC_NETMOD, KAC_OFF);
-	
+		
 	RegAdminCmd("kac_net_status", Network_Checked, ADMFLAG_GENERIC, "Reports who has been checked");
 }
 
@@ -145,10 +146,10 @@ public Action:Network_Checked(client, args)
 	}
 	
 	new String:f_sAuthID[64];
-	for (new i = 1; i <= MaxClients; i++)
-	if (g_bInGame[i] && GetClientAuthId(i, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID))) // GetClientAuthString(i, f_sAuthID, sizeof(f_sAuthID))
-		ReplyToCommand(client, "%N (%s): %s", i, f_sAuthID, (g_bChecked[i]) ? "Checked" : "Waiting");
-	
+	for(new i = 1; i <= MaxClients; i++)
+		if(g_bInGame[i] && GetClientAuthId(i, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)))
+			ReplyToCommand(client, "%N (%s): %s", i, f_sAuthID, (g_bChecked[i]) ? "Checked" : "Waiting");
+			
 	return Plugin_Handled;
 }
 
@@ -398,10 +399,12 @@ public Network_OnSocketConnect(Handle:socket, any:client)
 		return;
 
 	decl String:f_sAuthID[64];
-	if ( !g_bAuthorized[client] || !GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID))) // GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID))
+	if(!g_bAuthorized[client] || !GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)))
 		SocketDisconnect(socket);
+		
 	else
 		SocketSend(socket, f_sAuthID, strlen(f_sAuthID)+1); // Send that \0! - Kigen
+		
 	Status_Report(g_iNetStatus, KAC_ON);
 	return;
 }
@@ -423,7 +426,7 @@ public Network_OnSocketReceive(Handle:socket, String:data[], const size, any:cli
 	if ( StrEqual(data, "_BAN") )
 	{
 		decl String:f_sAuthID[64], String:f_sBuffer[256];
-		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
+		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 		KAC_Translate(client, KAC_GBANNED, f_sBuffer, sizeof(f_sBuffer));
 		SetTrieString(g_hDenyArray, f_sAuthID, f_sBuffer);
 		KAC_Log(" % N( % s)is on the KAC global banlist.", client, f_sAuthID);
@@ -436,7 +439,7 @@ public Network_OnSocketReceive(Handle:socket, String:data[], const size, any:cli
 	else
 	{
 		decl String:f_sAuthID[64];
-		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)) // GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
+		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 		g_bChecked[client] = false;
 		KAC_Log(" % N( % s)got unknown reply from KAC master server.Data: % s", f_sAuthID, data);
 		Status_Report(g_iNetStatus, KAC_ERROR);

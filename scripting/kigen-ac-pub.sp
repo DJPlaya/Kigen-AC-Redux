@@ -80,10 +80,6 @@ public Plugin myinfo =
 
 //- Plugin Functions -//
 
-<<<<<<< HEAD
-// SourceMod 1.3 uses the new native AskPluginLoad2 so that APLRes can be used.
-=======
->>>>>>> 1a2415f9a579060593b4f0b5c7a13b2261779235
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	MarkNativeAsOptional("SDKHook");
@@ -135,9 +131,9 @@ public void OnPluginStart()
 	Network_OnPluginStart();
 	RCON_OnPluginStart();
 	Trans_OnPluginStart();
-	#if defined PRIVATE
-	Private_OnPluginStart();
-	#endif
+	// #if defined PRIVATE
+	// Private_OnPluginStart();
+	// #endif
 	
 	//- Get server language -//
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
@@ -146,18 +142,12 @@ public void OnPluginStart()
 		
 	g_hClearTimer = CreateTimer(14400.0, KAC_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
-	
 	//- Prevent Speeds -//
 	f_hTemp = FindConVar("sv_max_usercmd_future_ticks");
 	if(f_hTemp != INVALID_HANDLE)
 		SetConVarInt(f_hTemp, 1);
-<<<<<<< HEAD
 		
-	AutoExecConfig(true, "kigenac");
-=======
-	
 	AutoExecConfig(true, "Kigen_AC");
->>>>>>> 1a2415f9a579060593b4f0b5c7a13b2261779235
 	
 	g_hCVarVersion = CreateConVar("kac_version", PLUGIN_VERSION, "KAC version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
 	// "notify" - So that we appear on server tracking sites.  "dontrecord" - So that we don't get saved to the auto cfg.
@@ -167,7 +157,7 @@ public void OnPluginStart()
 	
 	KAC_PrintToServer(KAC_LOADED);
 }
-// You are here because of the Client_OnMapStart Warning right? Well, i really dont know why it spits that out but its on my TODO
+
 public OnAllPluginsLoaded()
 {
 	char f_sReason[256], f_sAuthID[64];
@@ -192,7 +182,7 @@ public OnAllPluginsLoaded()
 				continue;
 			}
 			
-			if(IsClientAuthorized(iCount) && GetClientAuthId(iCount, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID))) // GetClientAuthString(i, f_sAuthID, sizeof(f_sAuthID))
+			if(IsClientAuthorized(iCount) && GetClientAuthId(iCount, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)))
 			{
 				OnClientAuthorized(iCount, f_sAuthID);
 				OnClientPostAdminCheck(iCount);
@@ -212,11 +202,11 @@ public OnPluginEnd()
 	Network_OnPluginEnd();
 	RCON_OnPluginEnd();
 	//Status_OnPluginEnd(); // Currently unused
-	#if defined PRIVATE
-	Private_OnPluginEnd();
-	#endif
+	// #if defined PRIVATE
+	// Private_OnPluginEnd();
+	// #endif
 	
-	for(new iClient = 0; iClient <= MaxClients; iClient++)
+	for(int iClient = 0; iClient <= MaxClients; iClient++)
 	{
 		g_bConnected[iClient] = false;
 		g_bAuthorized[iClient] = false;
@@ -340,10 +330,10 @@ public OnClientDisconnect(client)
 	g_bShouldProcess[client] = false;
 	g_bHooked[client] = false;
 	
-	for(new iCount = 1; iCount <= MaxClients; iCount++)
+	for(int iCount = 1; iCount <= MaxClients; iCount++)
 		if(g_bConnected[iCount] && (!IsClientConnected(iCount) || IsFakeClient(iCount)))
 			OnClientDisconnect(iCount);
-		
+			
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
 	if(f_hTemp != INVALID_HANDLE)
@@ -351,7 +341,6 @@ public OnClientDisconnect(client)
 		
 	CVars_OnClientDisconnect(client);
 	Network_OnClientDisconnect(client);
-	
 }
 
 //- Timers -//
