@@ -339,7 +339,7 @@ public OnClientSettingsChanged(client)
 	
 	if(f_iSize == 0)
 	{
-		KAC_Log("%s (ID: %s | IP: %s) was kicked for having a blank name (unconnected).", f_sName, f_sAuthID, f_sIP);
+		KAC_Log("'%s'(ID: %s | IP: %s) was kicked for having a blank Name (unconnected)", f_sName, f_sAuthID, f_sIP);
 		KAC_Kick(client, KAC_CHANGENAME);
 		return;
 	}

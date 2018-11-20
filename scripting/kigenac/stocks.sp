@@ -35,40 +35,40 @@ stock KAC_ReplyToCommand(client, const char[] trans, any:...)
 	else
 		GetTrieString(g_hCLang[client], trans, f_sFormat, sizeof(f_sFormat));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
-	ReplyToCommand(client, "%s", f_sBuffer);
+	ReplyToCommand(client, "[Kigen-AC] %s", f_sBuffer);
 }
 
-stock KAC_PrintToServer(const String:trans[], any:...)
+stock KAC_PrintToServer(const char[] trans, any:...)
 {
-	decl String:f_sBuffer[256], String:f_sFormat[256];
+	char f_sBuffer[256], f_sFormat[256];
 	GetTrieString(g_hSLang, trans, f_sFormat, sizeof(f_sFormat));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
-	PrintToServer("%s", f_sBuffer);
+	PrintToServer("[Kigen-AC] %s", f_sBuffer);
 }
 
-stock KAC_PrintToChat(client, const String:trans[], any:...)
+stock KAC_PrintToChat(client, const char[] trans, any:...)
 {
-	decl String:f_sBuffer[256], String:f_sFormat[256];
+	char f_sBuffer[256], f_sFormat[256];
 	GetTrieString(g_hCLang[client], trans, f_sFormat, sizeof(f_sFormat));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
-	PrintToChat(client, "%s", f_sBuffer);
+	PrintToChat(client, "[Kigen-AC] %s", f_sBuffer);
 }
 
-stock KAC_PrintToChatAdmins(const String:trans[], any:...)
+stock KAC_PrintToChatAdmins(const char[] trans, any:...)
 {
-	decl String:f_sBuffer[256], String:f_sFormat[256];
-	for (new i = 1; i <= MaxClients; i++)
+	char f_sBuffer[256], f_sFormat[256];
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		if (g_bIsAdmin[i])
+		if(g_bIsAdmin[i])
 		{
 			GetTrieString(g_hCLang[i], trans, f_sFormat, sizeof(f_sFormat));
 			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
-			PrintToChat(i, "%s", f_sBuffer);
+			PrintToChat(i, "[Kigen-AC] %s", f_sBuffer);
 		}
 	}
 }
 
-stock KAC_PrintToChatAll(const String:trans[], any:...)
+stock KAC_PrintToChatAll(const char[] trans, any:...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	for(int i = 1; i <= MaxClients; i++)
@@ -77,12 +77,12 @@ stock KAC_PrintToChatAll(const String:trans[], any:...)
 		{
 			GetTrieString(g_hCLang[i], trans, f_sFormat, sizeof(f_sFormat));
 			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
-			PrintToChat(i, "%s", f_sBuffer);
+			PrintToChat(i, "[Kigen-AC] %s", f_sBuffer);
 		}
 	}
 }
 
-stock KAC_Kick(client, const String:trans[], any:...)
+stock KAC_Kick(client, const char[] trans, any:...)
 {
 	decl String:f_sBuffer[256], String:f_sFormat[256];
 	GetTrieString(g_hCLang[client], trans, f_sFormat, sizeof(f_sFormat));
@@ -118,9 +118,9 @@ KAC_Log(const char[] format, any ...)
 	LogToFileEx(f_sPath, "%s", f_sBuffer);
 }
 
-stock StringToLower(String:f_sInput[])
+stock StringToLower(char[] f_sInput)
 {
-	new f_iSize = strlen(f_sInput);
+	int f_iSize = strlen(f_sInput);
 	for (new i = 0; i < f_iSize; i++)
 	f_sInput[i] = CharToLower(f_sInput[i]);
 }

@@ -234,19 +234,19 @@ public Action CVars_CmdStatus(client, args)
 			{
 				if(g_hPeriodicTimer[i] == INVALID_HANDLE)
 				{
-					LogError("%N (%s) doesn't have a periodic timer running and no active queries.", i, f_sAuth);
-					ReplyToCommand(client, "ERROR: %N (%s) didn't have a periodic timer running nor active queries.", i, f_sAuth);
+					LogError("[Kigen-AC] '%N'(%s) doesn't have a periodic Timer running and no active Queries", i, f_sAuth);
+					ReplyToCommand(client, "[Error][Kigen-AC] '%N'(%s) didn't have a periodic Timer running nor active Queries", i, f_sAuth);
 					g_hPeriodicTimer[i] = CreateTimer(0.1, CVars_PeriodicTimer, i);
 					continue;
 				}
 				
-				ReplyToCommand(client, "%N (%s) is waiting for new query. Current Index: %d.", i, f_sAuth, g_iCurrentIndex[i]);
+				ReplyToCommand(client, "[Kigen-AC] '%N'(%s) is waiting for a new Query. Current Index: %d", i, f_sAuth, g_iCurrentIndex[i]);
 			}
 			
 			else
 			{
 				GetArrayString(f_hTemp, CELL_NAME, f_sCVarName, sizeof(f_sCVarName));
-				ReplyToCommand(client, "%N (%s) has active query on %s. Current Index: %d. Retry Attempts: %d.", i, f_sAuth, f_sCVarName, g_iCurrentIndex[i], g_iRetryAttempts[i]);
+				ReplyToCommand(client, "[Kigen-AC] '%N'(%s) has active Query on %s. Current Index: %d. Retry Attempts: %d", i, f_sAuth, f_sCVarName, g_iCurrentIndex[i], g_iRetryAttempts[i]);
 			}
 		}
 	}
@@ -256,9 +256,6 @@ public Action CVars_CmdStatus(client, args)
 
 public Action CVars_CmdAddCVar(client, args)
 {
-	// #if defined PRIVATE
-	// ReplyToCommand(client, "This is disabled in this version.");
-	// #else
 	if(args != 4 && args != 5)
 	{
 		KAC_ReplyToCommand(client, KAC_ADDCVARUSAGE);
@@ -337,7 +334,7 @@ public Action CVars_CmdAddCVar(client, args)
 		{
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			KAC_Log("%N (ID: %s | IP: %s) added convar %s to the check list.", client, f_sAuthID, f_sIP, f_sCVarName);
+			KAC_Log("'%N'(ID: %s | IP: %s) added Convar %s to the Check List", client, f_sAuthID, f_sIP, f_sCVarName);
 		}
 		
 		KAC_ReplyToCommand(client, KAC_ADDCVARSUCCESS, f_sCVarName);
@@ -346,15 +343,11 @@ public Action CVars_CmdAddCVar(client, args)
 	else
 		KAC_ReplyToCommand(client, KAC_ADDCVARFAILED, f_sCVarName);
 		
-	// #endif
 	return Plugin_Handled;
 }
 
 public Action CVars_CmdRemCVar(client, args)
 {
-	// #if defined PRIVATE
-	// ReplyToCommand(client, "This is disabled in this verison.");
-	// #else
 	if(args != 1)
 	{
 		KAC_ReplyToCommand(client, KAC_REMCVARUSAGE);
@@ -371,19 +364,18 @@ public Action CVars_CmdRemCVar(client, args)
 		{
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			KAC_Log("%N (ID: %s | IP: %s) removed convar %s from the check list.", client, f_sAuthID, f_sIP, f_sCVarName);
+			KAC_Log("'%N'(ID: %s | IP: %s) removed Convar '%s' from the Check List.", client, f_sAuthID, f_sIP, f_sCVarName);
 		}
 		
 		else
-			KAC_Log("Console removed convar %s from the check list.", f_sCVarName);
+			KAC_Log("Console removed Convar %s from the Check List.", f_sCVarName);
 			
 		KAC_ReplyToCommand(client, KAC_REMCVARSUCCESS, f_sCVarName);
 	}
 	
 	else
 		KAC_ReplyToCommand(client, KAC_REMCVARFAILED, f_sCVarName);
-	// #endif
-	
+		
 	return Plugin_Handled;
 }
 
@@ -411,7 +403,7 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 	
 	if(g_iSize < 1)
 	{
-		PrintToServer("Nothing in convar list");
+		PrintToServer("[Kigen-AC] Nothing in Convar List");
 		CreateTimer(10.0, CVars_PeriodicTimer, client);
 		return Plugin_Stop;
 	}
@@ -459,7 +451,7 @@ public Action CVars_ReplyTimer(Handle timer, any userid)
 		
 		if(g_iSize < 1)
 		{
-			PrintToServer("Nothing in convar list");
+			PrintToServer("[Kigen-AC] Nothing in Convar List");
 			CreateTimer(10.0, CVars_PeriodicTimer, client);
 			return Plugin_Stop;
 		}
@@ -547,7 +539,7 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 	{
 		if(!GetTrieValue(g_hCVarIndex, cvarName, f_hConVar)) // CVar doesn't exist in our list.
 		{
-			KAC_Log("Unknown CVar Reply: %N (ID: %s | IP: %s) was kicked for a corrupted return with convar name \"%s\" (expecting \"%s\") with value \"%s\".", client, f_sAuthID, f_sIP, cvarName, f_sCVarName, cvarValue);
+			KAC_Log("Unknown CVar Reply: '%N'(ID: %s | IP: %s) was kicked for a corrupted Return with Convar Name \"%s\" (expecting \"%s\") with Value \"%s\".", client, f_sAuthID, f_sIP, cvarName, f_sCVarName, cvarValue);
 			KAC_Kick(client, KAC_CLIENTCORRUPT);
 			return;
 		}
@@ -600,18 +592,16 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 				
 				case ACTION_KICK:
 				{
-					KAC_Log("Plugin CVar return: %N (ID: %s | IP: %s) was kicked for returning with plugin convar \"%s\" (value \"%s\", return %s).", client, f_sAuthID, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
+					KAC_Log("Plugin CVar return: '%N'(ID: %s | IP: %s) was kicked for returning with Plugin ConVar \"%s\" (Value \"%s\", return %s)", client, f_sAuthID, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
 					KAC_Kick(client, KAC_REMOVEPLUGINS);
 					return;
 				}
 				
 				case ACTION_BAN:
 				{
-					KAC_Log("Bad CVar return: %N (ID: %s | IP: %s) has convar \"%s\" (value \"%s\", return %s) when it shouldn't exist.", client, f_sAuthID, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
-					KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s violation", cvarName);
-					// #if defined PRIVATE
-					// Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) had convar \"%s\" set to \"%s\" (return %s) when it shouldn't exist.", client, f_sAuthID, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
-					// #endif
+					KAC_Log("Bad CVar return: '%N'(ID: %s | IP: %s) has ConVar \"%s\" (Value \"%s\", return %s) when it shouldn't exist.", client, f_sAuthID, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
+					KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s Violation", cvarName);
+					
 					return;
 				}
 			}
@@ -625,11 +615,9 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 	
 	if(result != ConVarQuery_Okay) // ConVar should exist.
 	{
-		KAC_Log("Bad CVar Query Result: %N (ID: %s | IP: %s) returned query result \"%s\" (expected Okay) on convar \"%s\" (value \"%s\").", client, f_sAuthID, f_sIP, g_sQueryResult[result], cvarName, cvarValue);
-		KAC_Ban(client, 0, KAC_BANNED, "KAC: %s violation (bad query result).", cvarName);
-		// #if defined PRIVATE
-		// Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) returned bad query result \"%s\" (expected Okay) on convar \"%s\" (value \"%s\").", client, f_sAuthID, f_sIP, g_sQueryResult[result], cvarName, cvarValue);
-		// #endif
+		KAC_Log("Bad CVar Query Result: '%N'(ID: %s | IP: %s) returned Query Result \"%s\" (expected Okay) on ConVar \"%s\" (Value \"%s\").", client, f_sAuthID, f_sIP, g_sQueryResult[result], cvarName, cvarValue);
+		KAC_Ban(client, 0, KAC_BANNED, "KAC: '%s' Violation (bad Query Result).", cvarName);
+		
 		return;
 	}
 	
@@ -657,7 +645,7 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 		{
 			if(!IsCharNumeric(cvarValue[i]) && cvarValue[i] != '.')
 			{
-				KAC_Log("Corrupted CVar response: %N (ID: %s | IP: %s) was kicked for returning a corrupted value on %s (%s), value set at \"%s\" (expected \"%s\").", client, f_sAuthID, f_sIP, f_sCVarName, cvarName, cvarValue, f_sValue);
+				KAC_Log("Corrupted CVar Response: '%N'(ID: %s | IP: %s) was kicked for returning a corrupted Value on '%s' (%s), Value set at \"%s\" (expected \"%s\").", client, f_sAuthID, f_sIP, f_sCVarName, cvarName, cvarValue, f_sValue);
 				KAC_Kick(client, KAC_CLIENTCORRUPT);
 				return;
 			}
@@ -689,17 +677,15 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 					}
 					case ACTION_KICK:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) was kicked for returning with convar \"%s\" set to value \"%s\" when it should be \"%s\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be \"%s\"", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
 						KAC_Kick(client, KAC_SHOULDEQUAL, cvarName, f_sValue, cvarValue);
 						return;
 					}
 					case ACTION_BAN:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) has convar \"%s\" set to value \"%s\" (should be \"%s\") when it should equal.", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
-						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s violation", cvarName);
-						// #if defined PRIVATE
-						// Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) returned convar \"%s\" set to \"%s\" when it should be \"%s\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
-						// #endif
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should equal", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
+						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s Violation", cvarName);
+						
 						return;
 					}
 				}
@@ -727,17 +713,15 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 					}
 					case ACTION_KICK:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) was kicked for returning with convar \"%s\" set to value \"%s\" when it should be greater than or equal to \"%s\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be greater than or equal to \"%s\"", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
 						KAC_Kick(client, KAC_SHOULDGREATER, cvarName, f_sValue, cvarValue);
 						return;
 					}
 					case ACTION_BAN:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) has convar \"%s\" set to value \"%s\" (should be \"%s\") when it should greater than or equal to.", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
-						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s violation", cvarName);
-						// #if defined PRIVATE
-						// Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) returned convar \"%s\" set to \"%s\" when it should be greater than or equal to \"%s\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
-						// #endif
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should greater than or equal to", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
+						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s Violation", cvarName);
+						
 						return;
 					}
 				}
@@ -765,17 +749,15 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 					}
 					case ACTION_KICK:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) was kicked for returning with convar \"%s\" set to value \"%s\" when it should be less than or equal to \"%s\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be less than or equal to \"%s\"", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
 						KAC_Kick(client, KAC_SHOULDLESS, cvarName, f_sValue, cvarValue);
 						return;
 					}
 					case ACTION_BAN:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) has convar \"%s\" set to value \"%s\" (should be \"%s\") when it should be less than or equal to.", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
-						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s violation", cvarName);
-						// #if defined PRIVATE
-						// Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) returned convar \"%s\" set to \"%s\" when it should be less than or equal to \"%s\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
-						// #endif
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) has Convar \"%s\" set to Value \"%s\" (should be \"%s\") when it should be less than or equal to", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
+						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar '%s' Violation", cvarName);
+						
 						return;
 					}
 				}
@@ -803,17 +785,15 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 					}
 					case ACTION_KICK:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) was kicked for returning with convar \"%s\" set to value \"%s\" when it should be between \"%s\" and \"%f\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be between \"%s\" and \"%f\"", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
 						KAC_Kick(client, KAC_SHOULDBOUND, cvarName, f_sValue, f_fValue2, cvarValue);
 						return;
 					}
 					case ACTION_BAN:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) has convar \"%s\" set to value \"%s\" when it should be between \"%s\" and \"%f\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
-						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s violation", cvarName);
-						// #if defined PRIVATE
-						// Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) returned convar \"%s\" set to \"%s\" when it should be between \"%s\" and \"%f\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
-						// #endif
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) has ConVar \"%s\" set to Value \"%s\" when it should be between \"%s\" and \"%f\"", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
+						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar '%s' Violation", cvarName);
+						
 						return;
 					}
 				}
@@ -841,17 +821,15 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 					}
 					case ACTION_KICK:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) was kicked for returning with convar \"%s\" set to value \"%s\" when it should be \"%s\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be \"%s\"", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
 						KAC_Kick(client, KAC_SHOULDEQUAL, cvarName, f_sValue, cvarValue);
 						return;
 					}
 					case ACTION_BAN:
 					{
-						KAC_Log("Bad CVar response: %N (ID: %s | IP: %s) has convar \"%s\" set to value \"%s\" (should be \"%s\") when it should equal.", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
-						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar %s violation", cvarName);
-						// #if defined PRIVATE
-						// Private_Ban(f_sAuthID, "%N (ID: %s | IP: %s) returned convar \"%s\" set to \"%s\" when it should be \"%s\".", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
-						// #endif
+						KAC_Log("Bad CVar Response: '%N'(ID: %s | IP: %s) has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should equal", client, f_sAuthID, f_sIP, cvarName, cvarValue, f_sValue);
+						KAC_Ban(client, 0, KAC_BANNED, "KAC: ConVar '%s' Violation", cvarName);
+						
 						return;
 					}
 				}
@@ -930,7 +908,7 @@ bool:CVars_AddCVar(String:f_sName[], f_iComparisonType, f_iAction, const String:
 		if (!SetTrieValue(g_hCVarIndex, f_sName, f_hArray))
 		{
 			CloseHandle(f_hArray);
-			KAC_Log("Unable to add convar to Trie link list %s.", f_sName);
+			KAC_Log("Unable to add ConVar to Trie Link List '%s'", f_sName);
 			return false;
 		}
 		
@@ -1031,17 +1009,18 @@ stock CVars_CreateNewOrder()
 
 stock CVars_ReplicateConVar(Handle f_hConVar)
 {
-	decl String:f_sCVarName[64], String:f_sValue[64];
+	char f_sCVarName[64], f_sValue[64];
 	GetConVarName(f_hConVar, f_sCVarName, sizeof(f_sCVarName));
 	GetConVarString(f_hConVar, f_sValue, sizeof(f_sValue));
-	for (new i = 1; i <= MaxClients; i++)
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		if (g_bConnected[i])
+		if(g_bConnected[i])
 		{
-			if (!IsClientConnected(i) || IsFakeClient(i))
+			if(!IsClientConnected(i) || IsFakeClient(i))
 				OnClientDisconnect(i);
-			else if (!SendConVarValue(i, f_hConVar, f_sValue))
-				continue; // KAC_Log("%L failed to accept replication of %s (Value: %s).", i, f_sCVarName, f_sValue); - This happens if the netchan isn't created yet, cvars will replicate once it is created.
+				
+			else if(!SendConVarValue(i, f_hConVar, f_sValue))
+				continue; // KAC_Log("'%L' failed to accept replication of '%s' (Value: %s)", i, f_sCVarName, f_sValue); - This happens if the netchan isn't created yet, cvars will replicate once it is created.
 		}
 	}
 }

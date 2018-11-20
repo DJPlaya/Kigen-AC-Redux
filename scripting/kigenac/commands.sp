@@ -212,25 +212,21 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 	f_iLength += strlen(f_sTemp);
 	if(f_iLength > 235)
 	{
-		KAC_Log("Bad disconnect reason, length %d, \"%s\"", f_iLength, f_sReason);
+		KAC_Log("Bad Disconnect Reason, Length '%d', \"%s\"", f_iLength, f_sReason);
 		if(client)
 		{
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			KAC_Log("%L<%s> submitted a bad disconnect and was banned.", client, f_sIP);
-			BanIdentity(f_sIP, 10080, BANFLAG_IP, "KAC: Disconnect exploit."); // Prevent them from rejoining.
+			KAC_Log("'%L'<%s> submitted a bad Disconnect and was banned", client, f_sIP);
+			BanIdentity(f_sIP, 10080, BANFLAG_IP, "KAC: Disconnect Exploit"); // Prevent them from rejoining.
 			if(GetClientAuthId(client, AuthId_Steam3, f_sTemp, sizeof(f_sTemp)))
 			{
-				KAC_Ban(client, 0, KAC_BANNED, "KAC: Disconnect exploit.");
+				KAC_Ban(client, 0, KAC_BANNED, "KAC: Disconnect Exploit");
 				if(!g_bSourceBans && !g_bSourceBansPP)
-					BanIdentity(f_sTemp, 0, BANFLAG_AUTHID, "KAC: Disconnect exploit.", "KAC");
-					
-				// #if defined PRIVATE
-				// Private_Ban(f_sTemp, "%N (ID: %s | IP: %s) was banned for disconnect exploit. Length: %d", client, f_sTemp, f_sIP, f_iLength);
-				// #endif
+					BanIdentity(f_sTemp, 0, BANFLAG_AUTHID, "KAC: Disconnect Exploit", "KAC");
 			}
 		}
 		
-		SetEventString(event, "reason", "Bad disconnect message");
+		SetEventString(event, "reason", "Bad Disconnect Message");
 		return Plugin_Continue;
 	}
 	
@@ -242,19 +238,14 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 		{
 			if(f_sReason[iCount] != '\n')
 			{
-				KAC_Log("Bad disconnect reason, \"%s\" len = %d", f_sReason, f_iLength);
+				KAC_Log("Bad Disconnect Reason, \"%s\", Lenght = %d", f_sReason, f_iLength);
 				if(client)
 				{
 					GetClientIP(client, f_sIP, sizeof(f_sIP));
-					KAC_Log("%L<%s> submitted a bad disconnect.  Possible corruption or attack.", client, f_sIP);
-					// #if defined PRIVATE
-					// if(GetClientAuthId(client, AuthId_Steam3, f_sTemp, sizeof(f_sTemp)));
-					// 	Private_Ban(f_sTemp, "%N (ID: %s | IP: %s) was banned for disconnect exploit. C0 Length: %d", client, f_sTemp, f_sIP, f_iLength);
-					// #endif
-					
+					KAC_Log("'%L'<%s> submitted a bad Disconnect. Possible Corruption or Attack", client, f_sIP);
 				}
 				
-				SetEventString(event, "reason", "Bad disconnect message");
+				SetEventString(event, "reason", "Bad Disconnect Message");
 				return Plugin_Continue;
 			}
 		}
@@ -368,8 +359,8 @@ public Action Commands_BlockExploit(client, args)
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("%N (ID: %s | IP: %s) was banned for command usage violation of command: sm_menu %s", client, f_sAuthID, f_sIP, f_sCmdString);
-			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Exploit violation");
+			KAC_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: sm_menu %s", client, f_sAuthID, f_sIP, f_sCmdString);
+			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Exploit Violation");
 			return Plugin_Stop;
 		}
 	}
@@ -458,7 +449,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 		GetClientAuthId(iClient, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		KAC_Log("%N (ID: %s | IP: %s) was kicked for command spamming: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
+		KAC_Log("'%N'(ID: %s | IP: %s) was kicked for Command Spamming: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
 		KAC_Kick(iClient, KAC_KCMDSPAM);
 		
 		return Plugin_Stop;
@@ -472,8 +463,8 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 			GetClientAuthId(iClient, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("%N (ID: %s | IP: %s) was banned for command usage violation of command: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
-			KAC_Ban(iClient, 0, KAC_CBANNED, "KAC: Command %s violation", command);
+			KAC_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
+			KAC_Ban(iClient, 0, KAC_CBANNED, "KAC: Command %s Violation", command);
 		}
 		
 		return Plugin_Stop;
@@ -483,7 +474,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 	{
 		char f_sCmdString[256];
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		LogToFileEx(g_sCmdLogPath, "%L used command: %s %s", iClient, command, f_sCmdString);
+		LogToFileEx(g_sCmdLogPath, "%L used Command: %s %s", iClient, command, f_sCmdString);
 	}
 	
 	return Plugin_Continue;
@@ -513,8 +504,8 @@ public Action Commands_ClientCheck(client, args)
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("%N (ID: %s | IP: %s) was banned for command usage violation of command: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
-			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Command %s violation", f_sCmd);
+			KAC_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
+			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Command %s Violation", f_sCmd);
 		}
 		
 		return Plugin_Stop;
@@ -524,7 +515,7 @@ public Action Commands_ClientCheck(client, args)
 	{
 		char f_sCmdString[256];
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		LogToFileEx(g_sCmdLogPath, "%L used command: %s %s", client, f_sCmd, f_sCmdString);
+		LogToFileEx(g_sCmdLogPath, "%L used Command: %s %s", client, f_sCmd, f_sCmdString);
 	}
 	
 	return Plugin_Continue;
@@ -552,7 +543,7 @@ public Action Commands_SpamCheck(client, args)
 		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 		GetClientIP(client, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		KAC_Log("%N (ID: %s | IP: %s) was kicked for command spamming: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
+		KAC_Log("'%N'(ID: %s | IP: %s) was kicked for Command Spamming: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
 		KAC_Kick(client, KAC_KCMDSPAM);
 		
 		return Plugin_Stop;
@@ -566,8 +557,8 @@ public Action Commands_SpamCheck(client, args)
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("%N (ID: %s | IP: %s) was banned for command usage violation of command: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
-			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Command %s violation", f_sCmd);
+			KAC_Log("'%N(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
+			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Command '%s' Violation", f_sCmd);
 		}
 		
 		return Plugin_Stop;
@@ -577,7 +568,7 @@ public Action Commands_SpamCheck(client, args)
 	{
 		char f_sCmdString[256];
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		LogToFileEx(g_sCmdLogPath, "%L used command: %s %s", client, f_sCmd, f_sCmdString);
+		LogToFileEx(g_sCmdLogPath, "'%L' used Command: %s %s", client, f_sCmd, f_sCmdString);
 	}
 	
 	return Plugin_Continue;

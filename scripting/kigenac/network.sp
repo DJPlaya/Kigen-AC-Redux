@@ -28,22 +28,18 @@ Handle g_hUpdateFile = INVALID_HANDLE;
 Handle g_hSocket = INVALID_HANDLE;
 Handle g_hTimer = INVALID_HANDLE;
 Handle g_hVTimer = INVALID_HANDLE;
-new bool:g_bCVarNetEnabled = true;
-new bool:g_bCVarNetUseBanlist = true;
-new bool:g_bCVarNetUseUpdate = true;
-// #if defined PRIVATE
-// new bool:g_bVCheckDone = true;
-// #else
-new bool:g_bVCheckDone = false;
-// #endif
-new bool:g_bChecked[MAXPLAYERS + 1] =  { false, ... };
-new g_iInError = 0;
-new g_iNetStatus;
-new String:g_sMirrors[][] =  { "kigenac.com", "nauc.info" };
-new g_iCurrentMirror;
+bool g_bCVarNetEnabled = true;
+bool g_bCVarNetUseBanlist = true;
+bool g_bCVarNetUseUpdate = true;
+bool g_bVCheckDone = false;
+bool g_bChecked[MAXPLAYERS + 1] =  { false, ... };
+int g_iInError = 0;
+int g_iNetStatus;
+char g_sMirrors[][] =  { "kigenac.com", "nauc.info" };
+int g_iCurrentMirror;
 
-new bool:InUpdate = false;
-new String:UpdatePath[256];
+bool InUpdate = false;
+char UpdatePath[256];
 
 #define REQUIRE_EXTENSIONS
 #include <socket>
@@ -52,7 +48,6 @@ new String:UpdatePath[256];
 
 Network_OnPluginStart()
 {
-	// #if !defined PRIVATE
 	g_hCVarNetEnabled = CreateConVar("kac_net_enable", "1", "Enable the Network module.");
 	g_bCVarNetEnabled = GetConVarBool(g_hCVarNetEnabled);
 	
@@ -65,7 +60,6 @@ Network_OnPluginStart()
 	HookConVarChange(g_hCVarNetEnabled, Network_ConVarChange);
 	HookConVarChange(g_hCVarNetUseBanlist, Network_ConVarChange);
 	// HookConVarChange(g_hCVarNetUseUpdate, Network_ConVarChange);
-	// #endif
 	
 	g_hTimer = CreateTimer(5.0, Network_Timer, _, TIMER_REPEAT);
 	if (g_bCVarNetEnabled)
@@ -270,7 +264,7 @@ public Network_OnSockRecvVer(Handle:socket, String:data[], const size, any:we)
 		if (!DirExists(path))
 			if (!CreateDirectory(path, 0777))
 		{
-			LogError("Unable to create disabled folder.");
+			LogError("[Kigen-AC] Unable to create plugins/disabled Folder");
 			Status_Report(g_iNetStatus, KAC_ERROR);
 			return;
 		}
@@ -280,7 +274,7 @@ public Network_OnSockRecvVer(Handle:socket, String:data[], const size, any:we)
 		g_hUpdateFile = OpenFile(path, "ab"); // Set to ab to avoid issues with devicenull's patch for the upload exploit.
 		if ( g_hUpdateFile == INVALID_HANDLE )
 		{
-			LogError("Failed to create % s", path);
+			LogError("[Kigen-AC] Failed to create: '%s'", path);
 			Status_Report(g_iNetStatus, KAC_ERROR);
 			return;
 		}
@@ -291,7 +285,7 @@ public Network_OnSockRecvVer(Handle:socket, String:data[], const size, any:we)
 	}
 	else
 	{
-		LogError("Received unknown reply from KAC master during version check,  % s.", data);
+		LogError("[Kigen-AC] Received an Unknown Reply from KAC Master Server during Version Check: '%s'", data);
 		g_bVCheckDone = false;
 		if ( SocketIsConnected(socket) )
 			SocketDisconnect(socket);
@@ -300,13 +294,13 @@ public Network_OnSockRecvVer(Handle:socket, String:data[], const size, any:we)
 	}
 }
 
-public Network_OnSockDiscDL(Handle:socket, any:we)
+public Network_OnSockDiscDL(Handle socket, any we)
 {
 	if ( !InUpdate )
 	{
 		g_iInError = 12;
 		g_hSocket = INVALID_HANDLE;
-		LogError("Disconnected from % s without getting update.", g_sMirrors[g_iCurrentMirror]);
+		LogError("[Kigen-AC] Disconnected from '%s' without getting Update", g_sMirrors[g_iCurrentMirror]);
 		g_iCurrentMirror++;
 		if ( g_iCurrentMirror >= sizeof(g_sMirrors) ) // Switch mirrors.
 			g_iCurrentMirror = 0;
@@ -325,13 +319,13 @@ public Network_OnSockDiscDL(Handle:socket, any:we)
 	BuildPath(Path_SM , path, sizeof(path), "plugins\\ % s", path);
 	if ( !DeleteFile(path) )
 	{
-		LogError("Was unable to delete % s.", path);
+		LogError("[Kigen-AC] Was unable to delete: '%s'", path);
 		Status_Report(g_iNetStatus, KAC_ERROR);
 		return;
 	}
 	if ( !RenameFile(path, path2) )
 	{
-		LogError("Was unable to rename % s to % s.", path2, path);
+		LogError("[Kigen-AC] Was unable to rename '%s' to '%s'", path2, path);
 		Status_Report(g_iNetStatus, KAC_ERROR);
 		return;
 	}
@@ -345,7 +339,7 @@ public Network_OnSockErrDL(Handle:socket, const errorType, const errorNum, any:w
 {
 	g_iInError = 12;
 	g_hSocket = INVALID_HANDLE;
-	LogError("Error received during update:Failed to connect to % s.", g_sMirrors[g_iCurrentMirror]);
+	LogError("[Kigen-AC] Error received during Update: Failed to connect to: '%s'", g_sMirrors[g_iCurrentMirror]);
 	Status_Report(g_iNetStatus, KAC_ERROR);
 	g_iCurrentMirror++;
 	if ( g_iCurrentMirror >= sizeof(g_sMirrors) ) // Switch mirrors.
@@ -358,7 +352,7 @@ public Network_OnSockConnDL(Handle:socket, any:we)
 {
 	if ( !SocketIsConnected(socket) )
 	{
-		LogError("Disconnect on connect to % s", g_sMirrors[g_iCurrentMirror]);
+		LogError("[Kigen-AC] Disconnect on Connect to: '%s'", g_sMirrors[g_iCurrentMirror]);
 		g_iInError = 12;
 		Status_Report(g_iNetStatus, KAC_ERROR);
 		g_iCurrentMirror++;
@@ -429,7 +423,7 @@ public Network_OnSocketReceive(Handle:socket, String:data[], const size, any:cli
 		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 		KAC_Translate(client, KAC_GBANNED, f_sBuffer, sizeof(f_sBuffer));
 		SetTrieString(g_hDenyArray, f_sAuthID, f_sBuffer);
-		KAC_Log(" % N( % s)is on the KAC global banlist.", client, f_sAuthID);
+		KAC_Log("'%N'(%s) is on the KAC Global Banlist", client, f_sAuthID);
 		KAC_Kick(client, KAC_GBANNED);
 	}
 	else if ( StrEqual(data, "_OK") )
@@ -441,7 +435,7 @@ public Network_OnSocketReceive(Handle:socket, String:data[], const size, any:cli
 		decl String:f_sAuthID[64];
 		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 		g_bChecked[client] = false;
-		KAC_Log(" % N( % s)got unknown reply from KAC master server.Data: % s", f_sAuthID, data);
+		KAC_Log("'%N'(%s) got unknown Reply from KAC Master Server. Data: %s", f_sAuthID, data);
 		Status_Report(g_iNetStatus, KAC_ERROR);
 	}
 	if ( SocketIsConnected(socket) )
@@ -452,7 +446,7 @@ public Network_OnSocketError(Handle:socket, const errorType, const errorNum, any
 {
 	if ( socket == INVALID_HANDLE )
 		return;
-
+		
 	// LogError("Socket Error:eT: % d, eN,  % d, c,  % d", errorType, errorNum, client);
 	if ( g_hSocket == socket )
 		g_hSocket = INVALID_HANDLE;

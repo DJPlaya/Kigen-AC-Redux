@@ -33,7 +33,8 @@
 //- SM Includes -//
 #include <sourcemod>
 #include <sdktools>
-#undef REQUIRE_EXTENSIONS
+#include <smlib>
+#undef REQUIRE_EXTENSIONS 
 #include <sdkhooks>
 
 //- Natives -// // Too LAZZZYY for includes
@@ -131,9 +132,6 @@ public void OnPluginStart()
 	Network_OnPluginStart();
 	RCON_OnPluginStart();
 	Trans_OnPluginStart();
-	// #if defined PRIVATE
-	// Private_OnPluginStart();
-	// #endif
 	
 	//- Get server language -//
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
@@ -202,9 +200,6 @@ public OnPluginEnd()
 	Network_OnPluginEnd();
 	RCON_OnPluginEnd();
 	//Status_OnPluginEnd(); // Currently unused
-	// #if defined PRIVATE
-	// Private_OnPluginEnd();
-	// #endif
 	
 	for(int iClient = 0; iClient <= MaxClients; iClient++)
 	{

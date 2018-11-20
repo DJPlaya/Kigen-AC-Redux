@@ -18,13 +18,12 @@
 
 #define RCON
 
-new Handle:g_hRCONCrash;
-new bool:g_bRCONPreventEnabled = false;
-new g_iMinFail = 5;
-new g_iMaxFail = 20;
-new g_iMinFailTime = 30;
-new g_iRCONStatus;
-new String:g_sBadPlugins[][] =  { "sourceadmin.smx", "sourceadminother.smx", "s.smx", "hax.smx", "sourcemod.smx", "boomstick.smx", "adminmanger.smx" };
+Handle g_hRCONCrash;
+bool g_bRCONPreventEnabled = false;
+int g_iMinFail = 5;
+int g_iMaxFail = 20;
+int g_iMinFailTime = 30;
+int g_iRCONStatus;
 
 //- Plugin Functions -//
 
@@ -42,18 +41,14 @@ RCON_OnPluginStart()
 		else
 			g_iRCONStatus = Status_Register(KAC_RCONPREVENT, KAC_OFF);
 	}
-	
-	RCON_CheckBadPlugins();
 }
 
 RCON_OnPluginEnd()
 {
-	RCON_CheckBadPlugins();
 }
 
 RCON_OnMap()
 {
-	RCON_CheckBadPlugins();
 }
 
 //- Hooks -//
@@ -122,22 +117,5 @@ public RCON_CrashPrevent(Handle:convar, const String:oldValue[], const String:ne
 		}
 		g_bRCONPreventEnabled = false;
 		Status_Report(g_iRCONStatus, KAC_OFF);
-	}
-}
-
-RCON_CheckBadPlugins()
-{
-	new String:f_sPath[512];
-	
-	for (new i = 0; i < sizeof(g_sBadPlugins); i++)
-	{
-		BuildPath(Path_SM, f_sPath, sizeof(f_sPath), "plugins/%s", g_sBadPlugins[i]);
-		
-		if (FileExists(f_sPath))
-		{
-			ServerCommand("sm plugins unload %s", g_sBadPlugins[i]);
-			DeleteFile(f_sPath);
-			KAC_Log("ALERT! Found exploit plugin %s! Your server may have been compromised. The plugin was deleted for the safety of your server.", g_sBadPlugins[i]);
-		}
 	}
 }
