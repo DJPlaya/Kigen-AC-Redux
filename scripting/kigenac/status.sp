@@ -1,6 +1,7 @@
 /*
-	Kigen's Anti-Cheat Eye Test Module
+	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@
 #define CELL_MODULENAME 0
 #define CELL_MODULESTATUS 1
 
-new Handle:g_hStatusArray = INVALID_HANDLE;
+Handle g_hStatusArray;
 
 Status_OnPluginStart()
 {
@@ -35,17 +36,17 @@ Status_OnPluginStart()
 {
 }*/
 
-Status_Register(String:f_sName[], String:f_sStatus[])
+Status_Register(char[] f_sName, char[] f_sStatus)
 {
-	new Handle:f_hArray = CreateArray(64);
+	Handle f_hArray = CreateArray(64);
 	PushArrayString(f_hArray, f_sName);
 	PushArrayString(f_hArray, f_sStatus);
 	return PushArrayCell(g_hStatusArray, f_hArray);
 }
 
-Status_Report(f_iId, String:f_sStatus[])
+Status_Report(f_iId, char[] f_sStatus)
 {
-	new Handle:f_hArray = GetArrayCell(g_hStatusArray, f_iId);
+	Handle f_hArray = GetArrayCell(g_hStatusArray, f_iId);
 	SetArrayString(f_hArray, CELL_MODULESTATUS, f_sStatus);
 }
 
@@ -58,12 +59,13 @@ public Action:Status_Status(client, args)
 {
 	new f_iCount = GetArraySize(g_hStatusArray), Handle:f_hTemp, String:f_sBuff[256], String:f_sTemp[64], String:f_sTemp2[64];
 	KAC_ReplyToCommand(client, KAC_STATUSREPORT);
-	if (!f_iCount)
+	if(!f_iCount)
 	{
 		KAC_ReplyToCommand(client, KAC_NOREPORT);
 		return Plugin_Handled;
 	}
-	for (new i = 0; i < f_iCount; i++)
+	
+	for(int i = 0; i < f_iCount; i++)
 	{
 		f_hTemp = GetArrayCell(g_hStatusArray, i);
 		GetArrayString(f_hTemp, CELL_MODULENAME, f_sTemp, sizeof(f_sTemp));

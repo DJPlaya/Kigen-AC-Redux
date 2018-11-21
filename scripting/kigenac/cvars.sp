@@ -1,6 +1,7 @@
 /*
-	Kigen's Anti-Cheat Eye Test Module
+	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -80,7 +81,7 @@ CVars_OnPluginStart()
 	bool f_bIsCommand;
 	int f_iFlags;
 	
-	g_hCVarCVarsEnabled = CreateConVar("kac_cvars_enable", "1", "Enable the CVar checks module.");
+	g_hCVarCVarsEnabled = CreateConVar("kac_cvars_enable", "1", "Enable the CVar checking Module");
 	g_bCVarsEnabled = GetConVarBool(g_hCVarCVarsEnabled);
 	
 	HookConVarChange(g_hCVarCVarsEnabled, CVars_EnableChange);

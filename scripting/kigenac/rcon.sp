@@ -1,6 +1,7 @@
 /*
-	Kigen's Anti-Cheat Eye Test Module
+	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -29,9 +30,9 @@ int g_iRCONStatus;
 
 RCON_OnPluginStart()
 {
-	if (g_iGame != GAME_CSS && g_iGame != GAME_DOD && g_iGame != GAME_TF2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless.
+	if (g_iGame != GAME_CSS && g_iGame != GAME_DOD && g_iGame != GAME_TF2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
 	{
-		g_hRCONCrash = CreateConVar("kac_rcon_crashprevent", "0", "Enable RCON crash prevention.");
+		g_hRCONCrash = CreateConVar("kac_rcon_crashprevent", "0", "Enable RCON Crash Prevention");
 		g_bRCONPreventEnabled = GetConVarBool(g_hRCONCrash);
 		
 		HookConVarChange(g_hRCONCrash, RCON_CrashPrevent);
@@ -53,17 +54,17 @@ RCON_OnMap()
 
 //- Hooks -//
 
-public RCON_CrashPrevent(Handle:convar, const String:oldValue[], const String:newValue[])
+public RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[] newValue)
 {
-	new bool:f_bEnable = GetConVarBool(convar);
-	if (f_bEnable == g_bRCONPreventEnabled)
+	bool f_bEnable = GetConVarBool(convar);
+	if(f_bEnable == g_bRCONPreventEnabled)
 		return;
-	
-	if (f_bEnable)
+		
+	if(f_bEnable)
 	{
-		decl Handle:f_hConVar;
+		Handle f_hConVar;
 		f_hConVar = FindConVar("sv_rcon_minfailuretime");
-		if (f_hConVar != INVALID_HANDLE)
+		if(f_hConVar != INVALID_HANDLE)
 		{
 			g_iMinFailTime = GetConVarInt(f_hConVar);
 			SetConVarBounds(f_hConVar, ConVarBound_Upper, true, 1.0);
@@ -71,7 +72,7 @@ public RCON_CrashPrevent(Handle:convar, const String:oldValue[], const String:ne
 		}
 		
 		f_hConVar = FindConVar("sv_rcon_minfailures");
-		if (f_hConVar != INVALID_HANDLE)
+		if(f_hConVar != INVALID_HANDLE)
 		{
 			g_iMinFail = GetConVarInt(f_hConVar);
 			SetConVarBounds(f_hConVar, ConVarBound_Upper, true, 9999999.0);
@@ -80,28 +81,30 @@ public RCON_CrashPrevent(Handle:convar, const String:oldValue[], const String:ne
 		}
 		
 		f_hConVar = FindConVar("sv_rcon_maxfailures");
-		if (f_hConVar != INVALID_HANDLE)
+		if(f_hConVar != INVALID_HANDLE)
 		{
 			g_iMaxFail = GetConVarInt(f_hConVar);
 			SetConVarBounds(f_hConVar, ConVarBound_Upper, true, 9999999.0);
 			SetConVarBounds(f_hConVar, ConVarBound_Lower, true, 9999999.0);
 			SetConVarInt(f_hConVar, 9999999);
 		}
+		
 		g_bRCONPreventEnabled = true;
 		Status_Report(g_iRCONStatus, KAC_ON);
 	}
+	
 	else
 	{
-		decl Handle:f_hConVar;
+		Handle f_hConVar;
 		f_hConVar = FindConVar("sv_rcon_minfailuretime");
-		if (f_hConVar != INVALID_HANDLE)
+		if(f_hConVar != INVALID_HANDLE)
 		{
 			SetConVarBounds(f_hConVar, ConVarBound_Upper, false);
 			SetConVarInt(f_hConVar, g_iMinFailTime); // Setting this so we don't track these failures longer than we need to. - Kigen
 		}
 		
 		f_hConVar = FindConVar("sv_rcon_minfailures");
-		if (f_hConVar != INVALID_HANDLE)
+		if(f_hConVar != INVALID_HANDLE)
 		{
 			SetConVarBounds(f_hConVar, ConVarBound_Upper, true, 20.0);
 			SetConVarBounds(f_hConVar, ConVarBound_Lower, true, 1.0);
@@ -109,12 +112,13 @@ public RCON_CrashPrevent(Handle:convar, const String:oldValue[], const String:ne
 		}
 		
 		f_hConVar = FindConVar("sv_rcon_maxfailures");
-		if (f_hConVar != INVALID_HANDLE)
+		if(f_hConVar != INVALID_HANDLE)
 		{
 			SetConVarBounds(f_hConVar, ConVarBound_Upper, true, 20.0);
 			SetConVarBounds(f_hConVar, ConVarBound_Lower, true, 1.0);
 			SetConVarInt(f_hConVar, g_iMaxFail);
 		}
+		
 		g_bRCONPreventEnabled = false;
 		Status_Report(g_iRCONStatus, KAC_OFF);
 	}

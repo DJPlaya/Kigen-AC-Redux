@@ -22,14 +22,14 @@
 
 //- Global Variables -//
 Handle g_hCVarNetEnabled = INVALID_HANDLE;
-Handle g_hCVarNetUseBanlist = INVALID_HANDLE;
-//Handle g_hCVarNetUseUpdate = INVALID_HANDLE;
+// Handle g_hCVarNetUseBanlist = INVALID_HANDLE;
+// Handle g_hCVarNetUseUpdate = INVALID_HANDLE;
 Handle g_hUpdateFile = INVALID_HANDLE;
 Handle g_hSocket = INVALID_HANDLE;
 Handle g_hTimer = INVALID_HANDLE;
 Handle g_hVTimer = INVALID_HANDLE;
 bool g_bCVarNetEnabled = true;
-bool g_bCVarNetUseBanlist = true;
+// bool g_bCVarNetUseBanlist = true;
 bool g_bCVarNetUseUpdate = true;
 bool g_bVCheckDone = false;
 bool g_bChecked[MAXPLAYERS + 1] =  { false, ... };
@@ -48,17 +48,17 @@ char UpdatePath[256];
 
 Network_OnPluginStart()
 {
-	g_hCVarNetEnabled = CreateConVar("kac_net_enable", "1", "Enable the Network module.");
+	g_hCVarNetEnabled = CreateConVar("kac_net_enable", "1", "Enable the Network Module");
 	g_bCVarNetEnabled = GetConVarBool(g_hCVarNetEnabled);
 	
-	g_hCVarNetUseBanlist = CreateConVar("kac_net_usebanlist", "1", "Use the global banlist.");
-	g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
+	// g_hCVarNetUseBanlist = CreateConVar("kac_net_usebanlist", "1", "Use the global Banlist");
+	// g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
 	
-	// g_hCVarNetUseUpdate = CreateConVar("kac_net_autoupdate", "1", "Use the Auto-Update feature.");
+	// g_hCVarNetUseUpdate = CreateConVar("kac_net_autoupdate", "1", "Use the Auto-Update feature");
 	// g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
 	
 	HookConVarChange(g_hCVarNetEnabled, Network_ConVarChange);
-	HookConVarChange(g_hCVarNetUseBanlist, Network_ConVarChange);
+	// HookConVarChange(g_hCVarNetUseBanlist, Network_ConVarChange);
 	// HookConVarChange(g_hCVarNetUseUpdate, Network_ConVarChange);
 	
 	g_hTimer = CreateTimer(5.0, Network_Timer, _, TIMER_REPEAT);
@@ -90,57 +90,60 @@ Network_OnClientDisconnect(client)
 
 //- ConVar Functions -//
 
-public Network_ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public Network_ConVarChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
-	new bool:f_bNetEnabled = g_bCVarNetEnabled;
+	bool f_bNetEnabled = g_bCVarNetEnabled;
 	
-	g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
+	// g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
 	//g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
 	
-	if (!g_bCVarNetUseBanlist && !g_bCVarNetUseUpdate)
+	if(/*!g_bCVarNetUseBanlist && */!g_bCVarNetUseUpdate)
 		g_bCVarNetEnabled = false;
+		
 	else
 		g_bCVarNetEnabled = GetConVarBool(g_hCVarNetEnabled);
-	
-	if (g_bCVarNetEnabled && !f_bNetEnabled)
+		
+	if(g_bCVarNetEnabled && !f_bNetEnabled)
 		Status_Report(g_iNetStatus, KAC_ON);
+		
 	else if (f_bNetEnabled)
 		Status_Report(g_iNetStatus, KAC_OFF);
 }
 
 //- Commands -//
 
-public Action:Network_Checked(client, args)
+public Action Network_Checked(client, args)
 {
-	if (!g_bCVarNetEnabled || !g_bCVarNetUseBanlist)
+	if(!g_bCVarNetEnabled/* || !g_bCVarNetUseBanlist*/)
 	{
 		// TODO: print error here
 		KAC_ReplyToCommand(client, KAC_DISABLED);
 		return Plugin_Handled;
 	}
 	
-	if (args)
+	if(args)
 	{
-		new String:f_sArg[64];
+		char f_sArg[64];
 		GetCmdArg(1, f_sArg, sizeof(f_sArg));
-		if (StrEqual(f_sArg, "revalidate"))
+		if(StrEqual(f_sArg, "revalidate"))
 		{
-			for (new i = 1; i <= MaxClients; i++)
-			if (g_bInGame[i] && !g_bChecked[i])
-			{
-				KAC_ReplyToCommand(client, KAC_CANNOTREVAL);
-				return Plugin_Handled;
-			}
-			for (new i = 1; i <= MaxClients; i++)
-			g_bChecked[i] = false;
+			for(int i = 1; i <= MaxClients; i++)
+				if(g_bInGame[i] && !g_bChecked[i])
+				{
+					KAC_ReplyToCommand(client, KAC_CANNOTREVAL);
+					return Plugin_Handled;
+				}
 			
+			for(int i = 1; i <= MaxClients; i++)
+				g_bChecked[i] = false;
+				
 			KAC_ReplyToCommand(client, KAC_FORCEDREVAL);
 			return Plugin_Handled;
 		}
 	}
 	
-	new String:f_sAuthID[64];
-	for(new i = 1; i <= MaxClients; i++)
+	char f_sAuthID[64];
+	for(int i = 1; i <= MaxClients; i++)
 		if(g_bInGame[i] && GetClientAuthId(i, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)))
 			ReplyToCommand(client, "%N (%s): %s", i, f_sAuthID, (g_bChecked[i]) ? "Checked" : "Waiting");
 			
@@ -149,26 +152,26 @@ public Action:Network_Checked(client, args)
 
 //- Timer Functions -//
 
-public Action:Network_Timer(Handle:timer, any:we)
+public Action Network_Timer(Handle timer, any we)
 {
-	if (g_iInError > 0)
+	if(g_iInError > 0)
 	{
 		g_iInError--;
 		return Plugin_Continue;
 	}
 	
-	decl Handle:f_hTemp;
+	Handle f_hTemp;
 	f_hTemp = g_hSocket;
-	if (f_hTemp != INVALID_HANDLE)
+	if(f_hTemp != INVALID_HANDLE)
 	{
 		g_hSocket = INVALID_HANDLE;
 		CloseHandle(f_hTemp);
 	}
 	
-	if (!g_bCVarNetEnabled)
+	if(!g_bCVarNetEnabled)
 		return Plugin_Continue;
-	
-	if (g_bCVarNetUseUpdate && !g_bVCheckDone) // If SourceMod is older than 1.3 we will not update.  But we will still check clients.
+		
+	if(g_bCVarNetUseUpdate && !g_bVCheckDone) // If SourceMod is older than 1.3 we will not update.  But we will still check Clients
 	{
 		g_iInError = 12; // Wait 30 seconds.
 		g_hSocket = SocketCreate(SOCKET_TCP, Network_OnSockErrVer);
@@ -176,12 +179,12 @@ public Action:Network_Timer(Handle:timer, any:we)
 		return Plugin_Continue;
 	}
 	
-	if (!g_bCVarNetUseBanlist)
+	/*if(!g_bCVarNetUseBanlist)
 		return Plugin_Continue;
-	
-	for (new i = 1; i <= MaxClients; i++)
+		
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		if (g_bAuthorized[i] && !g_bChecked[i])
+		if(g_bAuthorized[i] && !g_bChecked[i])
 		{
 			g_iInError = 1;
 			g_hSocket = SocketCreate(SOCKET_TCP, Network_OnSocketError);
@@ -189,12 +192,11 @@ public Action:Network_Timer(Handle:timer, any:we)
 			SocketConnect(g_hSocket, Network_OnSocketConnect, Network_OnSocketReceive, Network_OnSocketDisconnect, "master.kigenac.com", 9652);
 			return Plugin_Continue;
 		}
-	}
-	
+	}*/
 	return Plugin_Continue;
 }
 
-public Action:Network_VTimer(Handle:timer, any:we)
+public Action Network_VTimer(Handle timer, any we)
 {
 	g_hVTimer = INVALID_HANDLE;
 	g_bVCheckDone = false;
@@ -203,26 +205,28 @@ public Action:Network_VTimer(Handle:timer, any:we)
 
 //- Socket Functions -//
 
-public Network_OnSockDiscVer(Handle:socket, any:we)
+public Network_OnSockDiscVer(Handle socket, any we)
 {
-	if (!g_bVCheckDone)
+	if(!g_bVCheckDone)
 		g_iInError = 12;
+		
 	g_hSocket = INVALID_HANDLE;
 	CloseHandle(socket);
 }
 
-public Network_OnSockErrVer(Handle:socket, const errorType, const errorNum, any:we)
+public Network_OnSockErrVer(Handle socket, const errorType, const errorNum, any we)
 {
-	if (!g_bVCheckDone)
+	if(!g_bVCheckDone)
 		g_iInError = 12;
+		
 	g_hSocket = INVALID_HANDLE;
 	Status_Report(g_iNetStatus, KAC_UNABLETOCONTACT);
 	CloseHandle(socket);
 }
 
-public Network_OnSockConnVer(Handle:socket, any:we)
+public Network_OnSockConnVer(Handle socket, any we)
 {
-	if (!SocketIsConnected(socket))
+	if(!SocketIsConnected(socket))
 	{
 		g_iInError = 12;
 		g_hSocket = INVALID_HANDLE;
@@ -230,7 +234,8 @@ public Network_OnSockConnVer(Handle:socket, any:we)
 		CloseHandle(socket);
 		return;
 	}
-	new String:buff[15];
+	
+	char buff[15];
 	Format(buff, sizeof(buff), "_UPDATE");
 	SocketSend(socket, buff, strlen(buff) + 1); // Send that \0!
 	Status_Report(g_iNetStatus, KAC_ON);

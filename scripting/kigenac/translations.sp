@@ -1,6 +1,7 @@
 /*
-	Kigen's Anti-Cheat Eye Test Module
+	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -102,11 +103,11 @@ Trans_OnPluginStart()
 	SetTrieValue(g_hLanguages, "it", any:CreateTrie());
 	
 	//- English -//
-	if (!GetTrieValue(g_hLanguages, "en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
-		SetFailState("Unable to create language tree for English");
+	if(!GetTrieValue(g_hLanguages, "en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+		SetFailState("Unable to create Language Tree for English");
 		
 	// Load the phrases into Translations.
-	SetTrieString(f_hTemp, KAC_LOADED, "Kigen's Anti-Cheat has been loaded successfully.");
+	SetTrieString(f_hTemp, KAC_LOADED, "Kigen's Anti-Cheat Redux has been loaded successfully.");
 	SetTrieString(f_hTemp, KAC_BANNED, "You have been banned for a cheating infraction");
 	SetTrieString(f_hTemp, KAC_GBANNED, "You are banned from all Kigen's Anti-Cheat (KAC) protected servers.  See http://www.kigenac.com/ for more information");
 	SetTrieString(f_hTemp, KAC_VACBANNED, "This Kigen's Anti-Cheat (KAC) protected server does not allow VALVe's Anti-Cheat (VAC) banned players");
@@ -128,7 +129,7 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KAC_CLIENTCORRUPT, "Your client has become corrupted.  Please restart your game before reconnecting");
 	SetTrieString(f_hTemp, KAC_REMOVEPLUGINS, "Please remove any third party plugins from your client before joining this server again");
 	SetTrieString(f_hTemp, KAC_HASPLUGIN, "%N (%s) has a plugin running, returned %s.");
-	SetTrieString(f_hTemp, KAC_MUTED, "%N has been muted by Kigen's Anti-Cheat.");
+	SetTrieString(f_hTemp, KAC_MUTED, "%N has been muted by Kigen's Anti-Cheat Redux.");
 	SetTrieString(f_hTemp, KAC_HASNOTEQUAL, "%N (%s) returned a bad value on %s (value %s, should be %s).");
 	SetTrieString(f_hTemp, KAC_SHOULDEQUAL, "Your convar %s should equal %s but it was set to %s.  Please correct this before rejoining");
 	SetTrieString(f_hTemp, KAC_HASNOTGREATER, "%N (%s) has convar %s set to %s when it should be greater than or equal to %s.");
@@ -151,7 +152,7 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KAC_ADDCVARFAILED, "Failed to add ConVar %s to the check list.");
 	SetTrieString(f_hTemp, KAC_CHANGENAME, "Please change your name");
 	SetTrieString(f_hTemp, KAC_CBANNED, "You have been banned for a command usage violation");
-	SetTrieString(f_hTemp, KAC_STATUSREPORT, "Kigen's Anti-Cheat Status Report");
+	SetTrieString(f_hTemp, KAC_STATUSREPORT, "Kigen's Anti-Cheat Redux Status Report");
 	SetTrieString(f_hTemp, KAC_ON, "On");
 	SetTrieString(f_hTemp, KAC_OFF, "Off");
 	SetTrieString(f_hTemp, KAC_DISABLED, "Disabled");
@@ -179,9 +180,9 @@ Trans_OnPluginStart()
 	//- French -//
 	// Thank you to vintage for this translation.  http://kigenac.com/memberlist.php?mode=viewprofile&u=1035
 	if(!GetTrieValue(g_hLanguages, "fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
-		SetFailState("Unable to create language tree for French");
+		SetFailState("Unable to create Language Tree for French");
 		
-	SetTrieString(f_hTemp, KAC_LOADED, "Kigen's Anti-Cheat est opérationnel.");
+	SetTrieString(f_hTemp, KAC_LOADED, "Kigen's Anti-Cheat Redux est opérationnel.");
 	SetTrieString(f_hTemp, KAC_BANNED, "Vous avez été banni pour cheat détecté");
 	SetTrieString(f_hTemp, KAC_GBANNED, "Vous avez été banni de tous les serveurs protégés par Kigen's Anti-Cheat (KAC). Voir http://www.kigenac.com/ pour plus d'informations");
 	SetTrieString(f_hTemp, KAC_VACBANNED, "Ce serveur protégé par Kigen's Anti-Cheat (KAC) n'autorise pas les joueurs bannis par VALVe's Anti-Cheat (VAC)");
@@ -226,7 +227,7 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KAC_ADDCVARFAILED, "La cvar %s n'a pu être ajoutée à la liste de surveillance.");
 	SetTrieString(f_hTemp, KAC_CHANGENAME, "Veuillez changer votre nom! SVP.");
 	SetTrieString(f_hTemp, KAC_CBANNED, "Vous avez été banni pour une violation d'usage de commande");
-	SetTrieString(f_hTemp, KAC_STATUSREPORT, "Rapport de Kigen's Anti-Cheat");
+	SetTrieString(f_hTemp, KAC_STATUSREPORT, "Rapport de Kigen's Anti-Cheat Redux");
 	SetTrieString(f_hTemp, KAC_ON, "On");
 	SetTrieString(f_hTemp, KAC_OFF, "Off");
 	SetTrieString(f_hTemp, KAC_DISABLED, "Désactivé");
@@ -253,10 +254,10 @@ Trans_OnPluginStart()
 	
 	//- Italian -//
 	// Thank you to asterix for this translation.  http://kigenac.com/memberlist.php?mode=viewprofile&u=116
-	if (!GetTrieValue(g_hLanguages, "it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
-		SetFailState("Unable to create language tree for Italian");
+	if(!GetTrieValue(g_hLanguages, "it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+		SetFailState("Unable to create Language Tree for Italian");
 		
-	SetTrieString(f_hTemp, KAC_LOADED, "L'anticheats Kigen è stato caricato con successo.");
+	SetTrieString(f_hTemp, KAC_LOADED, "L'anticheats Kigen Redux è stato caricato con successo.");
 	SetTrieString(f_hTemp, KAC_BANNED, "Sei stato bannato per aver utilizzato dei trucchi");
 	SetTrieString(f_hTemp, KAC_GBANNED, "Sei bannato da tutti i server protetti dall'anticheats Kigen (KAC). Visita http://www.kigenac.com/ per ulteriori informazioni");
 	SetTrieString(f_hTemp, KAC_VACBANNED, "I server protetti dall'anticheats Kigen (KAC) non permettono l'ingresso ai giocatori bannati dall'anticheats della VALVE (VAC)");
@@ -301,7 +302,7 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KAC_ADDCVARFAILED, "Non si è riusciti ad aggiungere il cvar %s alla lista di controllo.");
 	SetTrieString(f_hTemp, KAC_CHANGENAME, "Per favore cambia il tuo nome");
 	SetTrieString(f_hTemp, KAC_CBANNED, "Sei stato bannato per utilizzo proibito dei comandi");
-	SetTrieString(f_hTemp, KAC_STATUSREPORT, "Kigen's Anti-Cheat Status Report");
+	SetTrieString(f_hTemp, KAC_STATUSREPORT, "Kigen's Anti-Cheat Redux Status Report");
 	SetTrieString(f_hTemp, KAC_ON, "On");
 	SetTrieString(f_hTemp, KAC_OFF, "Off");
 	SetTrieString(f_hTemp, KAC_DISABLED, "Disabilitato");

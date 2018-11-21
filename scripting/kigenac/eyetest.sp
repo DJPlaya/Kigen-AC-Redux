@@ -1,6 +1,7 @@
 /*
-	Kigen's Anti-Cheat Eye Test Module
+	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -38,7 +39,7 @@ Eyetest_OnPluginStart()
 {
 	if(g_iGame != GAME_INS && g_iGame != GAME_CSS && g_iGame != GAME_L4D2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO)
 	{
-		g_hCVarEyeEnable = CreateConVar("kac_eyes_enable", "0", "Enable the eye test detection routine.");
+		g_hCVarEyeEnable = CreateConVar("kac_eyes_enable", "0", "Enable the Eye Test detection Routine");
 		Eyetest_EnableChange(g_hCVarEyeEnable, "", "");
 		
 		if(g_bEyeEnabled)
@@ -58,7 +59,7 @@ Eyetest_OnPluginStart()
 		g_bAntiWallDisabled = false;
 		g_iAntiWHStatus = Status_Register(KAC_ANTIWH, KAC_OFF);
 		
-		g_hCVarAntiWall = CreateConVar("kac_eyes_antiwall", "0", "Enable anti-wallhack");
+		g_hCVarAntiWall = CreateConVar("kac_eyes_antiwall", "0", "Enable Anti-Wallhack");
 		
 		Eyetest_AntiWallChange(g_hCVarAntiWall, "", "");
 		

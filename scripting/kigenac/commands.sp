@@ -1,6 +1,7 @@
 /*
-	Kigen's Anti-Cheat Eye Test Module
+	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,31 +20,25 @@
 #define COMMANDS
 
 //- Global Variables -//
-Handle g_hBlockedCmds = INVALID_HANDLE;
-Handle g_hIgnoredCmds = INVALID_HANDLE;
-bool g_bCmdEnabled = true;
-bool g_bLogCmds = false;
+Handle g_hBlockedCmds, g_hIgnoredCmds;
+bool g_bCmdEnabled = true, g_bLogCmds;
 int g_iCmdSpam = 30;
 int g_iCmdCount[MAXPLAYERS + 1] =  { 0, ... };
-Handle g_hCountReset = INVALID_HANDLE;
-Handle g_hCVarCmdEnable = INVALID_HANDLE;
-Handle g_hCVarCmdSpam = INVALID_HANDLE;
-Handle g_hCVarCmdLog = INVALID_HANDLE;
+Handle g_hCountReset, g_hCVarCmdEnable, g_hCVarCmdSpam, g_hCVarCmdLog;
 char g_sCmdLogPath[256];
-int g_iCmdStatus;
-int g_iCmdSpamStatus;
+int g_iCmdStatus, g_iCmdSpamStatus;
 
 //- Plugin Functions -//
 
 Commands_OnPluginStart()
 {
-	g_hCVarCmdEnable = CreateConVar("kac_cmds_enable", "1", "If the Commands Module of KAC is enabled.");
+	g_hCVarCmdEnable = CreateConVar("kac_cmds_enable", "1", "If the Commands Module of KAC is enabled");
 	g_bCmdEnabled = GetConVarBool(g_hCVarCmdEnable);
 	
-	g_hCVarCmdSpam = CreateConVar("kac_cmds_spam", "30", "Amount of commands in one second before kick.  0 for disable.");
+	g_hCVarCmdSpam = CreateConVar("kac_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", _, true, 0.0, true, 120.0);
 	g_iCmdSpam = GetConVarInt(g_hCVarCmdSpam);
 	
-	g_hCVarCmdLog = CreateConVar("kac_cmds_log", "0", "Log command usage.  Use only for debugging purposes.");
+	g_hCVarCmdLog = CreateConVar("kac_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes");
 	g_bLogCmds = GetConVarBool(g_hCVarCmdLog);
 	
 	HookConVarChange(g_hCVarCmdEnable, Commands_CmdEnableChange);
@@ -51,7 +46,7 @@ Commands_OnPluginStart()
 	HookConVarChange(g_hCVarCmdLog, Commands_CmdLogChange);
 	
 	//- Setup logging path -//
-	for(new i = 0; ; i++)
+	for(int i = 0; ; i++)
 	{
 		BuildPath(Path_SM, g_sCmdLogPath, sizeof(g_sCmdLogPath), "logs/KACCmdLog_%d.log", i);
 		if(!FileExists(g_sCmdLogPath))
@@ -61,8 +56,9 @@ Commands_OnPluginStart()
 	if(g_bCmdEnabled)
 	{
 		g_iCmdStatus = Status_Register(KAC_CMDMOD, KAC_ON);
-		if (!g_iCmdSpam)
+		if(!g_iCmdSpam)
 			g_iCmdSpamStatus = Status_Register(KAC_CMDSPAM, KAC_OFF);
+			
 		else
 			g_iCmdSpamStatus = Status_Register(KAC_CMDSPAM, KAC_ON);
 	}
@@ -176,6 +172,7 @@ Commands_OnAllPluginsLoaded()
 				
 			if(StrContains(f_sName, "es_") != -1 && !StrEqual(f_sName, "es_version"))
 				RegConsoleCmd(f_sName, Commands_ClientCheck);
+				
 			else
 				RegConsoleCmd(f_sName, Commands_SpamCheck);
 				

@@ -1,6 +1,7 @@
 /*
 	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,9 +17,20 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//- Pre-processor Defines -//
-#define PLUGIN_VERSION "1.2.2.0-B"
-#define PLUGIN_BUILD 1
+//- Includes -//
+#include <sourcemod>
+#include <sdktools>
+#include <smlib>
+#undef REQUIRE_EXTENSIONS 
+#include <sdkhooks>
+#define REQUIRE_EXTENSIONS
+
+//- Natives -//
+native void SBBanPlayer(client, target, time, char[] reason); // Sourcebans
+native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sReason); // SourceBans++
+
+//- Defines -//
+#define PLUGIN_VERSION "0.1"
 
 #define GAME_OTHER	0
 #define GAME_CSS	1
@@ -30,17 +42,6 @@
 #define GAME_HL2DM	7
 #define GAME_CSGO	8
 
-//- SM Includes -//
-#include <sourcemod>
-#include <sdktools>
-#include <smlib>
-#undef REQUIRE_EXTENSIONS 
-#include <sdkhooks>
-
-//- Natives -// // Too LAZZZYY for includes
-native void SBBanPlayer(client, target, time, char[] reason);
-native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sReason);
-
 //- Global Variables -//
 bool g_bConnected[MAXPLAYERS + 1] =  { false, ... }; // I use these instead of the natives because they are cheaper to call
 bool g_bAuthorized[MAXPLAYERS + 1] =  { false, ... }; // when I need to check on a client's state.  Natives are very taxing on
@@ -51,14 +52,12 @@ bool g_bIsFake[MAXPLAYERS + 1] =  { false, ... };
 bool g_bSourceBans, g_bSourceBansPP, g_bMapStarted;
 
 Handle g_hCLang[MAXPLAYERS + 1] =  { INVALID_HANDLE, ... };
-Handle g_hSLang = INVALID_HANDLE;
+Handle g_hSLang;
 Handle g_hValidateTimer[MAXPLAYERS + 1] =  { INVALID_HANDLE, ... };
-Handle g_hDenyArray = INVALID_HANDLE;
-Handle g_hClearTimer = INVALID_HANDLE;
-Handle g_hCVarVersion = INVALID_HANDLE;
+Handle g_hDenyArray, g_hClearTimer, g_hCVarVersion;
 int g_iGame = GAME_OTHER; // Game identifier.
 
-//- KAC Modules -// Note: The ordering of these includes are imporant.
+//- KAC Modules -// Note: The ordering of these includes are imporant
 #include "kigenac/translations.sp"	// Translations Module - NEEDED FIRST
 #include "kigenac/client.sp"		// Client Module
 #include "kigenac/commands.sp"		// Commands Module
@@ -72,8 +71,8 @@ int g_iGame = GAME_OTHER; // Game identifier.
 
 public Plugin myinfo = 
 {
-	name = "Kigen's Anti-Cheat", 
-	author = "CodingDirect LLC (Playa Edit)", 
+	name = "Kigen's Anti-Cheat Redux", 
+	author = "Playa", 
 	description = "The greatest thing since sliced pie", 
 	version = PLUGIN_VERSION, 
 	url = "FunForBattle"
@@ -147,9 +146,8 @@ public void OnPluginStart()
 		
 	AutoExecConfig(true, "Kigen_AC");
 	
-	g_hCVarVersion = CreateConVar("kac_version", PLUGIN_VERSION, "KAC version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
-	// "notify" - So that we appear on server tracking sites.  "dontrecord" - So that we don't get saved to the auto cfg.
-	SetConVarFlags(g_hCVarVersion, FCVAR_NOTIFY | FCVAR_DONTRECORD); // Make sure "dontrecord" is there so that AutoExecConfig won't auto generate kac_version into the cfg file.
+	g_hCVarVersion = CreateConVar("kac_version", PLUGIN_VERSION, "KAC Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_DONTRECORD); // "notify" - So that we appear on server Tracking Sites.  "dontrecord" - So that we don't get saved to the auto cfg
+	
 	SetConVarString(g_hCVarVersion, PLUGIN_VERSION);
 	HookConVarChange(g_hCVarVersion, VersionChange);
 	

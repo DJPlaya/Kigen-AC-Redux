@@ -1,6 +1,7 @@
 /*
-	Kigen's Anti-Cheat Eye Test Module
+	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -20,25 +21,28 @@
 
 stock KAC_Translate(client, char[] trans, char[] dest, maxlen)
 {
-	if (client)
+	if(client)
 		GetTrieString(g_hCLang[client], trans, dest, maxlen);
 		
 	else
 		GetTrieString(g_hSLang, trans, dest, maxlen);
 }
 
-stock KAC_ReplyToCommand(client, const char[] trans, any:...)
+stock KAC_ReplyToCommand(client, const char[] trans, any ...)
 {
-	decl String:f_sBuffer[256], String:f_sFormat[256];
-	if (!client)
+	char f_sBuffer[256], f_sFormat[256];
+	
+	if(!client)
 		GetTrieString(g_hSLang, trans, f_sFormat, sizeof(f_sFormat));
+		
 	else
 		GetTrieString(g_hCLang[client], trans, f_sFormat, sizeof(f_sFormat));
+		
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
 	ReplyToCommand(client, "[Kigen-AC] %s", f_sBuffer);
 }
 
-stock KAC_PrintToServer(const char[] trans, any:...)
+stock KAC_PrintToServer(const char[] trans, any ...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	GetTrieString(g_hSLang, trans, f_sFormat, sizeof(f_sFormat));
@@ -46,7 +50,7 @@ stock KAC_PrintToServer(const char[] trans, any:...)
 	PrintToServer("[Kigen-AC] %s", f_sBuffer);
 }
 
-stock KAC_PrintToChat(client, const char[] trans, any:...)
+stock KAC_PrintToChat(client, const char[] trans, any ...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	GetTrieString(g_hCLang[client], trans, f_sFormat, sizeof(f_sFormat));
@@ -54,7 +58,7 @@ stock KAC_PrintToChat(client, const char[] trans, any:...)
 	PrintToChat(client, "[Kigen-AC] %s", f_sBuffer);
 }
 
-stock KAC_PrintToChatAdmins(const char[] trans, any:...)
+stock KAC_PrintToChatAdmins(const char[] trans, any ...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	for(int i = 1; i <= MaxClients; i++)
@@ -68,7 +72,7 @@ stock KAC_PrintToChatAdmins(const char[] trans, any:...)
 	}
 }
 
-stock KAC_PrintToChatAll(const char[] trans, any:...)
+stock KAC_PrintToChatAll(const char[] trans, any ...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	for(int i = 1; i <= MaxClients; i++)
@@ -82,28 +86,29 @@ stock KAC_PrintToChatAll(const char[] trans, any:...)
 	}
 }
 
-stock KAC_Kick(client, const char[] trans, any:...)
+stock KAC_Kick(client, const char[] trans, any ...)
 {
-	decl String:f_sBuffer[256], String:f_sFormat[256];
+	char f_sBuffer[256], f_sFormat[256];
 	GetTrieString(g_hCLang[client], trans, f_sFormat, sizeof(f_sFormat));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
 	KickClient(client, "%s", f_sBuffer);
 	OnClientDisconnect(client); // Do this since the client is no longer useful to us. - Kigen
 }
 
-stock KAC_Ban(client, time, const String:trans[], const String:format[], any:...)
+stock KAC_Ban(client, time, const char[] trans, const char[] format, any ...)
 {
-	new String:f_sBuffer[256], String:f_sEReason[256];
+	char f_sBuffer[256], f_sEReason[256];
 	GetTrieString(g_hCLang[client], trans, f_sEReason, sizeof(f_sEReason));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), format, 5);
 	if(g_bSourceBans)
 		SBBanPlayer(0, client, time, f_sBuffer);
 		
 	else if(g_bSourceBansPP)
-		SBPP_BanPlayer(0, client, time, f_sBuffer); // Admin 0 is the Server in SBPP, this id CAN be created or edited manually in the Database to show Admin Name "Server" on the Webpanel
+		SBPP_BanPlayer(0, client, time, f_sBuffer); // Admin 0 is the Server in SBPP, this ID CAN be created or edited manually in the Database to show Name "Server" on the Webpanel
 		
 	else
 		BanClient(client, time, BANFLAG_AUTO, f_sBuffer, f_sEReason, "KAC");
+		
 	OnClientDisconnect(client); // Bashats!
 }
 
@@ -121,6 +126,6 @@ KAC_Log(const char[] format, any ...)
 stock StringToLower(char[] f_sInput)
 {
 	int f_iSize = strlen(f_sInput);
-	for (new i = 0; i < f_iSize; i++)
-	f_sInput[i] = CharToLower(f_sInput[i]);
+	for(new i = 0; i < f_iSize; i++)
+		f_sInput[i] = CharToLower(f_sInput[i]);
 }

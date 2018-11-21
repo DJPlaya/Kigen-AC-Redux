@@ -1,6 +1,7 @@
 /*
-	Kigen's Anti-Cheat Eye Test Module
+	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
+	No Copyright (i guess) 2018 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -41,12 +42,12 @@ bool g_bClientMapStarted = false;
 
 Client_OnPluginStart()
 {
-	g_hCVarClientEnable = CreateConVar("kac_client_enable", "1", "Enable the Client Protection module.");
+	g_hCVarClientEnable = CreateConVar("kac_client_enable", "1", "Enable the Client Protection Module");
 	g_bClientEnable = GetConVarBool(g_hCVarClientEnable);
 	
-	if(g_iGame == GAME_CSS)
+	if(g_iGame == GAME_CSS || g_iGame == GAME_CSGO)
 	{
-		g_hCVarClientAntiRespawn = CreateConVar("kac_client_antirejoin", "0", "This will prevent people from leaving the game then rejoining to respawn.");
+		g_hCVarClientAntiRespawn = CreateConVar("kac_client_antirejoin", "0", "This will prevent Clients from leaving the Game then rejoining to Respawn");
 		g_bClientAntiRespawn = GetConVarBool(g_hCVarClientAntiRespawn);
 		
 		g_hClientSpawned = CreateTrie();
@@ -61,10 +62,10 @@ Client_OnPluginStart()
 		RegConsoleCmd("joinclass", Client_JoinClass);
 	}
 	
-	g_hCVarClientNameProtect = CreateConVar("kac_client_nameprotect", "1", "This will protect the server from name crashes and hacks.");
+	g_hCVarClientNameProtect = CreateConVar("kac_client_nameprotect", "1", "This will protect the Server from name Crashes and Hacks");
 	g_bClientNameProtect = GetConVarBool(g_hCVarClientNameProtect);
 	
-	g_hCVarClientAntiSpamConnect = CreateConVar("kac_client_antispamconnect", "0", "Seconds to prevent someone from restablishing a connection. 0 to disable.");
+	g_hCVarClientAntiSpamConnect = CreateConVar("kac_client_antispamconnect", "0", "Seconds to prevent someone from restablishing a Connection. 0 to disable", _, true, 0.0, true, 60.0);
 	g_fClientAntiSpamConnect = GetConVarFloat(g_hCVarClientAntiSpamConnect);
 	
 	if(g_bClientEnable)
