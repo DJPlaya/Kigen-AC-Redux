@@ -52,4 +52,5 @@ SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and
 I hope this Plugin will help some Server Owners.
 
 Since i havent implemented an Updater yet (or renewed the old one), watch this Project on GitHub so you will be informed about Updates.
+
 ![How to watch](https://help.github.com/assets/images/help/notifications/watcher_picker.gif)
