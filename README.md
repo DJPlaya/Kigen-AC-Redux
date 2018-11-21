@@ -7,7 +7,8 @@ Requires
 Optional:
 - Sourcebans
 - Sourcebans++
-
+#
+#
 Commands | Description | Adminflag
 ------------ | ------------- | -------------
 kac_addcmd | Adds a Command to be blocked by KAC | ADMFLAG_ROOT
