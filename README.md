@@ -16,15 +16,15 @@ kac_removecmd | Removes a Command from the Block List | ADMFLAG_ROOT
 kac_removeignorecmd | Removes a Command to ignore | ADMFLAG_ROOT
 kac_addcvar | Adds a CVar to the check list | ADMFLAG_ROOT
 kac_removecvar | Removes a CVar from the check list | ADMFLAG_ROOT
-
+#
 Status Commands | Description | Adminflag
 ------------ | ------------- | -------------
 kac_status | Reports KAC's Status | ADMFLAG_GENERIC
 sm_kac_status | Reports KAC's Status | ADMFLAG_GENERIC
 kac_net_status | Reports who has been checked | ADMFLAG_GENERIC
 kac_cvars_status | Shows the status of all in-game clients | ADMFLAG_GENERIC
-
-
+#
+#
 Note: A Config File will be automatically created
 
 ConVar | Possible Value | Description
