@@ -25,7 +25,8 @@ kac_net_status | Reports who has been checked | ADMFLAG_GENERIC
 kac_cvars_status | Shows the status of all in-game clients | ADMFLAG_GENERIC
 
 
-Note: A config File will be automatically created
+Note: A Config File will be automatically created
+
 ConVar | Possible Value | Description
 ------------ | ------------- | -------------
 kac_version | Dont | KAC Plugin Version (do not touch)
