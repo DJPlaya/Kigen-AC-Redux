@@ -1,12 +1,12 @@
 # Kigen Anti Cheat Redux
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d02e2cc3856043a1a2b8277834f54bd5)](https://app.codacy.com/app/DJPlaya/kigen-ac-pub?utm_source=github.com&utm_medium=referral&utm_content=DJPlaya/kigen-ac-pub&utm_campaign=Badge_Grade_Dashboard)
 
-* Requires
- * Sockets 3.0.1+
+Requires:
+- Sockets 3.0.1+
 
- * Optional
-  * Sourcebans
-  * Sourcebans++
+- Optional:
+ - Sourcebans
+ - Sourcebans++
 
 Commands | Description | Adminflag
 ------------ | ------------- | -------------
@@ -25,10 +25,10 @@ kac_net_status | Reports who has been checked | ADMFLAG_GENERIC
 kac_cvars_status | Shows the status of all in-game clients | ADMFLAG_GENERIC
 
 
-# Note: A config File will be automatically created
+Note: A config File will be automatically created
 ConVar | Possible Value | Description
 ------------ | ------------- | -------------
-kac_version | Dont Touch | KAC Plugin Version (do not touch)
+kac_version | Dont | KAC Plugin Version (do not touch)
 kac_client_enable | 1/0 | Enable the Client Protection Module
 kac_client_antirejoin | 1/0 | (CSS/CSGO only) This will prevent people from leaving the game then rejoining to respawn
 kac_client_nameprotect | 1/0 | This will protect the Server from name Crashes and Hacks
