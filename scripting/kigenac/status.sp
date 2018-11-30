@@ -55,9 +55,12 @@ Status_Report(f_iId, char[] f_sStatus)
 	RemoveFromArray(g_hStatusArray, f_iId);
 }*/
 
-public Action:Status_Status(client, args)
+public Action Status_Status(client, args)
 {
-	new f_iCount = GetArraySize(g_hStatusArray), Handle:f_hTemp, String:f_sBuff[256], String:f_sTemp[64], String:f_sTemp2[64];
+	Handle f_hTemp;
+	char f_sBuff[256], f_sTemp[64], f_sTemp2[64];
+	
+	int f_iCount = GetArraySize(g_hStatusArray)
 	KAC_ReplyToCommand(client, KAC_STATUSREPORT);
 	if(!f_iCount)
 	{
@@ -76,5 +79,6 @@ public Action:Status_Status(client, args)
 		StrCat(f_sBuff, sizeof(f_sBuff), f_sTemp2);
 		ReplyToCommand(client, f_sBuff);
 	}
+	
 	return Plugin_Handled;
 }

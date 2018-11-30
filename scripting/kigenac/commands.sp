@@ -20,8 +20,10 @@
 #define COMMANDS
 
 //- Global Variables -//
+
 Handle g_hBlockedCmds, g_hIgnoredCmds;
-bool g_bCmdEnabled = true, g_bLogCmds;
+bool g_bCmdEnabled = true;
+bool g_bLogCmds;
 int g_iCmdSpam = 30;
 int g_iCmdCount[MAXPLAYERS + 1] =  { 0, ... };
 Handle g_hCountReset, g_hCVarCmdEnable, g_hCVarCmdSpam, g_hCVarCmdLog;
@@ -361,6 +363,7 @@ public Action Commands_BlockExploit(client, args)
 			return Plugin_Stop;
 		}
 	}
+	
 	return Plugin_Continue;
 }
 
@@ -440,7 +443,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 	StringToLower(f_sCmd);
 	
 	// Check to see if this person is command spamming.
-	if (g_iCmdSpam != 0 && !GetTrieValue(g_hIgnoredCmds, f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[iClient]++ > g_iCmdSpam)
+	if(g_iCmdSpam != 0 && !GetTrieValue(g_hIgnoredCmds, f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[iClient]++ > g_iCmdSpam)
 	{
 		char f_sAuthID[64], f_sIP[64], f_sCmdString[128];
 		GetClientAuthId(iClient, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
@@ -448,7 +451,6 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
 		KAC_Log("'%N'(ID: %s | IP: %s) was kicked for Command Spamming: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
 		KAC_Kick(iClient, KAC_KCMDSPAM);
-		
 		return Plugin_Stop;
 	}
 	
@@ -485,7 +487,7 @@ public Action Commands_ClientCheck(client, args)
 	if(!g_bInGame[client])
 		return Plugin_Stop;
 		
-	if (!g_bCmdEnabled)
+	if(!g_bCmdEnabled)
 		return Plugin_Continue;
 		
 	char f_sCmd[64];
@@ -542,7 +544,6 @@ public Action Commands_SpamCheck(client, args)
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
 		KAC_Log("'%N'(ID: %s | IP: %s) was kicked for Command Spamming: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
 		KAC_Kick(client, KAC_KCMDSPAM);
-		
 		return Plugin_Stop;
 	}
 	
@@ -578,9 +579,9 @@ public Action Commands_CountReset(Handle timer, any args)
 	if(!g_bCmdEnabled)
 	{
 		g_hCountReset = INVALID_HANDLE;
-		
 		return Plugin_Stop;
 	}
+	
 	for(int iCount = 1; iCount <= MaxClients; iCount++)
 		g_iCmdCount[iCount] = 0;
 		

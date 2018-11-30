@@ -21,22 +21,16 @@
 
 #define MAX_CONNECTIONS 128
 
-Handle g_hCVarClientEnable = INVALID_HANDLE;
-Handle g_hCVarClientAntiRespawn = INVALID_HANDLE;
-Handle g_hCVarClientNameProtect = INVALID_HANDLE;
-Handle g_hCVarClientAntiSpamConnect = INVALID_HANDLE;
-bool g_bClientEnable = true;
-bool g_bClientAntiRespawn = false;
-bool g_bClientNameProtect = true;
+Handle g_hCVarClientEnable, g_hCVarClientAntiRespawn, g_hCVarClientNameProtect, g_hCVarClientAntiSpamConnect;
+bool g_bClientEnable = true, g_bClientNameProtect = true;
+bool g_bClientAntiRespawn;
 float g_fClientAntiSpamConnect = 0.0;
-int g_iClientStatus;
-int g_iClientAntiRespawnStatus;
-int g_iClientNameProtectStatus;
+int g_iClientStatus, g_iClientAntiRespawnStatus, g_iClientNameProtectStatus;
 // int g_iClientAntiSpamConnectStatus;
-Handle g_hClientSpawned = INVALID_HANDLE;
+Handle g_hClientSpawned;
 int g_iClientClass[MAXPLAYERS + 1] =  { -1, ... };
 char g_sClientConnections[MAX_CONNECTIONS][64];
-bool g_bClientMapStarted = false;
+bool g_bClientMapStarted;
 
 //- Plugin Functions -//
 
@@ -174,8 +168,8 @@ Client_OnMapEnd()
 	g_bClientMapStarted = false;
 	
 	for(int i = 0; i < MAX_CONNECTIONS; i++)
-	strcopy(g_sClientConnections[i], 64, "");
-	
+		strcopy(g_sClientConnections[i], 64, "");
+		
 	if(g_iGame == GAME_CSS)
 		Client_CleanEvent(INVALID_HANDLE, "", false);
 }
@@ -187,7 +181,6 @@ public Action Client_AntiSpamConnectTimer(Handle timer, any i)
 	strcopy(g_sClientConnections[i], 64, "");
 	return Plugin_Stop;
 }
-
 
 //- Hooks -//
 

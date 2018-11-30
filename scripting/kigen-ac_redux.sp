@@ -24,6 +24,7 @@
 #undef REQUIRE_EXTENSIONS 
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
+#include <socket> // Required for the networking Module
 
 //- Natives -//
 native void SBBanPlayer(client, target, time, char[] reason); // Sourcebans
@@ -63,7 +64,7 @@ int g_iGame = GAME_OTHER; // Game identifier.
 #include "kigenac/commands.sp"		// Commands Module
 #include "kigenac/cvars.sp"		// CVar Module
 #include "kigenac/eyetest.sp"		// Eye Test Module
-#include "kigenac/network.sp"		// Network Module
+// #include "kigenac/network.sp"		// Network Module // OUTDATED
 #include "kigenac/rcon.sp"		// RCON Module
 #include "kigenac/status.sp"		// Status Module
 #include "kigenac/stocks.sp"		// Stocks Module
@@ -128,7 +129,7 @@ public void OnPluginStart()
 	Commands_OnPluginStart();
 	CVars_OnPluginStart();
 	Eyetest_OnPluginStart();
-	Network_OnPluginStart();
+	// Network_OnPluginStart(); // OUTDATED
 	RCON_OnPluginStart();
 	Trans_OnPluginStart();
 	
@@ -192,12 +193,12 @@ public OnAllPluginsLoaded()
 
 public OnPluginEnd()
 {
-	//Client_OnPluginEnd(); // Currently unused
+	// Client_OnPluginEnd(); // Currently unused
 	Commands_OnPluginEnd();
 	Eyetest_OnPluginEnd();
-	Network_OnPluginEnd();
-	RCON_OnPluginEnd();
-	//Status_OnPluginEnd(); // Currently unused
+	// Network_OnPluginEnd(); // OUTDATED
+	// RCON_OnPluginEnd(); // Currently unused
+	// Status_OnPluginEnd(); // Currently unused
 	
 	for(int iClient = 0; iClient <= MaxClients; iClient++)
 	{
@@ -224,15 +225,15 @@ public void OnMapStart()
 {
 	g_bMapStarted = true;
 	CVars_CreateNewOrder();
-	//Client_OnMapStart(); // Currently unused 
-	RCON_OnMap();
+	// Client_OnMapStart(); // Currently unused 
+	// RCON_OnMap(); // Currently unused
 }
 
 public void OnMapEnd()
 {
 	g_bMapStarted = false;
 	Client_OnMapEnd();
-	RCON_OnMap();
+	// RCON_OnMap(); // Currently unused
 }
 
 //- Client Functions -//
@@ -333,7 +334,7 @@ public OnClientDisconnect(client)
 		CloseHandle(f_hTemp);
 		
 	CVars_OnClientDisconnect(client);
-	Network_OnClientDisconnect(client);
+	// Network_OnClientDisconnect(client); // OUTDATED
 }
 
 //- Timers -//

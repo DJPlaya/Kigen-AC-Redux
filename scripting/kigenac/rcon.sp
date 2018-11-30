@@ -20,7 +20,7 @@
 #define RCON
 
 Handle g_hRCONCrash;
-bool g_bRCONPreventEnabled = false;
+bool g_bRCONPreventEnabled;
 int g_iMinFail = 5;
 int g_iMaxFail = 20;
 int g_iMinFailTime = 30;
@@ -30,27 +30,28 @@ int g_iRCONStatus;
 
 RCON_OnPluginStart()
 {
-	if (g_iGame != GAME_CSS && g_iGame != GAME_DOD && g_iGame != GAME_TF2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
+	if(g_iGame != GAME_CSS && g_iGame != GAME_DOD && g_iGame != GAME_TF2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
 	{
 		g_hRCONCrash = CreateConVar("kac_rcon_crashprevent", "0", "Enable RCON Crash Prevention");
 		g_bRCONPreventEnabled = GetConVarBool(g_hRCONCrash);
 		
 		HookConVarChange(g_hRCONCrash, RCON_CrashPrevent);
 		
-		if (g_bRCONPreventEnabled)
+		if(g_bRCONPreventEnabled)
 			g_iRCONStatus = Status_Register(KAC_RCONPREVENT, KAC_ON);
+			
 		else
 			g_iRCONStatus = Status_Register(KAC_RCONPREVENT, KAC_OFF);
 	}
 }
 
-RCON_OnPluginEnd()
+/*RCON_OnPluginEnd()
 {
-}
+}*/
 
-RCON_OnMap()
+/*RCON_OnMap()
 {
-}
+}*/
 
 //- Hooks -//
 
