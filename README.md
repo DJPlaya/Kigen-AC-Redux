@@ -20,29 +20,28 @@ kac_removecvar | Removes a CVar from the check list | ADMFLAG_ROOT
 #
 Status Commands | Description | Adminflag
 ------------ | ------------- | -------------
-kac_status | Reports KAC's Status | ADMFLAG_GENERIC
-sm_kac_status | Reports KAC's Status | ADMFLAG_GENERIC
-kac_net_status | Reports who has been checked | ADMFLAG_GENERIC
-kac_cvars_status | Shows the status of all in-game clients | ADMFLAG_GENERIC
+kacr_status | Reports KACR's Status | ADMFLAG_GENERIC
+kacr_net_status | Reports who has been checked | ADMFLAG_GENERIC
+kacr_cvars_status | Shows the status of all in-game clients | ADMFLAG_GENERIC
 #
 #
 Note: A Config File will be automatically created
 
 ConVar | Possible Value | Description
 ------------ | ------------- | -------------
-kac_version | Dont | KAC Plugin Version (do not touch)
-kac_client_enable | 1/0 | Enable the Client Protection Module
-kac_client_antirejoin | 1/0 | (CSS/CSGO only) This will prevent people from leaving the game then rejoining to respawn
-kac_client_nameprotect | 1/0 | This will protect the Server from name Crashes and Hacks
-kac_client_antispamconnect | 0-60 | Seconds to prevent someone from restablishing a Connection. 0 to disable
-kac_net_enable | 1/0 | Enable the Network Module
-kac_cvars_enable | 1/0 | Enable the CVar checking Module
-kac_rcon_crashprevent | 1/0 | Enable RCON Crash Prevention
-kac_eyes_enable | 1/0 | Enable the Eye Test detection Routine
-kac_eyes_antiwall | 1/0 | Enable Anti-Wallhack
-kac_cmds_enable | 1/0 | If the Commands Module of KAC is enabled
-kac_cmds_spam | 0-120 | Amount of Commands in one Second before Kick. 0 to disable
-kac_cmds_log | 1/0 | Log Command Usage. Use only for debugging Purposes
+kacr_version | Dont | KACR Plugin Version (do not touch)
+kacr_client_enable | 1/0 | Enable the Client Protection Module
+kacr_client_antirejoin | 1/0 | (CSS/CSGO only) This will prevent people from leaving the game then rejoining to respawn
+kacr_client_nameprotect | 1/0 | This will protect the Server from name Crashes and Hacks
+kacr_client_antispamconnect | 0-120 | Seconds to prevent someone from restablishing a Connection. 0 to disable
+kacr_net_enable | 1/0 | Enable the Network Module
+kacr_cvars_enable | 1/0 | Enable the CVar checking Module
+kacr_rcon_crashprevent | 1/0 | Enable RCON Crash Prevention
+kacr_eyes_enable | 1/0 | Enable the Eye Test detection Routine
+kacr_eyes_antiwall | 1/0 | Enable Anti-Wallhack
+kacr_cmds_enable | 1/0 | If the Commands Module of KACR is enabled
+kacr_cmds_spam | 0-120 | Amount of Commands in one Second before Kick. 0 to disable
+kacr_cmds_log | 1/0 | Log Command Usage. Use only for debugging Purposes
 
 
 I have just fixed a few things on the last Dev Version of KAC.
