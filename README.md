@@ -1,5 +1,4 @@
 # Kigen Anti Cheat Redux
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d02e2cc3856043a1a2b8277834f54bd5)](https://app.codacy.com/app/DJPlaya/kigen-ac-pub?utm_source=github.com&utm_medium=referral&utm_content=DJPlaya/kigen-ac-pub&utm_campaign=Badge_Grade_Dashboard)
 
 Requires
 - Sockets 3.0.1 or newer
@@ -7,8 +6,7 @@ Requires
 Optional:
 - Sourcebans
 - Sourcebans++
-#
-#
+##
 Commands | Description | Adminflag
 ------------ | ------------- | -------------
 kac_addcmd | Adds a Command to be blocked by KAC | ADMFLAG_ROOT
@@ -23,8 +21,7 @@ Status Commands | Description | Adminflag
 kacr_status | Reports KACR's Status | ADMFLAG_GENERIC
 kacr_net_status | Reports who has been checked | ADMFLAG_GENERIC
 kacr_cvars_status | Shows the status of all in-game clients | ADMFLAG_GENERIC
-#
-#
+##
 Note: A Config File will be automatically created
 
 ConVar | Possible Value | Description
