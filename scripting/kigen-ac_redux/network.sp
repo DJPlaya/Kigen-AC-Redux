@@ -21,7 +21,9 @@
 
 // Old Network version, to be replaced soon.
 
+
 //- Global Variables -//
+
 Handle g_hCVarNetEnabled, g_hCVarNetUseBanlist, g_hCVarNetUseUpdate, g_hUpdateFile, g_hSocket, g_hTimer, g_hVTimer;
 bool g_bCVarNetEnabled = true, g_bCVarNetUseBanlist = true, g_bCVarNetUseUpdate = true;
 bool g_bVCheckDone, InUpdate;
@@ -31,17 +33,18 @@ int g_iNetStatus, g_iCurrentMirror;
 char g_sMirrors[][] = { "kigenac.com", "nauc.info" };
 char UpdatePath[256];
 
+
 //- Plugin Functions -//
 
 Network_OnPluginStart()
 {
-	g_hCVarNetEnabled = CreateConVar("kac_net_enable", "1", "Enable the Network module.");
+	g_hCVarNetEnabled = CreateConVar("kacr_net_enable", "1", "Enable the Network module", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCVarNetEnabled = GetConVarBool(g_hCVarNetEnabled);
 
-	g_hCVarNetUseBanlist = CreateConVar("kac_net_usebanlist", "1", "Use the global banlist.");
+	g_hCVarNetUseBanlist = CreateConVar("kacr_net_usebanlist", "1", "Use the global banlist", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
 
-	g_hCVarNetUseUpdate = CreateConVar("kac_net_autoupdate", "1", "Use the Auto-Update feature.");
+	g_hCVarNetUseUpdate = CreateConVar("kacr_net_autoupdate", "1", "Use the Auto-Update feature", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
 
 	HookConVarChange(g_hCVarNetEnabled, Network_ConVarChange);
@@ -50,12 +53,12 @@ Network_OnPluginStart()
 
 	g_hTimer = CreateTimer(5.0, Network_Timer, _, TIMER_REPEAT);
 	if(g_bCVarNetEnabled)
-		g_iNetStatus = Status_Register(KAC_NETMOD, KAC_ON);
+		g_iNetStatus = Status_Register(KACR_NETMOD, KACR_ON);
 	
 	else
-		g_iNetStatus = Status_Register(KAC_NETMOD, KAC_OFF);
+		g_iNetStatus = Status_Register(KACR_NETMOD, KACR_OFF);
 		
-	RegAdminCmd("kac_net_status", Network_Checked, ADMFLAG_GENERIC, "Reports who has been checked");
+	RegAdminCmd("kacr_net_status", Network_Checked, ADMFLAG_GENERIC, "Reports who has been checked");
 }
 
 Network_OnPluginEnd()
@@ -70,12 +73,14 @@ Network_OnPluginEnd()
 		CloseHandle(g_hSocket);
 }
 
+
 //- Client Functions -//
 
 Network_OnClientDisconnect(client)
 {
 	g_bChecked[client] = false;
 }
+
 
 //- ConVar Functions -//
 
@@ -93,11 +98,12 @@ public Network_ConVarChange(Handle convar, const char[] oldValue, const char[] n
 		g_bCVarNetEnabled = GetConVarBool(g_hCVarNetEnabled);
 		
 	if(g_bCVarNetEnabled && !f_bNetEnabled)
-		Status_Report(g_iNetStatus, KAC_ON);
+		Status_Report(g_iNetStatus, KACR_ON);
 		
 	else if(f_bNetEnabled)
-		Status_Report(g_iNetStatus, KAC_OFF);
+		Status_Report(g_iNetStatus, KACR_OFF);
 }
+
 
 //- Commands -//
 
@@ -106,7 +112,7 @@ public Action Network_Checked(client, args)
 	if(!g_bCVarNetEnabled || !g_bCVarNetUseBanlist)
 	{
 		// TODO: print error here
-		KAC_ReplyToCommand(client, KAC_DISABLED);
+		KACR_ReplyToCommand(client, KACR_DISABLED);
 		return Plugin_Handled;
 	}
 
@@ -119,14 +125,14 @@ public Action Network_Checked(client, args)
 			for(int i=1; i<=MaxClients; i++)
 				if(g_bInGame[i] && !g_bChecked[i])
 				{
-					KAC_ReplyToCommand(client, KAC_CANNOTREVAL);
+					KACR_ReplyToCommand(client, KACR_CANNOTREVAL);
 					return Plugin_Handled;
 				}
 				
 			for(int i=1; i<=MaxClients; i++)
 				g_bChecked[i] = false;
 				
-			KAC_ReplyToCommand(client, KAC_FORCEDREVAL);
+			KACR_ReplyToCommand(client, KACR_FORCEDREVAL);
 			return Plugin_Handled;
 		}
 	}
@@ -138,6 +144,7 @@ public Action Network_Checked(client, args)
 			
 	return Plugin_Handled;
 }
+
 
 //- Timer Functions -//
 
@@ -193,6 +200,7 @@ public Action Network_VTimer(Handle timer, any we)
 	return Plugin_Stop;
 }
 
+
 //- Socket Functions -//
 
 public Network_OnSockDiscVer(Handle socket, any we)
@@ -210,7 +218,7 @@ public Network_OnSockErrVer(Handle socket, const errorType, const errorNum, any 
 		g_iInError = 12;
 		
 	g_hSocket = INVALID_HANDLE;
-	Status_Report(g_iNetStatus, KAC_UNABLETOCONTACT);
+	Status_Report(g_iNetStatus, KACR_UNABLETOCONTACT);
 	CloseHandle(socket);
 }
 
@@ -220,7 +228,7 @@ public Network_OnSockConnVer(Handle socket, any we)
 	{
 		g_iInError = 12;
 		g_hSocket = INVALID_HANDLE;
-		Status_Report(g_iNetStatus, KAC_UNABLETOCONTACT);
+		Status_Report(g_iNetStatus, KACR_UNABLETOCONTACT);
 		CloseHandle(socket);
 		return;
 	}
@@ -228,7 +236,7 @@ public Network_OnSockConnVer(Handle socket, any we)
 	char buff[15];
 	Format(buff, sizeof(buff), "_UPDATE");
 	SocketSend(socket, buff, strlen(buff)+1); // Send that \0!
-	Status_Report(g_iNetStatus, KAC_ON);
+	Status_Report(g_iNetStatus, KACR_ON);
 	return;
 }
 
@@ -252,7 +260,7 @@ public Network_OnSockRecvVer(Handle socket, char[] data, const size, any we)
 			
 		char path[256], f_sTemp[64];
 		g_iInError = 9999;
-		LogMessage("Received that KAC is out of date, updating to newest version.");
+		LogMessage("Received that KACR is out of date, updating to newest version.");
 		Format(UpdatePath, sizeof(UpdatePath), "%s", data[10]);
 		GetPluginFilename(GetMyHandle(), f_sTemp, sizeof(f_sTemp));
 		BuildPath(Path_SM , path, sizeof(path), "plugins\\disabled");
@@ -260,7 +268,7 @@ public Network_OnSockRecvVer(Handle socket, char[] data, const size, any we)
 			if(!CreateDirectory(path, 0777))
 			{
 				LogError("Unable to create disabled folder.");
-				Status_Report(g_iNetStatus, KAC_ERROR);
+				Status_Report(g_iNetStatus, KACR_ERROR);
 				return;
 			}
 			
@@ -271,7 +279,7 @@ public Network_OnSockRecvVer(Handle socket, char[] data, const size, any we)
 		if(g_hUpdateFile == INVALID_HANDLE)
 		{
 			LogError("Failed to create %s", path);
-			Status_Report(g_iNetStatus, KAC_ERROR);
+			Status_Report(g_iNetStatus, KACR_ERROR);
 			return;
 		}
 		
@@ -283,13 +291,13 @@ public Network_OnSockRecvVer(Handle socket, char[] data, const size, any we)
 	
 	else
 	{
-		LogError("Received unknown reply from KAC master during version check, %s.", data);
+		LogError("Received unknown reply from KACR master during version check, %s.", data);
 		g_bVCheckDone = false;
 		if(SocketIsConnected(socket))
 			SocketDisconnect(socket);
 			
 		g_iInError = 6;
-		Status_Report(g_iNetStatus, KAC_ERROR);
+		Status_Report(g_iNetStatus, KACR_ERROR);
 	}
 }
 
@@ -304,7 +312,7 @@ public Network_OnSockDiscDL(Handle socket, any we)
 		if(g_iCurrentMirror >= sizeof(g_sMirrors)) // Switch mirrors.
 			g_iCurrentMirror = 0;
 			
-		Status_Report(g_iNetStatus, KAC_ERROR);
+		Status_Report(g_iNetStatus, KACR_ERROR);
 		CloseHandle(socket);
 		CloseHandle(g_hUpdateFile);
 		return;
@@ -321,14 +329,14 @@ public Network_OnSockDiscDL(Handle socket, any we)
 	if(!DeleteFile(path))
 	{
 		LogError("Was unable to delete %s.", path);
-		Status_Report(g_iNetStatus, KAC_ERROR);
+		Status_Report(g_iNetStatus, KACR_ERROR);
 		return;
 	}
 	
 	if(!RenameFile(path, path2))
 	{
 		LogError("Was unable to rename %s to %s.", path2, path);
-		Status_Report(g_iNetStatus, KAC_ERROR);
+		Status_Report(g_iNetStatus, KACR_ERROR);
 		return;
 	}
 	
@@ -343,7 +351,7 @@ public Network_OnSockErrDL(Handle socket, const errorType, const errorNum, any w
 	g_iInError = 12;
 	g_hSocket = INVALID_HANDLE;
 	LogError("Error received during update: Failed to connect to %s.", g_sMirrors[g_iCurrentMirror]);
-	Status_Report(g_iNetStatus, KAC_ERROR);
+	Status_Report(g_iNetStatus, KACR_ERROR);
 	g_iCurrentMirror++;
 	
 	if(g_iCurrentMirror >= sizeof(g_sMirrors)) // Switch mirrors.
@@ -359,7 +367,7 @@ public Network_OnSockConnDL(Handle socket, any we)
 	{
 		LogError("Disconnect on connect to %s", g_sMirrors[g_iCurrentMirror]);
 		g_iInError = 12;
-		Status_Report(g_iNetStatus, KAC_ERROR);
+		Status_Report(g_iNetStatus, KACR_ERROR);
 		g_iCurrentMirror++;
 		if(g_iCurrentMirror > sizeof(g_sMirrors)) // Switch mirrors.
 			g_iCurrentMirror = 0;
@@ -374,7 +382,7 @@ public Network_OnSockConnDL(Handle socket, any we)
 	Format(buff, sizeof(buff), "GET %s HTTP/1.0\r\nHost: %s\r\nConnection: close\r\n\r\n", UpdatePath, g_sMirrors[g_iCurrentMirror]);
 	SocketSend(socket, buff);
 	LogMessage("Connected to %s website, requesting update file.", g_sMirrors[g_iCurrentMirror]);
-	Status_Report(g_iNetStatus, KAC_ON);
+	Status_Report(g_iNetStatus, KACR_ON);
 	return;
 }
 
@@ -408,7 +416,7 @@ public Network_OnSocketConnect(Handle socket, any client)
 	else
 		SocketSend(socket, f_sAuthID, strlen(f_sAuthID)+1); // Send that \0! - Kigen
 		
-	Status_Report(g_iNetStatus, KAC_ON);
+	Status_Report(g_iNetStatus, KACR_ON);
 	return;
 }
 
@@ -431,10 +439,10 @@ public Network_OnSocketReceive(Handle socket, char[] data, const size, any clien
 	{
 		char f_sAuthID[64], f_sBuffer[256];
 		GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
-		KAC_Translate(client, KAC_GBANNED, f_sBuffer, sizeof(f_sBuffer));
+		KACR_Translate(client, KACR_GBANNED, f_sBuffer, sizeof(f_sBuffer));
 		SetTrieString(g_hDenyArray, f_sAuthID, f_sBuffer);
-		KAC_Log("%N (%s) is on the KAC global banlist.", client, f_sAuthID);
-		KAC_Kick(client, KAC_GBANNED);
+		KACR_Log("%N (%s) is on the KACR global banlist.", client, f_sAuthID);
+		KACR_Kick(client, KACR_GBANNED);
 	}
 	
 	else if(StrEqual(data, "_OK"))
@@ -447,8 +455,8 @@ public Network_OnSocketReceive(Handle socket, char[] data, const size, any clien
 		char f_sAuthID[64];
 		GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
 		g_bChecked[client] = false;
-		KAC_Log("%N (%s) got unknown reply from KAC master server. Data: %s", f_sAuthID, data);
-		Status_Report(g_iNetStatus, KAC_ERROR);
+		KACR_Log("%N (%s) got unknown reply from KACR master server. Data: %s", f_sAuthID, data);
+		Status_Report(g_iNetStatus, KACR_ERROR);
 	}
 	
 	if(SocketIsConnected(socket))
@@ -464,6 +472,6 @@ public Network_OnSocketError(Handle socket, const errorType, const errorNum, any
 	if(g_hSocket == socket)
 		g_hSocket = INVALID_HANDLE;
 		
-	Status_Report(g_iNetStatus, KAC_UNABLETOCONTACT);
+	Status_Report(g_iNetStatus, KACR_UNABLETOCONTACT);
 	CloseHandle(socket);
 }

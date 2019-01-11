@@ -32,16 +32,17 @@ int g_iClientClass[MAXPLAYERS + 1] =  { -1, ... };
 char g_sClientConnections[MAX_CONNECTIONS][64];
 bool g_bClientMapStarted;
 
+
 //- Plugin Functions -//
 
 Client_OnPluginStart()
 {
-	g_hCVarClientEnable = CreateConVar("kac_client_enable", "1", "Enable the Client Protection Module");
+	g_hCVarClientEnable = CreateConVar("kacr_client_enable", "1", "Enable the Client Protection Module", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bClientEnable = GetConVarBool(g_hCVarClientEnable);
 	
 	if(g_iGame == GAME_CSS || g_iGame == GAME_CSGO)
 	{
-		g_hCVarClientAntiRespawn = CreateConVar("kac_client_antirejoin", "0", "This will prevent Clients from leaving the Game then rejoining to Respawn");
+		g_hCVarClientAntiRespawn = CreateConVar("kacr_client_antirejoin", "0", "This will prevent Clients from leaving the Game then rejoining to Respawn", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bClientAntiRespawn = GetConVarBool(g_hCVarClientAntiRespawn);
 		
 		g_hClientSpawned = CreateTrie();
@@ -56,38 +57,38 @@ Client_OnPluginStart()
 		RegConsoleCmd("joinclass", Client_JoinClass);
 	}
 	
-	g_hCVarClientNameProtect = CreateConVar("kac_client_nameprotect", "1", "This will protect the Server from name Crashes and Hacks");
+	g_hCVarClientNameProtect = CreateConVar("kacr_client_nameprotect", "1", "This will protect the Server from name Crashes and Hacks", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bClientNameProtect = GetConVarBool(g_hCVarClientNameProtect);
 	
-	g_hCVarClientAntiSpamConnect = CreateConVar("kac_client_antispamconnect", "0", "Seconds to prevent someone from restablishing a Connection. 0 to disable", _, true, 0.0, true, 60.0);
+	g_hCVarClientAntiSpamConnect = CreateConVar("kacr_client_antispamconnect", "0", "Seconds to prevent someone from restablishing a Connection. 0 to disable", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 120.0);
 	g_fClientAntiSpamConnect = GetConVarFloat(g_hCVarClientAntiSpamConnect);
 	
 	if(g_bClientEnable)
 	{
-		g_iClientStatus = Status_Register(KAC_CLIENTMOD, KAC_ON);
+		g_iClientStatus = Status_Register(KACR_CLIENTMOD, KACR_ON);
 		if(g_iGame == GAME_CSS)
 		{
 			if(g_bClientAntiRespawn)
-				g_iClientAntiRespawnStatus = Status_Register(KAC_CLIENTANTIRESPAWN, KAC_ON);
+				g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_ON);
 				
 			else
-				g_iClientAntiRespawnStatus = Status_Register(KAC_CLIENTANTIRESPAWN, KAC_OFF);
+				g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_OFF);
 		}
 		
 		if(g_bClientNameProtect)
-			g_iClientNameProtectStatus = Status_Register(KAC_CLIENTNAMEPROTECT, KAC_ON);
+			g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_ON);
 			
 		else
-			g_iClientNameProtectStatus = Status_Register(KAC_CLIENTNAMEPROTECT, KAC_OFF);
+			g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_OFF);
 	}
 	
 	else
 	{
-		g_iClientStatus = Status_Register(KAC_CLIENTMOD, KAC_OFF);
+		g_iClientStatus = Status_Register(KACR_CLIENTMOD, KACR_OFF);
 		if(g_iGame == GAME_CSS)
-			g_iClientAntiRespawnStatus = Status_Register(KAC_CLIENTANTIRESPAWN, KAC_DISABLED);
+			g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_DISABLED);
 			
-		g_iClientNameProtectStatus = Status_Register(KAC_CLIENTNAMEPROTECT, KAC_DISABLED);
+		g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_DISABLED);
 	}
 	
 	HookConVarChange(g_hCVarClientEnable, Client_EnableChange);
@@ -100,6 +101,7 @@ Client_OnPluginStart()
 /*Client_OnPluginEnd()
 {
 }*/
+
 
 //- Commands -//
 
@@ -157,6 +159,7 @@ public Action Client_Autobuy(client, args)
 	return Plugin_Continue;
 }
 
+
 //- Map -//
 /*Client_OnMapStart() // Currently unused
 {
@@ -174,6 +177,7 @@ Client_OnMapEnd()
 		Client_CleanEvent(INVALID_HANDLE, "", false);
 }
 
+
 //- Timers -//
 
 public Action Client_AntiSpamConnectTimer(Handle timer, any i)
@@ -181,6 +185,7 @@ public Action Client_AntiSpamConnectTimer(Handle timer, any i)
 	strcopy(g_sClientConnections[i], 64, "");
 	return Plugin_Stop;
 }
+
 
 //- Hooks -//
 
@@ -333,14 +338,14 @@ public OnClientSettingsChanged(client)
 	
 	if(f_iSize == 0)
 	{
-		KAC_Log("'%s'(ID: %s | IP: %s) was kicked for having a blank Name (unconnected)", f_sName, f_sAuthID, f_sIP);
-		KAC_Kick(client, KAC_CHANGENAME);
+		KACR_Log("'%s'(ID: %s | IP: %s) was kicked for having a blank Name (unconnected)", f_sName, f_sAuthID, f_sIP);
+		KACR_Kick(client, KACR_CHANGENAME);
 		return;
 	}
 	
 	if(f_sName[0] == '&')
 	{
-		KAC_Kick(client, KAC_CHANGENAME);
+		KACR_Kick(client, KACR_CHANGENAME);
 		return;
 	}
 	
@@ -355,20 +360,20 @@ public OnClientSettingsChanged(client)
 			i++;
 			if(f_cChar == 194 && f_sName[i] == 160)
 			{
-				KAC_Kick(client, KAC_CHANGENAME);
+				KACR_Kick(client, KACR_CHANGENAME);
 				return;
 			}
 		}
 		else if(f_cChar < 32)
 		{
-			KAC_Kick(client, KAC_CHANGENAME);
+			KACR_Kick(client, KACR_CHANGENAME);
 			return;
 		}
 	}
 	
 	if(f_bWhiteSpace)
 	{
-		KAC_Kick(client, KAC_CHANGENAME);
+		KACR_Kick(client, KACR_CHANGENAME);
 		return;
 	}
 }
@@ -378,30 +383,30 @@ public Client_EnableChange(Handle convar, const char[] oldValue, const char[] ne
 	g_bClientEnable = GetConVarBool(convar);
 	if(g_bClientEnable)
 	{
-		Status_Report(g_iClientStatus, KAC_ON);
+		Status_Report(g_iClientStatus, KACR_ON);
 		if(g_iGame == GAME_CSS)
 		{
 			if(g_bClientAntiRespawn)
-				Status_Report(g_iClientAntiRespawnStatus, KAC_ON);
+				Status_Report(g_iClientAntiRespawnStatus, KACR_ON);
 				
 			else
-				Status_Report(g_iClientAntiRespawnStatus, KAC_OFF);
+				Status_Report(g_iClientAntiRespawnStatus, KACR_OFF);
 		}
 		
 		if(g_bClientNameProtect)
-			Status_Report(g_iClientNameProtectStatus, KAC_ON);
+			Status_Report(g_iClientNameProtectStatus, KACR_ON);
 			
 		else
-			Status_Report(g_iClientNameProtectStatus, KAC_OFF);
+			Status_Report(g_iClientNameProtectStatus, KACR_OFF);
 	}
 	
 	else
 	{
-		Status_Report(g_iClientStatus, KAC_OFF);
+		Status_Report(g_iClientStatus, KACR_OFF);
 		if(g_iGame == GAME_CSS)
-			Status_Report(g_iClientAntiRespawnStatus, KAC_DISABLED);
+			Status_Report(g_iClientAntiRespawnStatus, KACR_DISABLED);
 			
-		Status_Report(g_iClientNameProtectStatus, KAC_DISABLED);
+		Status_Report(g_iClientNameProtectStatus, KACR_DISABLED);
 	}
 }
 
@@ -411,10 +416,10 @@ public Client_AntiRespawnChange(Handle convar, const char[] oldValue, const char
 	if(g_bClientEnable)
 	{
 		if(g_bClientAntiRespawn)
-			Status_Report(g_iClientAntiRespawnStatus, KAC_ON);
+			Status_Report(g_iClientAntiRespawnStatus, KACR_ON);
 			
 		else
-			Status_Report(g_iClientAntiRespawnStatus, KAC_OFF);
+			Status_Report(g_iClientAntiRespawnStatus, KACR_OFF);
 	}
 }
 
@@ -424,10 +429,10 @@ public Client_NameProtectChange(Handle convar, const char[] oldValue, const char
 	if(g_bClientEnable)
 	{
 		if(g_bClientNameProtect)
-			Status_Report(g_iClientNameProtectStatus, KAC_ON);
+			Status_Report(g_iClientNameProtectStatus, KACR_ON);
 			
 		else
-			Status_Report(g_iClientNameProtectStatus, KAC_OFF);
+			Status_Report(g_iClientNameProtectStatus, KACR_OFF);
 	}
 }
 

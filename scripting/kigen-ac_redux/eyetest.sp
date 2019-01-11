@@ -21,17 +21,19 @@
 
 #define POINT_ALMOST_VISIBLE 0.75
 #define POINT_MID_VISIBLE 0.6
-#define MAX_ENTITIES 4096
+#define MAX_ENTITIES 4096 // Well, 2048 is hardcoded but for compactibility its worth using a few Bytes more
+
 
 //- Global Variables -//
 
-bool g_bEyeEnabled, g_bAntiWall;
 Handle g_hEyeTimer, g_hCVarEyeEnable, g_hCVarAntiWall;
+float g_vClientPos[MAXPLAYERS + 1][3], g_vClientEye[MAXPLAYERS + 1][3];
+int g_iVelOff, g_iBaseVelOff, g_iEyeStatus, g_iAntiWHStatus;
+int g_iWeaponOwner[MAX_ENTITIES];
+bool g_bEyeEnabled, g_bAntiWall, g_bAntiWallDisabled = true;
 bool g_bIsVisible[MAXPLAYERS + 1][MAXPLAYERS + 1];
 bool g_bShouldProcess[MAXPLAYERS + 1], g_bHooked[MAXPLAYERS + 1];
-bool g_bAntiWallDisabled = true;
-float g_vClientPos[MAXPLAYERS + 1][3], g_vClientEye[MAXPLAYERS + 1][3];
-int g_iVelOff, g_iBaseVelOff, g_iEyeStatus, g_iAntiWHStatus, g_iWeaponOwner[MAX_ENTITIES];
+
 
 //- Plugin Functions -//
 
@@ -39,27 +41,30 @@ Eyetest_OnPluginStart()
 {
 	if(g_iGame != GAME_INS && g_iGame != GAME_CSS && g_iGame != GAME_L4D2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO)
 	{
-		g_hCVarEyeEnable = CreateConVar("kac_eyes_enable", "0", "Enable the Eye Test detection Routine");
+		g_hCVarEyeEnable = CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		Eyetest_EnableChange(g_hCVarEyeEnable, "", "");
 		
 		if(g_bEyeEnabled)
-			g_iEyeStatus = Status_Register(KAC_EYEMOD, KAC_ON);
+			g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_ON);
 			
 		else
-			g_iEyeStatus = Status_Register(KAC_EYEMOD, KAC_OFF);
+			g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_OFF);
 			
 		HookConVarChange(g_hCVarEyeEnable, Eyetest_EnableChange);
 	}
 	
 	else
-		g_iEyeStatus = Status_Register(KAC_EYEMOD, KAC_DISABLED);
+		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_DISABLED);
 		
-	if(GetMaxEntities() < MAX_ENTITIES)
+	if(GetMaxEntities() > MAX_ENTITIES) // More possible Entitys then we set in the Plugin? // < ???
 	{
 		g_bAntiWallDisabled = false;
-		g_iAntiWHStatus = Status_Register(KAC_ANTIWH, KAC_OFF);
+		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_OFF);
 		
-		g_hCVarAntiWall = CreateConVar("kac_eyes_antiwall", "0", "Enable Anti-Wallhack");
+		g_hCVarAntiWall = CreateConVar("kacr_eyes_antiwall", "0", "Enable Anti-Wallhack", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		
+		KACR_Log("[Error] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
+		PrintToServer("[Kigen-AC_Redux] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
 		
 		Eyetest_AntiWallChange(g_hCVarAntiWall, "", "");
 		
@@ -67,7 +72,7 @@ Eyetest_OnPluginStart()
 	}
 	
 	else
-		g_iAntiWHStatus = Status_Register(KAC_ANTIWH, KAC_DISABLED);
+		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_DISABLED);
 		
 	HookEvent("player_spawn", Eyetest_PlayerSpawn);
 	HookEvent("player_death", Eyetest_PlayerDeath);
@@ -83,6 +88,7 @@ Eyetest_OnPluginEnd()
 	if(g_hEyeTimer != INVALID_HANDLE)
 		CloseHandle(g_hEyeTimer);
 }
+
 
 //- Clients -//
 
@@ -103,10 +109,11 @@ void Eyetest_OnClientPutInServer(client)
 		{
 			g_bAntiWallDisabled = true;
 			g_bAntiWall = false;
-			Status_Report(g_iAntiWHStatus, KAC_ERROR);
+			Status_Report(g_iAntiWHStatus, KACR_ERROR);
 		}
 	}
 }
+
 
 //- Timer -//
 
@@ -136,13 +143,14 @@ public Action Eyetest_Timer(Handle timer, any we)
 			{
 				GetClientAuthId(i, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 				GetClientIP(i, f_sIP, sizeof(f_sIP));
-				KAC_Log("'%N'(ID: %s | IP: %s) was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", i, f_sAuthID, f_sIP, f_fX, f_vAngles[1], f_fZ);
-				KAC_Ban(i, 0, KAC_BANNED, "KAC: Eye Angles Violation");
+				KACR_Log("'%N'(ID: %s | IP: %s) was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", i, f_sAuthID, f_sIP, f_fX, f_vAngles[1], f_fZ);
+				KACR_Ban(i, 0, KACR_BANNED, "KACR: Eye Angles Violation");
 			}
 		}
 	}
 	return Plugin_Continue;
 }
+
 
 //- Hooks -//
 
@@ -153,14 +161,14 @@ public Eyetest_EnableChange(Handle convar, const char[] oldValue, const char[] n
 	if(g_bEyeEnabled && g_hEyeTimer == INVALID_HANDLE)
 	{
 		g_hEyeTimer = CreateTimer(0.5, Eyetest_Timer, _, TIMER_REPEAT);
-		Status_Report(g_iEyeStatus, KAC_ON);
+		Status_Report(g_iEyeStatus, KACR_ON);
 	}
 	
 	else if(!g_bEyeEnabled && g_hEyeTimer != INVALID_HANDLE)
 	{
 		CloseHandle(g_hEyeTimer);
 		g_hEyeTimer = INVALID_HANDLE;
-		Status_Report(g_iEyeStatus, KAC_OFF);
+		Status_Report(g_iEyeStatus, KACR_OFF);
 	}
 }
 
@@ -169,7 +177,7 @@ public Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const char[]
 	bool f_bEnabled = GetConVarBool(convar);
 	
 	if(!LibraryExists("sdkhooks"))
-		Status_Report(g_iAntiWHStatus, KAC_NOSDKHOOK);
+		Status_Report(g_iAntiWHStatus, KACR_NOSDKHOOK);
 		
 	if(f_bEnabled == g_bAntiWall)
 		return;
@@ -178,7 +186,7 @@ public Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const char[]
 	{
 		if(!LibraryExists("sdkhooks"))
 		{
-			LogError("[Kigen-AC] SDKHooks is not running, cannot enable Anti-Wall");
+			LogError("[Kigen-AC_Redux] SDKHooks is not running, cannot enable Anti-Wall");
 			SetConVarInt(convar, 0);
 			return;
 		}
@@ -187,7 +195,7 @@ public Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const char[]
 			if(Client_IsValid(i, true) && IsPlayerAlive(i) && !g_bHooked[i]) // IsClientInGame(i) && IsPlayerAlive(i) && !IsFakeClient(i) // is IsClientInGame needed? IsPlayerAlive should check that too
 				Eyetest_Hook(i);
 				
-		Status_Report(g_iAntiWHStatus, KAC_ON);
+		Status_Report(g_iAntiWHStatus, KACR_ON);
 	}
 	
 	else
@@ -196,7 +204,7 @@ public Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const char[]
 			if(g_bHooked[i])
 				Eyetest_Unhook(i);
 				
-		Status_Report(g_iAntiWHStatus, KAC_OFF);
+		Status_Report(g_iAntiWHStatus, KACR_OFF);
 	}
 	
 	g_bAntiWall = f_bEnabled;
@@ -248,9 +256,9 @@ public Action Eyetest_WeaponTransmit(entity, client)
 	return Plugin_Stop;
 }
 
-public Action Eyetest_Equip(client, weapon)
+public Action Eyetest_Equip(client, weapon) // The Player Picked up a Weapon? Lets bind the Entity ID to the Player ID
 {
-	if(g_iWeaponOwner[weapon] == 0)
+	if(g_iWeaponOwner[weapon] == 0) // The Weapon has no owner yet?
 	{
 		g_iWeaponOwner[weapon] = client;
 		SDKHook(weapon, SDKHook_SetTransmit, Eyetest_WeaponTransmit);
@@ -259,7 +267,7 @@ public Action Eyetest_Equip(client, weapon)
 
 public Action Eyetest_Drop(client, weapon)
 {
-	if(g_iWeaponOwner[weapon] != 0)
+	if(g_iWeaponOwner[weapon] >= 1) // Is a Player linked to the Entity? Else we do not Care // TODO: Array index out-of-bounds (index -1, limit 4096) - Issue #13
 	{
 		g_iWeaponOwner[weapon] = 0;
 		SDKUnhook(weapon, SDKHook_SetTransmit, Eyetest_WeaponTransmit);
@@ -272,7 +280,7 @@ public OnGameFrame()
 {
 	if(!g_bAntiWall)
 		return;
-	
+		
 	float f_vVelocity[3], f_vTempVec[3], f_fTickTime;
 	f_fTickTime = GetTickInterval();
 	for(int i = 1; i <= MaxClients; i++)
@@ -418,12 +426,14 @@ public Action Eyetest_Transmit(entity, client)
 	return Plugin_Stop;
 }
 
+
 //- Trace Filter -//
 
 public bool Eyetest_TraceFilter(entity, mask)
 {
 	return entity > MaxClients;
 }
+
 
 //- Private Functions -//
 
@@ -451,7 +461,7 @@ stock bool IsPointVisible(const float start[3], const float end[3])
 Eyetest_Hook(client)
 {
 	g_bHooked[client] = true;
-	SDKHook(client, SDKHook_SetTransmit, Eyetest_Transmit);// # Crash reason
+	SDKHook(client, SDKHook_SetTransmit, Eyetest_Transmit); // TODO: Crash Reason - Issue #6
 	// SDKHook(client, SDKHook_PreThink, Eyetest_Prethink);
 	SDKHook(client, SDKHook_WeaponEquip, Eyetest_Equip);
 	SDKHook(client, SDKHook_WeaponDrop, Eyetest_Drop);

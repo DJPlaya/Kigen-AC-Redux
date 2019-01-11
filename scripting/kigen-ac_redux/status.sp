@@ -28,8 +28,7 @@ Status_OnPluginStart()
 {
 	g_hStatusArray = CreateArray(32);
 	
-	RegAdminCmd("kac_status", Status_Status, ADMFLAG_GENERIC, "Reports KAC's Status");
-	RegAdminCmd("sm_kac_status", Status_Status, ADMFLAG_GENERIC, "Reports KAC's Status");
+	RegAdminCmd("kacr_status", Status_Status, ADMFLAG_GENERIC, "Reports KACR's Status");
 }
 
 /*Status_OnPluginEnd()
@@ -61,10 +60,10 @@ public Action Status_Status(client, args)
 	char f_sBuff[256], f_sTemp[64], f_sTemp2[64];
 	
 	int f_iCount = GetArraySize(g_hStatusArray)
-	KAC_ReplyToCommand(client, KAC_STATUSREPORT);
+	KACR_ReplyToCommand(client, KACR_STATUSREPORT);
 	if(!f_iCount)
 	{
-		KAC_ReplyToCommand(client, KAC_NOREPORT);
+		KACR_ReplyToCommand(client, KACR_NOREPORT);
 		return Plugin_Handled;
 	}
 	
@@ -72,9 +71,9 @@ public Action Status_Status(client, args)
 	{
 		f_hTemp = GetArrayCell(g_hStatusArray, i);
 		GetArrayString(f_hTemp, CELL_MODULENAME, f_sTemp, sizeof(f_sTemp));
-		KAC_Translate(client, f_sTemp, f_sBuff, sizeof(f_sBuff));
+		KACR_Translate(client, f_sTemp, f_sBuff, sizeof(f_sBuff));
 		GetArrayString(f_hTemp, CELL_MODULESTATUS, f_sTemp, sizeof(f_sTemp));
-		KAC_Translate(client, f_sTemp, f_sTemp2, sizeof(f_sTemp2));
+		KACR_Translate(client, f_sTemp, f_sTemp2, sizeof(f_sTemp2));
 		StrCat(f_sBuff, sizeof(f_sBuff), ": ");
 		StrCat(f_sBuff, sizeof(f_sBuff), f_sTemp2);
 		ReplyToCommand(client, f_sBuff);

@@ -18,7 +18,7 @@
 */
 
 //- Includes -//
-#include <sourcemod>
+
 #include <sdktools>
 #include <smlib>
 #undef REQUIRE_EXTENSIONS 
@@ -26,11 +26,15 @@
 #define REQUIRE_EXTENSIONS
 #include <socket> // Required for the networking Module
 
+
 //- Natives -//
+
 native void SBBanPlayer(client, target, time, char[] reason); // Sourcebans
 native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sReason); // SourceBans++
 
+
 //- Defines -//
+
 #define PLUGIN_VERSION "0.1"
 
 #define GAME_OTHER	0
@@ -43,31 +47,35 @@ native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sRea
 #define GAME_HL2DM	7
 #define GAME_CSGO	8
 
+
 //- Global Variables -//
-bool g_bConnected[MAXPLAYERS + 1] =  { false, ... }; // I use these instead of the natives because they are cheaper to call
-bool g_bAuthorized[MAXPLAYERS + 1] =  { false, ... }; // when I need to check on a client's state.  Natives are very taxing on
-bool g_bInGame[MAXPLAYERS + 1] =  { false, ... }; // system resources as compared to these. - Kigen
-bool g_bIsAdmin[MAXPLAYERS + 1] =  { false, ... };
-bool g_bIsFake[MAXPLAYERS + 1] =  { false, ... };
+
+bool g_bConnected[MAXPLAYERS + 1] = {false, ...}; // I use these instead of the natives because they are cheaper to call
+bool g_bAuthorized[MAXPLAYERS + 1] = {false, ...}; // when I need to check on a client's state.  Natives are very taxing on
+bool g_bInGame[MAXPLAYERS + 1] = {false, ...}; // system resources as compared to these. - Kigen
+bool g_bIsAdmin[MAXPLAYERS + 1] = {false, ...};
+bool g_bIsFake[MAXPLAYERS + 1] = {false, ...};
 
 bool g_bSourceBans, g_bSourceBansPP, g_bMapStarted;
 
-Handle g_hCLang[MAXPLAYERS + 1] =  { INVALID_HANDLE, ... };
+Handle g_hCLang[MAXPLAYERS + 1] = {INVALID_HANDLE, ...};
 Handle g_hSLang;
-Handle g_hValidateTimer[MAXPLAYERS + 1] =  { INVALID_HANDLE, ... };
+Handle g_hValidateTimer[MAXPLAYERS + 1] = {INVALID_HANDLE, ...};
 Handle g_hDenyArray, g_hClearTimer, g_hCVarVersion;
 int g_iGame = GAME_OTHER; // Game identifier.
 
-//- KAC Modules -// Note: The ordering of these includes are imporant
-#include "kigenac/translations.sp"	// Translations Module - NEEDED FIRST
-#include "kigenac/client.sp"		// Client Module
-#include "kigenac/commands.sp"		// Commands Module
-#include "kigenac/cvars.sp"		// CVar Module
-#include "kigenac/eyetest.sp"		// Eye Test Module
-// #include "kigenac/network.sp"		// Network Module // OUTDATED
-#include "kigenac/rcon.sp"		// RCON Module
-#include "kigenac/status.sp"		// Status Module
-#include "kigenac/stocks.sp"		// Stocks Module
+
+//- KACR Modules -// Note: The that ordering of these Includes is imporant
+
+#include "kigen-ac_redux/translations.sp"	// Translations Module - NEEDED FIRST
+#include "kigen-ac_redux/client.sp"			// Client Module
+#include "kigen-ac_redux/commands.sp"		// Commands Module
+#include "kigen-ac_redux/cvars.sp"			// CVar Module
+#include "kigen-ac_redux/eyetest.sp"		// Eye Test Module
+// #include "kigen-ac_redux/network.sp"		// Network Module // OUTDATED
+#include "kigen-ac_redux/rcon.sp"			// RCON Module
+#include "kigen-ac_redux/status.sp"			// Status Module
+#include "kigen-ac_redux/stocks.sp"			// Stocks Module
 
 
 public Plugin myinfo = 
@@ -77,7 +85,8 @@ public Plugin myinfo =
 	description = "The greatest thing since sliced pie", 
 	version = PLUGIN_VERSION, 
 	url = "FunForBattle"
-}
+};
+
 
 //- Plugin Functions -//
 
@@ -138,21 +147,21 @@ public void OnPluginStart()
 	if(!GetTrieValue(g_hLanguages, f_sLang, any:g_hSLang)) // If we can't find the server's language revert to English. - Kigen
 		GetTrieValue(g_hLanguages, "en", any:g_hSLang);
 		
-	g_hClearTimer = CreateTimer(14400.0, KAC_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
+	g_hClearTimer = CreateTimer(14400.0, KACR_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
 	//- Prevent Speeds -//
 	f_hTemp = FindConVar("sv_max_usercmd_future_ticks");
 	if(f_hTemp != INVALID_HANDLE)
 		SetConVarInt(f_hTemp, 1);
 		
-	AutoExecConfig(true, "Kigen_AC");
+	AutoExecConfig(true, "Kigen_AC_Redux");
 	
-	g_hCVarVersion = CreateConVar("kac_version", PLUGIN_VERSION, "KAC Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_DONTRECORD); // "notify" - So that we appear on server Tracking Sites.  "dontrecord" - So that we don't get saved to the auto cfg
+	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY|FCVAR_DONTRECORD|FCVAR_UNLOGGED); // "notify" - So that we appear on server Tracking Sites, "dontrecord" - So that we don't get saved to the auto cfg, "unlogged" - Because changes of this Cvar dosent need to be logged
 	
 	SetConVarString(g_hCVarVersion, PLUGIN_VERSION);
 	HookConVarChange(g_hCVarVersion, VersionChange);
 	
-	KAC_PrintToServer(KAC_LOADED);
+	KACR_PrintToServer(KACR_LOADED);
 }
 
 public OnAllPluginsLoaded()
@@ -169,7 +178,7 @@ public OnAllPluginsLoaded()
 	Commands_OnAllPluginsLoaded();
 	
 	//- Late load stuff -//
-	for(new iCount = 1; iCount <= MaxClients; iCount++)
+	for(int iCount = 1; iCount <= MaxClients; iCount++)
 	{
 		if(IsClientConnected(iCount))
 		{
@@ -291,7 +300,7 @@ public OnClientPutInServer(client)
 	g_bInGame[client] = true;
 	
 	if(!g_bAuthorized[client]) // Not authorized yet?!?
-		g_hValidateTimer[client] = CreateTimer(10.0, KAC_ValidateTimer, client);
+		g_hValidateTimer[client] = CreateTimer(10.0, KACR_ValidateTimer, client);
 		
 	else
 		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
@@ -339,18 +348,18 @@ public OnClientDisconnect(client)
 
 //- Timers -//
 
-public Action KAC_ValidateTimer(Handle timer, any client)
+public Action KACR_ValidateTimer(Handle timer, any client)
 {
 	g_hValidateTimer[client] = INVALID_HANDLE;
 	
 	if(!g_bInGame[client] || g_bAuthorized[client])
 		return Plugin_Stop;
 		
-	KAC_Kick(client, KAC_FAILEDAUTH);
+	KACR_Kick(client, KACR_FAILEDAUTH);
 	return Plugin_Stop;
 }
 
-public Action KAC_ClearTimer(Handle timer, any nothing)
+public Action KACR_ClearTimer(Handle timer, any nothing)
 {
 	ClearTrie(g_hDenyArray);
 }

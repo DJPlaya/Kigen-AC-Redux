@@ -19,6 +19,7 @@
 
 #define COMMANDS
 
+
 //- Global Variables -//
 
 Handle g_hBlockedCmds, g_hIgnoredCmds;
@@ -30,45 +31,46 @@ Handle g_hCountReset, g_hCVarCmdEnable, g_hCVarCmdSpam, g_hCVarCmdLog;
 char g_sCmdLogPath[256];
 int g_iCmdStatus, g_iCmdSpamStatus;
 
+
 //- Plugin Functions -//
 
 Commands_OnPluginStart()
 {
-	g_hCVarCmdEnable = CreateConVar("kac_cmds_enable", "1", "If the Commands Module of KAC is enabled");
+	g_hCVarCmdEnable = CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCmdEnabled = GetConVarBool(g_hCVarCmdEnable);
 	
-	g_hCVarCmdSpam = CreateConVar("kac_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", _, true, 0.0, true, 120.0);
+	g_hCVarCmdSpam = CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 120.0);
 	g_iCmdSpam = GetConVarInt(g_hCVarCmdSpam);
 	
-	g_hCVarCmdLog = CreateConVar("kac_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes");
+	g_hCVarCmdLog = CreateConVar("kacr_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bLogCmds = GetConVarBool(g_hCVarCmdLog);
 	
 	HookConVarChange(g_hCVarCmdEnable, Commands_CmdEnableChange);
 	HookConVarChange(g_hCVarCmdSpam, Commands_CmdSpamChange);
 	HookConVarChange(g_hCVarCmdLog, Commands_CmdLogChange);
 	
-	//- Setup logging path -//
+	// Setup logging Path
 	for(int i = 0; ; i++)
 	{
-		BuildPath(Path_SM, g_sCmdLogPath, sizeof(g_sCmdLogPath), "logs/KACCmdLog_%d.log", i);
+		BuildPath(Path_SM, g_sCmdLogPath, sizeof(g_sCmdLogPath), "logs/KACR_CmdLog_%d.log", i);
 		if(!FileExists(g_sCmdLogPath))
 			break;
 	}
 	
 	if(g_bCmdEnabled)
 	{
-		g_iCmdStatus = Status_Register(KAC_CMDMOD, KAC_ON);
+		g_iCmdStatus = Status_Register(KACR_CMDMOD, KACR_ON);
 		if(!g_iCmdSpam)
-			g_iCmdSpamStatus = Status_Register(KAC_CMDSPAM, KAC_OFF);
+			g_iCmdSpamStatus = Status_Register(KACR_CMDSPAM, KACR_OFF);
 			
 		else
-			g_iCmdSpamStatus = Status_Register(KAC_CMDSPAM, KAC_ON);
+			g_iCmdSpamStatus = Status_Register(KACR_CMDSPAM, KACR_ON);
 	}
 	
 	else
 	{
-		g_iCmdStatus = Status_Register(KAC_CMDMOD, KAC_OFF);
-		g_iCmdSpamStatus = Status_Register(KAC_CMDSPAM, KAC_DISABLED);
+		g_iCmdStatus = Status_Register(KACR_CMDMOD, KACR_OFF);
+		g_iCmdSpamStatus = Status_Register(KACR_CMDSPAM, KACR_DISABLED);
 	}
 	
 	RegConsoleCmd("say", Commands_FilterSay);
@@ -92,7 +94,7 @@ Commands_OnAllPluginsLoaded()
 	RegConsoleCmd("ent_fire", Commands_BlockEntExploit);
 	RegConsoleCmd("give", Commands_BlockEntExploit);
 	
-	//- Blocked Commands -// Note: True sets them to ban, false does not.
+	// Blocked Commands // Note: True sets them to ban, false does not.
 	SetTrieValue(g_hBlockedCmds, "ai_test_los", false);
 	SetTrieValue(g_hBlockedCmds, "changelevel", true);
 	SetTrieValue(g_hBlockedCmds, "cl_fullupdate", false);
@@ -185,10 +187,10 @@ Commands_OnAllPluginsLoaded()
 		CloseHandle(f_hConCommand);
 	}
 	
-	RegAdminCmd("kac_addcmd", Commands_AddCmd, ADMFLAG_ROOT, "Adds a command to be blocked by KAC.");
-	RegAdminCmd("kac_addignorecmd", Commands_AddIgnoreCmd, ADMFLAG_ROOT, "Adds a command to ignore on command spam.");
-	RegAdminCmd("kac_removecmd", Commands_RemoveCmd, ADMFLAG_ROOT, "Removes a command from the block list.");
-	RegAdminCmd("kac_removeignorecmd", Commands_RemoveIgnoreCmd, ADMFLAG_ROOT, "Remove a command to ignore.");
+	RegAdminCmd("kacr_addcmd", Commands_AddCmd, ADMFLAG_ROOT, "Adds a command to be blocked by KACR");
+	RegAdminCmd("kacr_addignorecmd", Commands_AddIgnoreCmd, ADMFLAG_ROOT, "Adds a command to ignore on command spam");
+	RegAdminCmd("kacr_removecmd", Commands_RemoveCmd, ADMFLAG_ROOT, "Removes a command from the block list");
+	RegAdminCmd("kacr_removeignorecmd", Commands_RemoveIgnoreCmd, ADMFLAG_ROOT, "Remove a command to ignore");
 }
 
 Commands_OnPluginEnd()
@@ -196,6 +198,7 @@ Commands_OnPluginEnd()
 	if(g_hCountReset != INVALID_HANDLE)
 		CloseHandle(g_hCountReset);
 }
+
 
 //- Events -//
 
@@ -211,17 +214,17 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 	f_iLength += strlen(f_sTemp);
 	if(f_iLength > 235)
 	{
-		KAC_Log("Bad Disconnect Reason, Length '%d', \"%s\"", f_iLength, f_sReason);
+		KACR_Log("Bad Disconnect Reason, Length '%d', \"%s\"", f_iLength, f_sReason);
 		if(client)
 		{
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			KAC_Log("'%L'<%s> submitted a bad Disconnect and was banned", client, f_sIP);
-			BanIdentity(f_sIP, 10080, BANFLAG_IP, "KAC: Disconnect Exploit"); // Prevent them from rejoining.
+			KACR_Log("'%L'<%s> submitted a bad Disconnect and was banned", client, f_sIP);
+			BanIdentity(f_sIP, 10080, BANFLAG_IP, "KACR: Disconnect Exploit"); // Prevent them from rejoining.
 			if(GetClientAuthId(client, AuthId_Steam3, f_sTemp, sizeof(f_sTemp)))
 			{
-				KAC_Ban(client, 0, KAC_BANNED, "KAC: Disconnect Exploit");
+				KACR_Ban(client, 0, KACR_BANNED, "KACR: Disconnect Exploit");
 				if(!g_bSourceBans && !g_bSourceBansPP)
-					BanIdentity(f_sTemp, 0, BANFLAG_AUTHID, "KAC: Disconnect Exploit", "KAC");
+					BanIdentity(f_sTemp, 0, BANFLAG_AUTHID, "KACR: Disconnect Exploit", "KACR");
 			}
 		}
 		
@@ -237,11 +240,11 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 		{
 			if(f_sReason[iCount] != '\n')
 			{
-				KAC_Log("Bad Disconnect Reason, \"%s\", Lenght = %d", f_sReason, f_iLength);
+				KACR_Log("Bad Disconnect Reason, \"%s\", Lenght = %d", f_sReason, f_iLength);
 				if(client)
 				{
 					GetClientIP(client, f_sIP, sizeof(f_sIP));
-					KAC_Log("'%L'<%s> submitted a bad Disconnect. Possible Corruption or Attack", client, f_sIP);
+					KACR_Log("'%L'<%s> submitted a bad Disconnect. Possible Corruption or Attack", client, f_sIP);
 				}
 				
 				SetEventString(event, "reason", "Bad Disconnect Message");
@@ -253,13 +256,14 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 	return Plugin_Continue;
 }
 
+
 //- Admin Commands -//
 
 public Action Commands_AddCmd(client, args)
 {
 	if(args != 2)
 	{
-		KAC_ReplyToCommand(client, KAC_ADDCMDUSAGE);
+		KACR_ReplyToCommand(client, KACR_ADDCMDUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -275,10 +279,10 @@ public Action Commands_AddCmd(client, args)
 		f_bBan = false;
 		
 	if(SetTrieValue(g_hBlockedCmds, f_sCmdName, f_bBan))
-		KAC_ReplyToCommand(client, KAC_ADDCMDSUCCESS, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_ADDCMDSUCCESS, f_sCmdName);
 		
 	else
-		KAC_ReplyToCommand(client, KAC_ADDCMDFAILURE, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_ADDCMDFAILURE, f_sCmdName);
 		
 	return Plugin_Handled;
 }
@@ -287,7 +291,7 @@ public Action Commands_AddIgnoreCmd(client, args)
 {
 	if(args != 1)
 	{
-		KAC_ReplyToCommand(client, KAC_ADDIGNCMDUSAGE);
+		KACR_ReplyToCommand(client, KACR_ADDIGNCMDUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -296,10 +300,10 @@ public Action Commands_AddIgnoreCmd(client, args)
 	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
 	
 	if(SetTrieValue(g_hIgnoredCmds, f_sCmdName, true))
-		KAC_ReplyToCommand(client, KAC_ADDIGNCMDSUCCESS, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_ADDIGNCMDSUCCESS, f_sCmdName);
 		
 	else
-		KAC_ReplyToCommand(client, KAC_ADDIGNCMDFAILURE, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_ADDIGNCMDFAILURE, f_sCmdName);
 		
 	return Plugin_Handled;
 }
@@ -308,7 +312,7 @@ public Action Commands_RemoveCmd(client, args)
 {
 	if(args != 1)
 	{
-		KAC_ReplyToCommand(client, KAC_REMCMDUSAGE);
+		KACR_ReplyToCommand(client, KACR_REMCMDUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -316,10 +320,10 @@ public Action Commands_RemoveCmd(client, args)
 	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
 	
 	if(RemoveFromTrie(g_hBlockedCmds, f_sCmdName))
-		KAC_ReplyToCommand(client, KAC_REMCMDSUCCESS, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_REMCMDSUCCESS, f_sCmdName);
 		
 	else
-		KAC_ReplyToCommand(client, KAC_REMCMDFAILURE, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_REMCMDFAILURE, f_sCmdName);
 		
 	return Plugin_Handled;
 }
@@ -328,7 +332,7 @@ public Action Commands_RemoveIgnoreCmd(client, args)
 {
 	if(args != 1)
 	{
-		KAC_ReplyToCommand(client, KAC_REMIGNCMDUSAGE);
+		KACR_ReplyToCommand(client, KACR_REMIGNCMDUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -336,13 +340,14 @@ public Action Commands_RemoveIgnoreCmd(client, args)
 	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
 	
 	if(RemoveFromTrie(g_hIgnoredCmds, f_sCmdName))
-		KAC_ReplyToCommand(client, KAC_REMIGNCMDSUCCESS, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_REMIGNCMDSUCCESS, f_sCmdName);
 		
 	else
-		KAC_ReplyToCommand(client, KAC_REMIGNCMDFAILURE, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_REMIGNCMDFAILURE, f_sCmdName);
 		
 	return Plugin_Handled;
 }
+
 
 //- Console Commands -//
 
@@ -358,8 +363,8 @@ public Action Commands_BlockExploit(client, args)
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: sm_menu %s", client, f_sAuthID, f_sIP, f_sCmdString);
-			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Exploit Violation");
+			KACR_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: sm_menu %s", client, f_sAuthID, f_sIP, f_sCmdString);
+			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Exploit Violation");
 			return Plugin_Stop;
 		}
 	}
@@ -381,7 +386,7 @@ public Action Commands_FilterSay(client, args)
 		f_cChar = f_sMsg[iCount];
 		if(f_cChar < 32 && !IsCharMB(f_cChar))
 		{
-			KAC_ReplyToCommand(client, KAC_SAYBLOCK);
+			KACR_ReplyToCommand(client, KACR_SAYBLOCK);
 			return Plugin_Stop;
 		}
 	}
@@ -449,8 +454,8 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 		GetClientAuthId(iClient, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		KAC_Log("'%N'(ID: %s | IP: %s) was kicked for Command Spamming: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
-		KAC_Kick(iClient, KAC_KCMDSPAM);
+		KACR_Log("'%N'(ID: %s | IP: %s) was kicked for Command Spamming: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
+		KACR_Kick(iClient, KACR_KCMDSPAM);
 		return Plugin_Stop;
 	}
 	
@@ -462,8 +467,8 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 			GetClientAuthId(iClient, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
-			KAC_Ban(iClient, 0, KAC_CBANNED, "KAC: Command %s Violation", command);
+			KACR_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", iClient, f_sAuthID, f_sIP, command, f_sCmdString);
+			KACR_Ban(iClient, 0, KACR_CBANNED, "KACR: Command %s Violation", command);
 		}
 		
 		return Plugin_Stop;
@@ -503,8 +508,8 @@ public Action Commands_ClientCheck(client, args)
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
-			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Command %s Violation", f_sCmd);
+			KACR_Log("'%N'(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
+			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Command %s Violation", f_sCmd);
 		}
 		
 		return Plugin_Stop;
@@ -528,7 +533,7 @@ public Action Commands_SpamCheck(client, args)
 	if(!g_bInGame[client])
 		return Plugin_Stop;
 		
-	if (!g_bCmdEnabled)
+	if(!g_bCmdEnabled)
 		return Plugin_Continue;
 		
 	bool f_bBan;
@@ -542,8 +547,8 @@ public Action Commands_SpamCheck(client, args)
 		GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 		GetClientIP(client, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		KAC_Log("'%N'(ID: %s | IP: %s) was kicked for Command Spamming: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
-		KAC_Kick(client, KAC_KCMDSPAM);
+		KACR_Log("'%N'(ID: %s | IP: %s) was kicked for Command Spamming: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
+		KACR_Kick(client, KACR_KCMDSPAM);
 		return Plugin_Stop;
 	}
 	
@@ -555,8 +560,8 @@ public Action Commands_SpamCheck(client, args)
 			GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KAC_Log("'%N(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
-			KAC_Ban(client, 0, KAC_CBANNED, "KAC: Command '%s' Violation", f_sCmd);
+			KACR_Log("'%N(ID: %s | IP: %s) was banned for Command Usage Violation of Command: %s %s", client, f_sAuthID, f_sIP, f_sCmd, f_sCmdString);
+			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Command '%s' Violation", f_sCmd);
 		}
 		
 		return Plugin_Stop;
@@ -571,6 +576,7 @@ public Action Commands_SpamCheck(client, args)
 	
 	return Plugin_Continue;
 }
+
 
 //- Timers -//
 
@@ -588,6 +594,7 @@ public Action Commands_CountReset(Handle timer, any args)
 	return Plugin_Continue;
 }
 
+
 //- Hooks -//
 
 public Commands_CmdEnableChange(Handle convar, const char[] oldValue, const char[] newValue)
@@ -602,13 +609,13 @@ public Commands_CmdEnableChange(Handle convar, const char[] oldValue, const char
 			g_hCountReset = CreateTimer(1.0, Commands_CountReset, _, TIMER_REPEAT);
 			
 		g_bCmdEnabled = true;
-		g_iCmdStatus = Status_Register(KAC_CMDMOD, KAC_ON);
+		g_iCmdStatus = Status_Register(KACR_CMDMOD, KACR_ON);
 			
 		if(!g_iCmdSpam)
-			g_iCmdSpamStatus = Status_Register(KAC_CMDSPAM, KAC_OFF);
+			g_iCmdSpamStatus = Status_Register(KACR_CMDSPAM, KACR_OFF);
 			
 		else
-			g_iCmdSpamStatus = Status_Register(KAC_CMDSPAM, KAC_ON);
+			g_iCmdSpamStatus = Status_Register(KACR_CMDSPAM, KACR_ON);
 	}
 	
 	else if(!f_bEnabled)
@@ -618,8 +625,8 @@ public Commands_CmdEnableChange(Handle convar, const char[] oldValue, const char
 			
 		g_hCountReset = INVALID_HANDLE;
 		g_bCmdEnabled = false;
-		Status_Report(g_iCmdStatus, KAC_OFF);
-		Status_Report(g_iCmdSpamStatus, KAC_DISABLED);
+		Status_Report(g_iCmdStatus, KACR_OFF);
+		Status_Report(g_iCmdSpamStatus, KACR_DISABLED);
 	}
 }
 
@@ -628,13 +635,13 @@ public void Commands_CmdSpamChange(Handle convar, const char[] oldValue, const c
 	g_iCmdSpam = GetConVarInt(convar);
 	
 	if(!g_bCmdEnabled)
-		Status_Report(g_iCmdSpamStatus, KAC_DISABLED);
+		Status_Report(g_iCmdSpamStatus, KACR_DISABLED);
 		
 	else if(!g_iCmdSpam)
-		Status_Report(g_iCmdSpamStatus, KAC_OFF);
+		Status_Report(g_iCmdSpamStatus, KACR_OFF);
 		
 	else
-		Status_Report(g_iCmdSpamStatus, KAC_ON);
+		Status_Report(g_iCmdSpamStatus, KACR_ON);
 }
 
 public void Commands_CmdLogChange(Handle convar, const char[] oldValue, const char[] newValue)

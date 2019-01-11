@@ -26,22 +26,23 @@ int g_iMaxFail = 20;
 int g_iMinFailTime = 30;
 int g_iRCONStatus;
 
+
 //- Plugin Functions -//
 
 RCON_OnPluginStart()
 {
 	if(g_iGame != GAME_CSS && g_iGame != GAME_DOD && g_iGame != GAME_TF2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
 	{
-		g_hRCONCrash = CreateConVar("kac_rcon_crashprevent", "0", "Enable RCON Crash Prevention");
+		g_hRCONCrash = CreateConVar("kacr_rcon_crashprevent", "0", "Enable RCON Crash Prevention", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bRCONPreventEnabled = GetConVarBool(g_hRCONCrash);
 		
 		HookConVarChange(g_hRCONCrash, RCON_CrashPrevent);
 		
 		if(g_bRCONPreventEnabled)
-			g_iRCONStatus = Status_Register(KAC_RCONPREVENT, KAC_ON);
+			g_iRCONStatus = Status_Register(KACR_RCONPREVENT, KACR_ON);
 			
 		else
-			g_iRCONStatus = Status_Register(KAC_RCONPREVENT, KAC_OFF);
+			g_iRCONStatus = Status_Register(KACR_RCONPREVENT, KACR_OFF);
 	}
 }
 
@@ -52,6 +53,7 @@ RCON_OnPluginStart()
 /*RCON_OnMap()
 {
 }*/
+
 
 //- Hooks -//
 
@@ -91,7 +93,7 @@ public RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[] newV
 		}
 		
 		g_bRCONPreventEnabled = true;
-		Status_Report(g_iRCONStatus, KAC_ON);
+		Status_Report(g_iRCONStatus, KACR_ON);
 	}
 	
 	else
@@ -121,6 +123,6 @@ public RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[] newV
 		}
 		
 		g_bRCONPreventEnabled = false;
-		Status_Report(g_iRCONStatus, KAC_OFF);
+		Status_Report(g_iRCONStatus, KACR_OFF);
 	}
 }
