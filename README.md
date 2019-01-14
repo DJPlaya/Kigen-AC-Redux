@@ -10,12 +10,12 @@ Optional:
 #
 Commands | Description | Adminflag
 ------------ | ------------- | -------------
-kac_addcmd | Adds a Command to be blocked by KAC | ADMFLAG_ROOT
-kac_addignorecmd | Adds a Command to to ignore on Command spam | ADMFLAG_ROOT
-kac_removecmd | Removes a Command from the Block List | ADMFLAG_ROOT
-kac_removeignorecmd | Removes a Command to ignore | ADMFLAG_ROOT
-kac_addcvar | Adds a CVar to the check list | ADMFLAG_ROOT
-kac_removecvar | Removes a CVar from the check list | ADMFLAG_ROOT
+kacr_addcmd | Adds a Command to be blocked by KACR | ADMFLAG_ROOT
+kacr_addignorecmd | Adds a Command to to ignore on Command spam | ADMFLAG_ROOT
+kacr_removecmd | Removes a Command from the Block List | ADMFLAG_ROOT
+kacr_removeignorecmd | Removes a Command to ignore | ADMFLAG_ROOT
+kacr_addcvar | Adds a CVar to the check list | ADMFLAG_ROOT
+kacr_removecvar | Removes a CVar from the check list | ADMFLAG_ROOT
 #
 Status Commands | Description | Adminflag
 ------------ | ------------- | -------------
