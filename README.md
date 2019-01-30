@@ -1,6 +1,7 @@
 # Kigen Anti Cheat Redux
 
 Requires
+- SourceMod 1.8
 - Sockets 3.0.1 or newer
 
 Optional:
