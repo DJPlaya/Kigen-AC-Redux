@@ -4,8 +4,8 @@ Requires
 - Sockets 3.0.1 or newer
 
 Optional:
-- Sourcebans
 - Sourcebans++
+- Sourcebans
 #
 #
 Commands | Description | Adminflag

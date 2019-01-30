@@ -156,7 +156,7 @@ public void OnPluginStart()
 		
 	AutoExecConfig(true, "Kigen_AC_Redux");
 	
-	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY|FCVAR_DONTRECORD|FCVAR_UNLOGGED); // "notify" - So that we appear on server Tracking Sites, "dontrecord" - So that we don't get saved to the auto cfg, "unlogged" - Because changes of this Cvar dosent need to be logged
+	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
 	
 	SetConVarString(g_hCVarVersion, PLUGIN_VERSION);
 	HookConVarChange(g_hCVarVersion, VersionChange);
@@ -168,12 +168,18 @@ public OnAllPluginsLoaded()
 {
 	char f_sReason[256], f_sAuthID[64];
 	
-	if(FindPluginByFile("sourcebans.smx"))
-		g_bSourceBans = true;
-		
-	else if(FindPluginByFile("sbpp_main.smx"))
+	if(FindPluginByFile("sbpp_main.smx"))
 		g_bSourceBansPP = true;
 		
+	else if(FindPluginByFile("sourcebans.smx"))
+		g_bSourceBans = true;
+		
+	else // Rare but possible, someone unloaded SB and we would still think its active :O
+	{
+		g_bSourceBansPP = false;
+		g_bSourceBans = false;
+	}
+	
 	//- Module Calls -//
 	Commands_OnAllPluginsLoaded();
 	

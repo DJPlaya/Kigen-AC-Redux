@@ -103,12 +103,17 @@ Trans_OnPluginStart()
 	SetTrieValue(g_hLanguages, "en", any:CreateTrie());
 	SetTrieValue(g_hLanguages, "fr", any:CreateTrie());
 	SetTrieValue(g_hLanguages, "it", any:CreateTrie());
+	SetTrieValue(g_hLanguages, "de", any:CreateTrie());
 	
 	
 	//- English -//
 	
 	if(!GetTrieValue(g_hLanguages, "en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
-		SetFailState("Unable to create Language Tree for English");
+	{
+		// SetFailState("Unable to create Language Tree for English"); // We do not want an AC to break, otherwise our Server would be unprotected :O
+		KACR_PrintToServer("[Error][KACR] Unable to create Language Tree for English");
+		KACR_Log("[Error] Unable to create Language Tree for English");
+	}
 		
 	// Load the phrases into Translations.
 	SetTrieString(f_hTemp, KACR_LOADED, "Kigen's Anti-Cheat Redux has been loaded successfully");
@@ -135,13 +140,13 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_HASPLUGIN, "%N (%s) has a plugin running, returned %s");
 	SetTrieString(f_hTemp, KACR_MUTED, "%N has been muted by Kigen's Anti-Cheat Redux");
 	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "%N (%s) returned a bad value on %s (value %s, should be %s)");
-	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "Your convar %s should equal %s but it was set to %s. Please correct this before rejoining");
-	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) has convar %s set to %s when it should be greater than or equal to %s");
-	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "Your convar %s should be greater than or equal to %s but was set to %s. Please correct this before rejoining");
-	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) has convar %s set to %s when it should be less than or equal to %s");
-	SetTrieString(f_hTemp, KACR_SHOULDLESS, "Your convar %s should be less than or equal to %s but was set to %s. Please correct this before rejoining");
-	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) has convar %s set to %s when it should be beteween %s and %f");
-	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "Your convar %s should be between %s and %f but was set to %s. Please correct this before rejoining");
+	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "Your ConVar %s should equal %s but it was set to %s. Please correct this before rejoining");
+	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) has ConVar %s set to %s when it should be greater than or equal to %s");
+	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "Your ConVar %s should be greater than or equal to %s but was set to %s. Please correct this before rejoining");
+	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) has ConVar %s set to %s when it should be less than or equal to %s");
+	SetTrieString(f_hTemp, KACR_SHOULDLESS, "Your ConVar %s should be less than or equal to %s but was set to %s. Please correct this before rejoining");
+	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) has ConVar %s set to %s when it should be beteween %s and %f");
+	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "Your ConVar %s should be between %s and %f but was set to %s. Please correct this before rejoining");
 	SetTrieString(f_hTemp, KACR_BANIP, "You were banned by the server");
 	SetTrieString(f_hTemp, KACR_ADDCVARUSAGE, "Usage: kacr_addcvar <cvar name> <comparison type> <action> <value> <value2 if bound>");
 	SetTrieString(f_hTemp, KACR_REMCVARUSAGE, "Usage: kacr_removecvar <cvar name>");
@@ -186,7 +191,11 @@ Trans_OnPluginStart()
 	
 	// Thank you to vintage for this translation. http://kigenac.com/memberlist.php?mode=viewprofile&u=1035
 	if(!GetTrieValue(g_hLanguages, "fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
-		SetFailState("Unable to create Language Tree for French");
+	{
+		// SetFailState("Unable to create Language Tree for French"); // We do not want an AC to break, otherwise our Server would be unprotected :O
+		KACR_PrintToServer("[Error][KACR] Unable to create Language Tree for French");
+		KACR_Log("[Error] Unable to create Language Tree for French");
+	}
 		
 	SetTrieString(f_hTemp, KACR_LOADED, "Kigen's Anti-Cheat Redux est opérationnel");
 	SetTrieString(f_hTemp, KACR_BANNED, "Vous avez été banni pour cheat détecté");
@@ -263,7 +272,11 @@ Trans_OnPluginStart()
 	
 	// Thank you to asterix for this translation. http://kigenac.com/memberlist.php?mode=viewprofile&u=116
 	if(!GetTrieValue(g_hLanguages, "it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
-		SetFailState("Unable to create Language Tree for Italian");
+	{
+		// SetFailState("Unable to create Language Tree for Italian"); // We do not want an AC to break, otherwise our Server would be unprotected :O
+		KACR_PrintToServer("[Error][KACR] Unable to create Language Tree for Italian");
+		KACR_Log("[Error] Unable to create Language Tree for Italian");
+	}
 		
 	SetTrieString(f_hTemp, KACR_LOADED, "L'anticheats Kigen Redux è stato caricato con successo");
 	SetTrieString(f_hTemp, KACR_BANNED, "Sei stato bannato per aver utilizzato dei trucchi");
@@ -334,4 +347,85 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_SAYBLOCK, "[KACR] Il tuo testo è stato bloccato a causa di alcuni caratteri non validi");
 	SetTrieString(f_hTemp, KACR_FORCEDREVAL, "[KACR] Convalida forzata di tutti i giocatori connessi");
 	SetTrieString(f_hTemp, KACR_CANNOTREVAL, "[KACR] Non si può forzare la validazione dei giocatori finchè questi non siano stati tutti validati");
+	
+	
+	//- German -//
+	
+	if(!GetTrieValue(g_hLanguages, "de", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	{
+		// SetFailState("Unable to create Language Tree for German"); // We do not want an AC to break, otherwise our Server would be unprotected :O
+		KACR_PrintToServer("[Error][KACR] Unable to create Language Tree for German");
+		KACR_Log("[Error] Unable to create Language Tree for German");
+	}
+	
+	// Load the phrases into Translations.
+	SetTrieString(f_hTemp, KACR_LOADED, "Kigen's Anti-Cheat Redux erfolgreich geladen");
+	SetTrieString(f_hTemp, KACR_BANNED, "Du wurdest wegen aufgrund von cheating Versuchen verbannt");
+	SetTrieString(f_hTemp, KACR_GBANNED, "Du wurdest von allen Kigen's Anti-Cheat Redux (KACR) geschützten Servern verbannt. Für weitere Infos, besuche: https://djplaya.github.io/kigen-ac_redux");
+	SetTrieString(f_hTemp, KACR_VACBANNED, "Dieser Server ist durch Kigen's Anti-Cheat Redux (KACR) geschützt und erlaubt keine VALVe Anti-Cheat (VAC) gebannte Spieler");
+	SetTrieString(f_hTemp, KACR_KCMDSPAM, "Du wurdest aufgrund von Kommando spamming gekickt");
+	SetTrieString(f_hTemp, KACR_ADDCMDUSAGE, "Anwendung: kacr_addcmd <Kommando> <ban (1 or 0)>");
+	SetTrieString(f_hTemp, KACR_ADDCMDSUCCESS, "Du hast erfolgreich %s zur Kommando Blacklist hinzugefügt");
+	SetTrieString(f_hTemp, KACR_ADDCMDFAILURE, "%s befindet sich bereits in der Kommando Blacklist");
+	SetTrieString(f_hTemp, KACR_REMCMDUSAGE, "Anwendung: kacr_removecmd <Kommando>");
+	SetTrieString(f_hTemp, KACR_REMCMDSUCCESS, "Du hast erfolgreich %s von der Kommando Blacklist entfernt");
+	SetTrieString(f_hTemp, KACR_REMCMDFAILURE, "%s ist nicht in der Kommando Blacklist");
+	SetTrieString(f_hTemp, KACR_ADDIGNCMDUSAGE, "Anwendung: kacr_addignorecmd <Kommando>");
+	SetTrieString(f_hTemp, KACR_ADDIGNCMDSUCCESS, "Du hast erfolgreich %s zur Spam Whitelist hinzugefügt");
+	SetTrieString(f_hTemp, KACR_ADDIGNCMDFAILURE, "%s befindet sich bereits in der Spam Whitelist");
+	SetTrieString(f_hTemp, KACR_REMIGNCMDUSAGE, "Anwendung: kacr_removeignorecmd <Kommando>");
+	SetTrieString(f_hTemp, KACR_REMIGNCMDSUCCESS, "Du hast erfolgreich %s von der Spam Whitelist entfernt");
+	SetTrieString(f_hTemp, KACR_REMIGNCMDFAILURE, "%s ist nicht in der Spam Whitelist");
+	SetTrieString(f_hTemp, KACR_FAILEDTOREPLY, "Dein Spiel hat eine Anfrag nicht rechtzeitig bearbeitet. Bitte reconnecte oder starte dein Spiel neu");
+	SetTrieString(f_hTemp, KACR_FAILEDAUTH, "Dein Spiel hat sich nicht rechtzeitig am Server angemeldet. Bitte reconnecte oder starte dein Spiel neu");
+	SetTrieString(f_hTemp, KACR_CLIENTCORRUPT, "Dein Spiel is möglicherweise beschädigt oder falsch eingestellt. Bitte starte dein Spiel neu before du dich wieder verbindest");
+	SetTrieString(f_hTemp, KACR_REMOVEPLUGINS, "Bitte entferne sämtliche Plugins von deinem Client bevor du dich erneut verbindest");
+	SetTrieString(f_hTemp, KACR_HASPLUGIN, "%N (%s) hat ein Plugin am laufen, Rückgabe %s");
+	SetTrieString(f_hTemp, KACR_MUTED, "%N wurde stumm geschaltet durch Kigen's Anti-Cheat Redux");
+	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "%N (%s) hat ConVar %s auf einem falschen Wert (Wert %s, sollte %s sein)");
+	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "Deine ConVar %s sollte %s sein, aber sie ist auf %s gesetzt. Bitte korrigiere das vor dem reconnecten");
+	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) hat ConVar %s auf %s, der Wert sollte allerdings größer oder gleich %s sein");
+	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "Deine ConVar %s sollte größer oder gleich %s sein, aber sie ist auf %s gesetzt. Bitte korrigiere das vor dem reconnecten");
+	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) hat ConVar %s auf %s, der Wert sollte allerdings kleiner oder gleich %s sein");
+	SetTrieString(f_hTemp, KACR_SHOULDLESS, "Deine ConVar %s sollte kleiner oder gleich %s sein, aber sie ist auf %s gesetzt. Bitte korrigiere das vor dem reconnecten");
+	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) hat ConVar %s auf %s, der Wert sollte allerdings zwischen %s und %f liegen");
+	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "Deine ConVar %s sollte zwischen %s und %f eingestellt sein, aber sie ist auf %s gesetzt. Bitte korrigiere das vor dem reconnecten");
+	SetTrieString(f_hTemp, KACR_BANIP, "Du wurdest vom Server gebannt");
+	SetTrieString(f_hTemp, KACR_ADDCVARUSAGE, "Anwendung: kacr_addcvar <CVar Name> <Vergleichstyp> <Aktionstyp> <Startwert> <Endwert when nötig>");
+	SetTrieString(f_hTemp, KACR_REMCVARUSAGE, "Anwendung: kacr_removecvar <CVar Name>");
+	SetTrieString(f_hTemp, KACR_REMCVARSUCCESS, "ConVar %s wurde von der Checkliste entfernt");
+	SetTrieString(f_hTemp, KACR_REMCVARFAILED, "ConVar %s konnte nicht in der Checkliste gefunden werden");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADNAME, "Der ConVar Name \"%s\" ist ungültig un kann nicht verwendet werden");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Ungültiger Vergleichstyp \"%s\", gültige Werte sind: \"equal\", \"greater\", \"less\", \"between\", oder \"strequal\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Ungültiger Aktionstyp \"%s\", gültige Werte sind: \"warn\", \"mute\", \"kick\", oder \"ban\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADBOUND, "Dieser Vergleichstyp braucht einen Start und Endwert");
+	SetTrieString(f_hTemp, KACR_ADDCVAREXISTS, "Die ConVar %s gibt es bereits in der Checkliste");
+	SetTrieString(f_hTemp, KACR_ADDCVARSUCCESS, "Convar %s wurde der Checkliste hinzugefügt");
+	SetTrieString(f_hTemp, KACR_ADDCVARFAILED, "ConVar %s konnte nicht der Checkliste hinzugefügt werden");
+	SetTrieString(f_hTemp, KACR_CHANGENAME, "Bitte ändere deinen Namen");
+	SetTrieString(f_hTemp, KACR_CBANNED, "Du wurdest wegen Kommando misbrauchs verbannt");
+	SetTrieString(f_hTemp, KACR_STATUSREPORT, "Kigen's Anti-Cheat Redux Status Bericht");
+	SetTrieString(f_hTemp, KACR_ON, "An");
+	SetTrieString(f_hTemp, KACR_OFF, "Aus");
+	SetTrieString(f_hTemp, KACR_DISABLED, "Deaktiviert");
+	SetTrieString(f_hTemp, KACR_ERROR, "Fehler");
+	SetTrieString(f_hTemp, KACR_NOREPORT, "Es gibt nichts zu berichten");
+	SetTrieString(f_hTemp, KACR_TRANSLATEMOD, "Übersetzungen");
+	SetTrieString(f_hTemp, KACR_RCONPREVENT, "RCON Crash Prevention");
+	SetTrieString(f_hTemp, KACR_NETMOD, "Netzwerk");
+	SetTrieString(f_hTemp, KACR_UNABLETOCONTACT, "Kann KACR Master Server nicht erreichen");
+	SetTrieString(f_hTemp, KACR_EYEMOD, "Sicht Test");
+	SetTrieString(f_hTemp, KACR_ANTIWH, "Anti-Wallhack");
+	SetTrieString(f_hTemp, KACR_NOSDKHOOK, "Deaktiviert; Kann Erweiterung SDKHooks.ext nicht finden");
+	SetTrieString(f_hTemp, KACR_CVARS, "CVar Überprüfung");
+	SetTrieString(f_hTemp, KACR_CMDMOD, "Kommando Schutz");
+	SetTrieString(f_hTemp, KACR_CMDSPAM, "Kommando Spam Schutz");
+	SetTrieString(f_hTemp, KACR_CLIENTMOD, "Klient Modul");
+	SetTrieString(f_hTemp, KACR_CLIENTBALANCE, "Klient Team Auto-Balance");
+	SetTrieString(f_hTemp, KACR_CLIENTANTIRESPAWN, "Anti-Rejoin Schutz");
+	SetTrieString(f_hTemp, KACR_CLIENTNAMEPROTECT, "Klient Namen Schutz");
+	SetTrieString(f_hTemp, KACR_AUTOASSIGNED, "[KACR] Du wurdest automatisch einem Team zugewiesen");
+	SetTrieString(f_hTemp, KACR_SAYBLOCK, "[KACR] Deine Nachricht wurde blockiert, da sie ungültige Zeichen enthält");
+	SetTrieString(f_hTemp, KACR_FORCEDREVAL, "[KACR] Erzwungene Überprüfung aller verbundenen Spieler");
+	SetTrieString(f_hTemp, KACR_CANNOTREVAL, "[KACR] Eine Überprüfung kann nicht gestartet werden bis alle Spieler fertig geprüft wurden");
 }
