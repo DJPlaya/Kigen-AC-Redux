@@ -100,14 +100,13 @@ Trans_OnPluginStart()
 	g_hLanguages = CreateTrie();
 	
 	// Load languages into the adt_trie.
-	SetTrieValue(g_hLanguages, "en", any:CreateTrie());
-	SetTrieValue(g_hLanguages, "fr", any:CreateTrie());
-	SetTrieValue(g_hLanguages, "it", any:CreateTrie());
-	SetTrieValue(g_hLanguages, "de", any:CreateTrie());
+	SetTrieValue(g_hLanguages, "en", any:CreateTrie()); // English
+	SetTrieValue(g_hLanguages, "fr", any:CreateTrie()); // French
+	SetTrieValue(g_hLanguages, "it", any:CreateTrie()); // Italian
+	SetTrieValue(g_hLanguages, "de", any:CreateTrie()); // German
+	SetTrieValue(g_hLanguages, "he", any:CreateTrie()); // Hebrew
 	
-	
-	//- English -//
-	
+	//- English -// Done by Kigen
 	if(!GetTrieValue(g_hLanguages, "en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Tree for English"); // We do not want an AC to break, otherwise our Server would be unprotected :O
@@ -153,8 +152,8 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_REMCVARSUCCESS, "ConVar %s was successfully removed from the check list");
 	SetTrieString(f_hTemp, KACR_REMCVARFAILED, "Unable to find ConVar %s in the check list");
 	SetTrieString(f_hTemp, KACR_ADDCVARBADNAME, "The ConVar name \"%s\" is invalid and cannot be used");
-	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Unrecognized comparison type \"%s\", acceptable values: \"equal\", \"greater\", \"less\", \"between\", or \"strequal\"");
-	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Unrecognized action type \"%s\", acceptable values: \"warn\", \"mute\", \"kick\", or \"ban\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Unrecognized comparison type \"%s\", acceptable values: \"equal\", \"greater\", \"less\", \"between\" or \"strequal\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Unrecognized action type \"%s\", acceptable values: \"warn\", \"mute\", \"kick\" or \"ban\"");
 	SetTrieString(f_hTemp, KACR_ADDCVARBADBOUND, "Bound comparison type needs two values to compare with");
 	SetTrieString(f_hTemp, KACR_ADDCVAREXISTS, "The ConVar %s already exists in the check list");
 	SetTrieString(f_hTemp, KACR_ADDCVARSUCCESS, "Successfully added ConVar %s to the check list");
@@ -166,7 +165,7 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_OFF, "Off");
 	SetTrieString(f_hTemp, KACR_DISABLED, "Disabled");
 	SetTrieString(f_hTemp, KACR_ERROR, "Error");
-	SetTrieString(f_hTemp, KACR_NOREPORT, "There is nothing to report.");
+	SetTrieString(f_hTemp, KACR_NOREPORT, "There is nothing to report");
 	SetTrieString(f_hTemp, KACR_TRANSLATEMOD, "Translations");
 	SetTrieString(f_hTemp, KACR_RCONPREVENT, "RCON Crash Prevention");
 	SetTrieString(f_hTemp, KACR_NETMOD, "Network");
@@ -187,9 +186,7 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_CANNOTREVAL, "[KACR] Cannot force revalidation until all player have already been validated");
 	
 	
-	//- French -//
-	
-	// Thank you to vintage for this translation. http://kigenac.com/memberlist.php?mode=viewprofile&u=1035
+	//- French -// Thanks to Vintage > http://kigenac.com/memberlist.php?mode=viewprofile&u=1035
 	if(!GetTrieValue(g_hLanguages, "fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Tree for French"); // We do not want an AC to break, otherwise our Server would be unprotected :O
@@ -234,8 +231,8 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_REMCVARSUCCESS, "La cvar %s a été retirée correctement de la liste de surveillance");
 	SetTrieString(f_hTemp, KACR_REMCVARFAILED, "Impossible de trouver la cvar %s dans la liste de surveillance");
 	SetTrieString(f_hTemp, KACR_ADDCVARBADNAME, "Le nom de la cvar \"%s\" n'est pas valide et ne peut être utilisé");
-	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Comparaison non reconnue \"%s\", valeurs acceptées: \"equal\", \"greater\", \"less\", \"between\", ou \"strequal\"");
-	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Action non reconnue \"%s\", valeurs acceptées: \"warn\", \"mute\", \"kick\", or \"ban\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Comparaison non reconnue \"%s\", valeurs acceptées: \"equal\", \"greater\", \"less\", \"between\" ou \"strequal\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Action non reconnue \"%s\", valeurs acceptées: \"warn\", \"mute\", \"kick\" or \"ban\"");
 	SetTrieString(f_hTemp, KACR_ADDCVARBADBOUND, "La comparaison d'encadrement nécessite deux valeurs pour être active");
 	SetTrieString(f_hTemp, KACR_ADDCVAREXISTS, "La cvar %s existe déjà dans la liste de surveillance");
 	SetTrieString(f_hTemp, KACR_ADDCVARSUCCESS, "La cvar %s a été correctement ajoutée à la liste de surveillance");
@@ -268,9 +265,7 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_CANNOTREVAL, "[KACR] Revalidation impossible, tous les joueurs ont déjà été validés");
 	
 	
-	//- Italian -//
-	
-	// Thank you to asterix for this translation. http://kigenac.com/memberlist.php?mode=viewprofile&u=116
+	//- Italian -// Thanks to Asterix > http://kigenac.com/memberlist.php?mode=viewprofile&u=116
 	if(!GetTrieValue(g_hLanguages, "it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Tree for Italian"); // We do not want an AC to break, otherwise our Server would be unprotected :O
@@ -315,8 +310,8 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_REMCVARSUCCESS, "Il cvar %s è stato rmisso dalla lista di controllo");
 	SetTrieString(f_hTemp, KACR_REMCVARFAILED, "Impossibile trovare il cvar %s nella lista di controllo");
 	SetTrieString(f_hTemp, KACR_ADDCVARBADNAME, "Il nome di questo cvar \"%s\" non è valido e non può essere utilizzato");
-	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Confronto non riconosciuto \"%s\", valore accettabile: \"uguale\", \"maggiore\", \"inferiore\", \"tra\", o \"strequal\"");
-	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Azione non riconosciuta \"%s\", valore accettabile: \"avvertimento\", \"mutare\", \"kick\", o \"bannare\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Confronto non riconosciuto \"%s\", valore accettabile: \"uguale\", \"maggiore\", \"inferiore\", \"tra\" o \"strequal\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Azione non riconosciuta \"%s\", valore accettabile: \"avvertimento\", \"mutare\", \"kick\" o \"bannare\"");
 	SetTrieString(f_hTemp, KACR_ADDCVARBADBOUND, "Il confronto bindato necessita di due valori da confrontare");
 	SetTrieString(f_hTemp, KACR_ADDCVAREXISTS, "Il cvar %s esiste già nella lista di controllo");
 	SetTrieString(f_hTemp, KACR_ADDCVARSUCCESS, "Il cvar %s è stato aggiunto alla lista di controllo");
@@ -349,8 +344,7 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_CANNOTREVAL, "[KACR] Non si può forzare la validazione dei giocatori finchè questi non siano stati tutti validati");
 	
 	
-	//- German -//
-	
+	//- German -// Done by Playa
 	if(!GetTrieValue(g_hLanguages, "de", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Tree for German"); // We do not want an AC to break, otherwise our Server would be unprotected :O
@@ -396,8 +390,8 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_REMCVARSUCCESS, "ConVar %s wurde von der Checkliste entfernt");
 	SetTrieString(f_hTemp, KACR_REMCVARFAILED, "ConVar %s konnte nicht in der Checkliste gefunden werden");
 	SetTrieString(f_hTemp, KACR_ADDCVARBADNAME, "Der ConVar Name \"%s\" ist ungültig un kann nicht verwendet werden");
-	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Ungültiger Vergleichstyp \"%s\", gültige Werte sind: \"equal\", \"greater\", \"less\", \"between\", oder \"strequal\"");
-	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Ungültiger Aktionstyp \"%s\", gültige Werte sind: \"warn\", \"mute\", \"kick\", oder \"ban\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "Ungültiger Vergleichstyp \"%s\", gültige Werte sind: \"equal\", \"greater\", \"less\", \"between\" oder \"strequal\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "Ungültiger Aktionstyp \"%s\", gültige Werte sind: \"warn\", \"mute\", \"kick\" oder \"ban\"");
 	SetTrieString(f_hTemp, KACR_ADDCVARBADBOUND, "Dieser Vergleichstyp braucht einen Start und Endwert");
 	SetTrieString(f_hTemp, KACR_ADDCVAREXISTS, "Die ConVar %s gibt es bereits in der Checkliste");
 	SetTrieString(f_hTemp, KACR_ADDCVARSUCCESS, "Convar %s wurde der Checkliste hinzugefügt");
@@ -428,4 +422,84 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_SAYBLOCK, "[KACR] Deine Nachricht wurde blockiert, da sie ungültige Zeichen enthält");
 	SetTrieString(f_hTemp, KACR_FORCEDREVAL, "[KACR] Erzwungene Überprüfung aller verbundenen Spieler");
 	SetTrieString(f_hTemp, KACR_CANNOTREVAL, "[KACR] Eine Überprüfung kann nicht gestartet werden bis alle Spieler fertig geprüft wurden");
+	
+	
+	//- Hebrew -// Thanks to Shazero Sicario > Discord: WildGamer.net#4916
+	if(!GetTrieValue(g_hLanguages, "he", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	{
+		// SetFailState("Unable to create Language Tree for Hebrew"); // We do not want an AC to break, otherwise our Server would be unprotected :O
+		KACR_PrintToServer("[Error][KACR] Unable to create Language Tree for Hebrew");
+		KACR_Log("[Error] Unable to create Language Tree for Hebrew");
+	}
+	
+	// Load the phrases into Translations.
+	SetTrieString(f_hTemp, KACR_LOADED, "האנטי ציט של קיגאן נטען בהצלחה");
+	SetTrieString(f_hTemp, KACR_BANNED, "הורחקת בגין שימוש בתוכנות צד-3");
+	SetTrieString(f_hTemp, KACR_GBANNED, "https://djplaya.github.io/kigen-ac_redux: הורקת מכל השרתים המשתמשים באנטי ציט של קיגאן לעוד מידע כנסו ללניק");
+	SetTrieString(f_hTemp, KACR_VACBANNED, "(VAC)האני ציט של קיגאן לא מאפשר לVALVE לתת הרחקה");
+	SetTrieString(f_hTemp, KACR_KCMDSPAM, "קיבלת קיק על הספאמת פקודה באופן חוזר");
+	SetTrieString(f_hTemp, KACR_ADDCMDUSAGE, "שימוש: kacr_addcmd <command name> <ban (1 or 0)>");
+	SetTrieString(f_hTemp, KACR_ADDCMDSUCCESS, "הוספת בהצלחה %s לרשימת הפקודות");
+	SetTrieString(f_hTemp, KACR_ADDCMDFAILURE, "%s כבר קיים ברשימת הפקודות");
+	SetTrieString(f_hTemp, KACR_REMCMDUSAGE, "שימוש: kacr_removecmd <command name>");
+	SetTrieString(f_hTemp, KACR_REMCMDSUCCESS, "הסרת בהצלחה את %s מרשימת הפקודות");
+	SetTrieString(f_hTemp, KACR_REMCMDFAILURE, "%s אינו נמצא ברשימת הפקודות");
+	SetTrieString(f_hTemp, KACR_ADDIGNCMDUSAGE, "שימוש: kacr_addignorecmd <command name>");
+	SetTrieString(f_hTemp, KACR_ADDIGNCMDSUCCESS, "הוספת בהצלחה את %s לרשימת הסניון");
+	SetTrieString(f_hTemp, KACR_ADDIGNCMDFAILURE, "%s כבר קיים ברשימת הסניון");
+	SetTrieString(f_hTemp, KACR_REMIGNCMDUSAGE,  "שימוש: kacr_removeignorecmd <command name>");
+	SetTrieString(f_hTemp, KACR_REMIGNCMDSUCCESS, "הסרת בהצלחה את %s מרשימת הסינון");
+	SetTrieString(f_hTemp, KACR_REMIGNCMDFAILURE, "%s לא נמצא ברשימת הסינון");
+	SetTrieString(f_hTemp, KACR_FAILEDTOREPLY, "המשתמש שלך אינו נענה למשחק אנא התחבר מחדש או הפעל מחדש את המשחק");
+	SetTrieString(f_hTemp, KACR_FAILEDAUTH, "המשתמש שלך כשל להתחבר .אנא התחבר מחדש או הפעל מחדש את המשחק");
+	SetTrieString(f_hTemp, KACR_CLIENTCORRUPT, "המשתמש שלך נפגם או שהוא מוגדר בצורה שגויה. הפעל מחדש את המשחק לפני שתתחבר מחדש");
+	SetTrieString(f_hTemp, KACR_REMOVEPLUGINS, "אנא תמחק תוכנות צד-3 לפני התחברות לשרת, רק אחרי המחיקה תוכל להתחבר לשרת");
+	SetTrieString(f_hTemp, KACR_HASPLUGIN, "%N (%s) משתמש בתוכנת פלאגין, חוזר %s");
+	SetTrieString(f_hTemp, KACR_MUTED, "%N הושתק על ידי האנטי ציט");
+	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "%N (%s) החזיר ערך שלילי %s (הערך %s, אמור להיות %s)");
+	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "הקונבאר שלך %s אמור להיות %s אבל הוא שונה ל %s אנא תקן זאת לפני הצטרפות לשרת");
+	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) הקונבאר של %s שונה ל %s כשהוא אמור להיות %s");
+	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "הקונבאר שלך %s אמור להיות גדול או שווה ל %s אבל הוא שונה ל %s. אנא תקן זאת לפני הצטרפות לשרת");
+	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) הקונבאר של %s שונה ל %s כאשר הוא אמור להיות שווה ל %s");
+	SetTrieString(f_hTemp, KACR_SHOULDLESS, "הקונבאר שלך %אמור להיות שווה או נמוך מ %s אבל הוא שונה ל %s. אנא תקן זאת לפני הצטרפות לשרת");
+	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) הקונבאר %s שונה ל  %s כאשר זה צריך להיות %s ו %f");
+	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "הקונבאר שלך %s אמור להיות בין  %s ל %f אבל הוא שונה ל %s. אנא תקן זאת לפני הצטרפות לשרת");
+	SetTrieString(f_hTemp, KACR_BANIP, "הורחקת מן השרת");
+	SetTrieString(f_hTemp, KACR_ADDCVARUSAGE, "שימוש: kacr_addcvar <cvar name> <comparison type> <action> <value> <value2 if bound>");
+	SetTrieString(f_hTemp, KACR_REMCVARUSAGE, "שימוש: kacr_removecvar <cvar name>");
+	SetTrieString(f_hTemp, KACR_REMCVARSUCCESS, "קונבאר %s הוסר בהצלחה מרשימת הבדיקה");
+	SetTrieString(f_hTemp, KACR_REMCVARFAILED, "לא ניצן למצוא את הקונבאר %s ברשימת הבדיקה");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADNAME, "שמו של הקונבאר \"%s\" אינו חוקי ולא ניתן לשימוש");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADCOMP, "סוג השוואה לא מזוהה \"%s\", ערכים מקובלים: \"equal\", \"greater\", \"less\", \"between\" או \"strequal\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADACT, "סוג פעולה לא מזוהה \"%s\", ערכים מקובלים: \"warn\", \"mute\", \"kick\" או \"ban\"");
+	SetTrieString(f_hTemp, KACR_ADDCVARBADBOUND, "סגנון השוואת גבולות זקוק ל2 ערכים לביצוע הפעולה");
+	SetTrieString(f_hTemp, KACR_ADDCVAREXISTS, "הקונבאר  %s כבר קיים ברשימה");
+	SetTrieString(f_hTemp, KACR_ADDCVARSUCCESS, "הקונבאר הוסף בהצלחה %s לרשימת הבדיקה");
+	SetTrieString(f_hTemp, KACR_ADDCVARFAILED, "נכשל ניסון צירוף הקונבאר %s לרשימת הבדיקה");
+	SetTrieString(f_hTemp, KACR_CHANGENAME, "אנא שנה את שם המשתמש שלך");
+	SetTrieString(f_hTemp, KACR_CBANNED, "הורחקת על הפרת שימוש בפקודה");
+	SetTrieString(f_hTemp, KACR_STATUSREPORT, "דוח מצב של האנטי ציט");
+	SetTrieString(f_hTemp, KACR_ON, "פועל");
+	SetTrieString(f_hTemp, KACR_OFF, "כבוי");
+	SetTrieString(f_hTemp, KACR_DISABLED, "מושבת");
+	SetTrieString(f_hTemp, KACR_ERROR, "שגיאה");
+	SetTrieString(f_hTemp, KACR_NOREPORT, "איו על מה לדווח");
+	SetTrieString(f_hTemp, KACR_TRANSLATEMOD, "תרגומים");
+	SetTrieString(f_hTemp, KACR_RCONPREVENT, "RCON מניעת התרסקות");
+	SetTrieString(f_hTemp, KACR_NETMOD, "רשת");
+	SetTrieString(f_hTemp, KACR_UNABLETOCONTACT, "לא היה ניתן לתקשר עם KACR Master");
+	SetTrieString(f_hTemp, KACR_EYEMOD, "בדיקת עיניים");
+	SetTrieString(f_hTemp, KACR_ANTIWH, "אנטי-וולהאק");
+	SetTrieString(f_hTemp, KACR_NOSDKHOOK, "הושבת; לא ניתן היה למצוא את ה SDKHooks.ext");
+	SetTrieString(f_hTemp, KACR_CVARS, "CVars איתור");
+	SetTrieString(f_hTemp, KACR_CMDMOD, "הגנת פקודות");
+	SetTrieString(f_hTemp, KACR_CMDSPAM, "הגנת על פקודות ספאם");
+	SetTrieString(f_hTemp, KACR_CLIENTMOD, "מודל משתמש");
+	SetTrieString(f_hTemp, KACR_CLIENTBALANCE, "מאזן אוטומטי של הקבוצות");
+	SetTrieString(f_hTemp, KACR_CLIENTANTIRESPAWN, "ניגוד הצטרפויות חוזרות");
+	SetTrieString(f_hTemp, KACR_CLIENTNAMEPROTECT, "הגנה על השם ");
+	SetTrieString(f_hTemp, KACR_AUTOASSIGNED, "[KACR] הוקצתה אוטומטית לצוות");
+	SetTrieString(f_hTemp, KACR_SAYBLOCK, "[KACR] הסיבה שלך נחסמה בשל תו לא חוקי");
+	SetTrieString(f_hTemp, KACR_FORCEDREVAL, "[KACR] חידוש אימות בכפייה על כל השחקנים המחוברים");
+	SetTrieString(f_hTemp, KACR_CANNOTREVAL, "[KACR] א ניתן לאלץ את ההתאמה עד שכל שחקן כבר אומת");
 }
