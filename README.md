@@ -7,6 +7,16 @@ Requires
 Optional:
 - Sourcebans++
 - Sourcebans
+
+Official supported Games:
+ #### Most Elements of KACR will work on any Half Life Engine Game
+- Counter-Strike: Global Offensive
+- Team Fortress 2
+- Counter-Strike: Source
+- Left 4 Dead 1/2
+- Insurgency
+- Day of Defeat: Source
+- Half-Life 2: Deathmatch
 #
 #
 Commands | Description | Adminflag
