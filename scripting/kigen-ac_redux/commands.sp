@@ -36,13 +36,13 @@ int g_iCmdStatus, g_iCmdSpamStatus;
 
 Commands_OnPluginStart()
 {
-	g_hCVarCmdEnable = CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVarCmdEnable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCmdEnabled = GetConVarBool(g_hCVarCmdEnable);
 	
-	g_hCVarCmdSpam = CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 120.0);
+	g_hCVarCmdSpam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 120.0);
 	g_iCmdSpam = GetConVarInt(g_hCVarCmdSpam);
 	
-	g_hCVarCmdLog = CreateConVar("kacr_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVarCmdLog = AutoExecConfig_CreateConVar("kacr_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bLogCmds = GetConVarBool(g_hCVarCmdLog);
 	
 	HookConVarChange(g_hCVarCmdEnable, Commands_CmdEnableChange);

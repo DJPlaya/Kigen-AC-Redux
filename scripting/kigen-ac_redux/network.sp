@@ -38,13 +38,13 @@ char UpdatePath[256];
 
 Network_OnPluginStart()
 {
-	g_hCVarNetEnabled = CreateConVar("kacr_net_enable", "1", "Enable the Network module", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVarNetEnabled = AutoExecConfig_CreateConVar("kacr_net_enable", "1", "Enable the Network module", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCVarNetEnabled = GetConVarBool(g_hCVarNetEnabled);
 
-	g_hCVarNetUseBanlist = CreateConVar("kacr_net_usebanlist", "1", "Use the global banlist", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVarNetUseBanlist = AutoExecConfig_CreateConVar("kacr_net_usebanlist", "1", "Use the global banlist", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
 
-	g_hCVarNetUseUpdate = CreateConVar("kacr_net_autoupdate", "1", "Use the Auto-Update feature", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVarNetUseUpdate = AutoExecConfig_CreateConVar("kacr_net_autoupdate", "1", "Use the Auto-Update feature", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
 
 	HookConVarChange(g_hCVarNetEnabled, Network_ConVarChange);

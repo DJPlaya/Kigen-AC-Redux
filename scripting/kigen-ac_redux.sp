@@ -25,6 +25,7 @@
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
 #include <socket> // Required for the networking Module
+#include <autoexec>
 
 
 //- Natives -//
@@ -154,12 +155,12 @@ public void OnPluginStart()
 	if(f_hTemp != INVALID_HANDLE)
 		SetConVarInt(f_hTemp, 1);
 		
-	AutoExecConfig(true, "Kigen_AC_Redux");
+	AutoExecConfig(true, "Kigen-AC_Redux"); // Write all CVars marked with AutoExecConfig_CreateConVar down to the Config
 	
 	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
 	
-	SetConVarString(g_hCVarVersion, PLUGIN_VERSION);
-	HookConVarChange(g_hCVarVersion, VersionChange);
+	SetConVarString(g_hCVarVersion, PLUGIN_VERSION); // TODO: Is this really needed?
+	HookConVarChange(g_hCVarVersion, VersionChange); // TODO: HMMM? Propably related to the old Updater System
 	
 	KACR_PrintToServer(KACR_LOADED);
 }

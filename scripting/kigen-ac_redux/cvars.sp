@@ -82,7 +82,7 @@ CVars_OnPluginStart()
 	bool f_bIsCommand;
 	int f_iFlags;
 	
-	g_hCVarCVarsEnabled = CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVarCVarsEnabled = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCVarsEnabled = GetConVarBool(g_hCVarCVarsEnabled);
 	
 	HookConVarChange(g_hCVarCVarsEnabled, CVars_EnableChange);
