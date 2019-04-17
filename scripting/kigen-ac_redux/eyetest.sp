@@ -39,7 +39,7 @@ bool g_bShouldProcess[MAXPLAYERS + 1], g_bHooked[MAXPLAYERS + 1];
 
 Eyetest_OnPluginStart()
 {
-	if(g_iGame != GAME_INS && g_iGame != GAME_CSS && g_iGame != GAME_L4D2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO)
+	if(hGame != Engine_CSGO && hGame != Engine_CSS && hGame != Engine_Insurgency && hGame != Engine_Left4Dead2 && hGame != Engine_HL2DM)
 	{
 		g_hCVarEyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		Eyetest_EnableChange(g_hCVarEyeEnable, "", "");

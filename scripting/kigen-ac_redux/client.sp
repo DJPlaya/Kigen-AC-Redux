@@ -40,7 +40,7 @@ Client_OnPluginStart()
 	g_hCVarClientEnable = AutoExecConfig_CreateConVar("kacr_client_enable", "1", "Enable the Client Protection Module", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bClientEnable = GetConVarBool(g_hCVarClientEnable);
 	
-	if(g_iGame == GAME_CSS || g_iGame == GAME_CSGO)
+	if(hGame == Engine_CSS || hGame == Engine_CSGO)
 	{
 		g_hCVarClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "0", "This will prevent Clients from leaving the Game then rejoining to Respawn", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bClientAntiRespawn = GetConVarBool(g_hCVarClientAntiRespawn);
@@ -66,7 +66,7 @@ Client_OnPluginStart()
 	if(g_bClientEnable)
 	{
 		g_iClientStatus = Status_Register(KACR_CLIENTMOD, KACR_ON);
-		if(g_iGame == GAME_CSS)
+		if(hGame == Engine_CSS)
 		{
 			if(g_bClientAntiRespawn)
 				g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_ON);
@@ -85,7 +85,7 @@ Client_OnPluginStart()
 	else
 	{
 		g_iClientStatus = Status_Register(KACR_CLIENTMOD, KACR_OFF);
-		if(g_iGame == GAME_CSS)
+		if(hGame == Engine_CSS)
 			g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_DISABLED);
 			
 		g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_DISABLED);
@@ -173,7 +173,7 @@ Client_OnMapEnd()
 	for(int i = 0; i < MAX_CONNECTIONS; i++)
 		strcopy(g_sClientConnections[i], 64, "");
 		
-	if(g_iGame == GAME_CSS)
+	if(hGame == Engine_CSS)
 		Client_CleanEvent(INVALID_HANDLE, "", false);
 }
 
@@ -364,6 +364,7 @@ public OnClientSettingsChanged(client)
 				return;
 			}
 		}
+		
 		else if(f_cChar < 32)
 		{
 			KACR_Kick(client, KACR_CHANGENAME);
@@ -384,7 +385,7 @@ public Client_EnableChange(Handle convar, const char[] oldValue, const char[] ne
 	if(g_bClientEnable)
 	{
 		Status_Report(g_iClientStatus, KACR_ON);
-		if(g_iGame == GAME_CSS)
+		if(hGame == Engine_CSS)
 		{
 			if(g_bClientAntiRespawn)
 				Status_Report(g_iClientAntiRespawnStatus, KACR_ON);
@@ -403,7 +404,7 @@ public Client_EnableChange(Handle convar, const char[] oldValue, const char[] ne
 	else
 	{
 		Status_Report(g_iClientStatus, KACR_OFF);
-		if(g_iGame == GAME_CSS)
+		if(hGame == Engine_CSS)
 			Status_Report(g_iClientAntiRespawnStatus, KACR_DISABLED);
 			
 		Status_Report(g_iClientNameProtectStatus, KACR_DISABLED);

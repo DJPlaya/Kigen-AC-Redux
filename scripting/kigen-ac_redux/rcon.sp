@@ -31,7 +31,7 @@ int g_iRCONStatus;
 
 RCON_OnPluginStart()
 {
-	if(g_iGame != GAME_CSS && g_iGame != GAME_DOD && g_iGame != GAME_TF2 && g_iGame != GAME_HL2DM && g_iGame != GAME_CSGO) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
+	if(hGame != Engine_CSGO && hGame != Engine_CSS && hGame != Engine_DODS && hGame != Engine_TF2 && hGame != Engine_HL2DM) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
 	{
 		g_hRCONCrash = AutoExecConfig_CreateConVar("kacr_rcon_crashprevent", "0", "Enable RCON Crash Prevention", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bRCONPreventEnabled = GetConVarBool(g_hRCONCrash);

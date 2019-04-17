@@ -145,7 +145,7 @@ Commands_OnAllPluginsLoaded()
 	SetTrieValue(g_hBlockedCmds, "sv_soundscape_printdebuginfo", false);
 	SetTrieValue(g_hBlockedCmds, "wc_update_entity", false);
 	
-	if(g_iGame == GAME_L4D || g_iGame == GAME_L4D2)
+	if(hGame == Engine_Left4Dead || hGame == Engine_Left4Dead2)
 	{
 		SetTrieValue(g_hIgnoredCmds, "choose_closedoor", true);
 		SetTrieValue(g_hIgnoredCmds, "choose_opendoor", true);

@@ -125,7 +125,7 @@ CVars_OnPluginStart()
 	CVars_AddCVar("cl_phys_timescale", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_showevents", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	
-	if(g_iGame == GAME_INS)
+	if(hGame == Engine_Insurgency)
 		CVars_AddCVar("fog_enable", COMP_EQUAL, ACTION_KICK, "1.0", 0.0, PRIORITY_NORMAL);
 		
 	else

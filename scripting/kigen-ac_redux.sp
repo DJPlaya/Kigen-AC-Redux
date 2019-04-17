@@ -51,6 +51,13 @@ native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sRea
 
 //- Global Variables -//
 
+Handle g_hCLang[MAXPLAYERS + 1] = {INVALID_HANDLE, ...};
+Handle g_hSLang;
+Handle g_hValidateTimer[MAXPLAYERS + 1] = {INVALID_HANDLE, ...};
+Handle g_hDenyArray, g_hClearTimer, g_hCVarVersion;
+
+EngineVersion hGame
+
 bool g_bConnected[MAXPLAYERS + 1] = {false, ...}; // I use these instead of the natives because they are cheaper to call
 bool g_bAuthorized[MAXPLAYERS + 1] = {false, ...}; // when I need to check on a client's state.  Natives are very taxing on
 bool g_bInGame[MAXPLAYERS + 1] = {false, ...}; // system resources as compared to these. - Kigen
@@ -58,12 +65,6 @@ bool g_bIsAdmin[MAXPLAYERS + 1] = {false, ...};
 bool g_bIsFake[MAXPLAYERS + 1] = {false, ...};
 
 bool g_bSourceBans, g_bSourceBansPP, g_bMapStarted;
-
-Handle g_hCLang[MAXPLAYERS + 1] = {INVALID_HANDLE, ...};
-Handle g_hSLang;
-Handle g_hValidateTimer[MAXPLAYERS + 1] = {INVALID_HANDLE, ...};
-Handle g_hDenyArray, g_hClearTimer, g_hCVarVersion;
-int g_iGame = GAME_OTHER; // Game identifier.
 
 
 //- KACR Modules -// Note: The that ordering of these Includes is imporant
@@ -103,36 +104,11 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 public void OnPluginStart()
 {
 	Handle f_hTemp;
-	char f_sGame[64], f_sLang[8];
+	char f_sLang[8];
 	
 	g_hDenyArray = CreateTrie();
+	hGame = GetEngineVersion(); // Identify the game
 	
-	//- Identify the game -//
-	GetGameFolderName(f_sGame, sizeof(f_sGame));
-	if(StrEqual(f_sGame, "cstrike"))
-		g_iGame = GAME_CSS;
-		
-	else if(StrEqual(f_sGame, "dod"))
-		g_iGame = GAME_DOD;
-		
-	else if(StrEqual(f_sGame, "tf"))
-		g_iGame = GAME_TF2;
-		
-	else if(StrEqual(f_sGame, "insurgency"))
-		g_iGame = GAME_INS;
-		
-	else if(StrEqual(f_sGame, "left4dead"))
-		g_iGame = GAME_L4D;
-		
-	else if(StrEqual(f_sGame, "left4dead2"))
-		g_iGame = GAME_L4D2;
-		
-	else if(StrEqual(f_sGame, "hl2mp"))
-		g_iGame = GAME_HL2DM;
-		
-	else if(StrEqual(f_sGame, "csgo"))
-		g_iGame = GAME_CSGO;
-		
 	//- Module Calls -//
 	Status_OnPluginStart();
 	Client_OnPluginStart()
