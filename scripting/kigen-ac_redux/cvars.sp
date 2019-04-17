@@ -618,10 +618,11 @@ public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result,
 		return;
 	}
 	
-	if(result != ConVarQuery_Okay) // ConVar should exist.
+	if(result != ConVarQuery_Okay) // ConVar should exist. // TODO: Add an CVar to decide
 	{
 		KACR_Log("Bad CVar Query Result: '%N'(ID: %s | IP: %s) returned Query Result \"%s\" (expected Okay) on ConVar \"%s\" (Value \"%s\").", client, f_sAuthID, f_sIP, g_sQueryResult[result], cvarName, cvarValue);
-		KACR_Ban(client, 0, KACR_BANNED, "KACR: '%s' Violation (bad Query Result).", cvarName);
+		KickClient(client, "KACR: '%s' Violation (bad Query Result).", cvarName); // TODO: Add Translation
+		// KACR_Ban(client, 0, KACR_BANNED, "KACR: '%s' Violation (bad Query Result).", cvarName);
 		
 		return;
 	}

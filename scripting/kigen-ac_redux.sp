@@ -25,7 +25,7 @@
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
 #include <socket> // Required for the networking Module
-#include <autoexec>
+#include <autoexecconfig_kacr>
 
 
 //- Natives -//
