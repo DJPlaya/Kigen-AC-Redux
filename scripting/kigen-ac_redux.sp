@@ -84,7 +84,7 @@ public Plugin myinfo =
 {
 	name = "Kigen's Anti-Cheat Redux", 
 	author = "Playa", 
-	description = "The greatest thing since sliced pie", 
+	description = "An Universal Anti Cheat Solution compactible with most Source Engine Games", 
 	version = PLUGIN_VERSION, 
 	url = "FunForBattle"
 };
@@ -109,6 +109,8 @@ public void OnPluginStart()
 	g_hDenyArray = CreateTrie();
 	hGame = GetEngineVersion(); // Identify the game
 	
+	AutoExecConfig_SetFile("Kigen-AC_Redux"); // Set which file to write Cvars to
+	
 	//- Module Calls -//
 	Status_OnPluginStart();
 	Client_OnPluginStart()
@@ -131,7 +133,8 @@ public void OnPluginStart()
 	if(f_hTemp != INVALID_HANDLE)
 		SetConVarInt(f_hTemp, 1);
 		
-	AutoExecConfig(true, "Kigen-AC_Redux"); // Write all CVars marked with AutoExecConfig_CreateConVar down to the Config
+	AutoExecConfig_ExecuteFile(); // Execute the Config
+	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
 	
 	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
 	
