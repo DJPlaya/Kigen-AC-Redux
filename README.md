@@ -54,12 +54,9 @@ kacr_cmds_spam | 0-120 | Amount of Commands in one Second before Kick. 0 to disa
 kacr_cmds_log | 1/0 | Log Command Usage. Use only for debugging Purposes
 
 
-I have just fixed a few things on the last Dev Version of KAC.
-Ime still working on my own AC System, so dont exspect huge Changes here, i either will merge this Someday into my own AC or just do little Fixes.
-
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small and pretty unstable.
-I hope this Plugin will help some Server Owners.
-
+I hope this Plugin will help some Server Owners even doe its still in Alpha Stage.
+Ime still working on my own AC System, so dont exspect massive Changes here. Still i will propapbly merge this Someday into my own Cheat Acid.
 Since i havent implemented an Updater yet (or renewed the old one), watch this Project on GitHub so you will be informed about Updates.
 
 ![How to watch](https://help.github.com/assets/images/help/notifications/watcher_picker.gif)
