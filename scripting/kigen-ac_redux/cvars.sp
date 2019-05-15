@@ -479,7 +479,7 @@ public Action CVars_ReplyTimer(Handle timer, any userid)
 	return Plugin_Stop;
 }
 
-public CVars_ReplicateTimer(any f_hConVar)
+public void CVars_ReplicateTimer(any f_hConVar)
 {
 	char f_sName[64];
 	
@@ -499,7 +499,7 @@ public Action CVars_ReplicateCheck(Handle timer, any f_hIndex)
 
 //- ConVar Query Reply -//
 
-public CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
+public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
 {
 	if(!g_bConnected[client])
 		return;

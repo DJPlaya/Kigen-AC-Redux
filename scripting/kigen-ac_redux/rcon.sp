@@ -57,7 +57,7 @@ RCON_OnPluginStart()
 
 //- Hooks -//
 
-public RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[] newValue)
+public void RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	bool f_bEnable = GetConVarBool(convar);
 	if(f_bEnable == g_bRCONPreventEnabled)

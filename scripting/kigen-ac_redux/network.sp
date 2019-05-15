@@ -84,7 +84,7 @@ Network_OnClientDisconnect(client)
 
 //- ConVar Functions -//
 
-public Network_ConVarChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Network_ConVarChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	bool f_bNetEnabled = g_bCVarNetEnabled;
 	
@@ -203,7 +203,7 @@ public Action Network_VTimer(Handle timer, any we)
 
 //- Socket Functions -//
 
-public Network_OnSockDiscVer(Handle socket, any we)
+public void Network_OnSockDiscVer(Handle socket, any we)
 {
 	if(!g_bVCheckDone)
 		g_iInError = 12;
@@ -212,7 +212,7 @@ public Network_OnSockDiscVer(Handle socket, any we)
 	CloseHandle(socket);
 }
 
-public Network_OnSockErrVer(Handle socket, const errorType, const errorNum, any we)
+public void Network_OnSockErrVer(Handle socket, const errorType, const errorNum, any we)
 {
 	if(!g_bVCheckDone)
 		g_iInError = 12;
@@ -222,7 +222,7 @@ public Network_OnSockErrVer(Handle socket, const errorType, const errorNum, any 
 	CloseHandle(socket);
 }
 
-public Network_OnSockConnVer(Handle socket, any we)
+public void Network_OnSockConnVer(Handle socket, any we)
 {
 	if(!SocketIsConnected(socket))
 	{
@@ -240,7 +240,7 @@ public Network_OnSockConnVer(Handle socket, any we)
 	return;
 }
 
-public Network_OnSockRecvVer(Handle socket, char[] data, const size, any we)
+public void Network_OnSockRecvVer(Handle socket, char[] data, const size, any we)
 {
 	if(StrEqual(data, "_SEND"))
 		SocketSend(socket, PLUGIN_VERSION, 7);
@@ -301,7 +301,7 @@ public Network_OnSockRecvVer(Handle socket, char[] data, const size, any we)
 	}
 }
 
-public Network_OnSockDiscDL(Handle socket, any we)
+public void Network_OnSockDiscDL(Handle socket, any we)
 {
 	if(!InUpdate)
 	{
@@ -346,7 +346,7 @@ public Network_OnSockDiscDL(Handle socket, any we)
 	LogMessage("Update successful.");
 }
 
-public Network_OnSockErrDL(Handle socket, const errorType, const errorNum, any we)
+public void Network_OnSockErrDL(Handle socket, const errorType, const errorNum, any we)
 {
 	g_iInError = 12;
 	g_hSocket = INVALID_HANDLE;
@@ -361,7 +361,7 @@ public Network_OnSockErrDL(Handle socket, const errorType, const errorNum, any w
 	CloseHandle(g_hUpdateFile);
 }
 
-public Network_OnSockConnDL(Handle socket, any we)
+public void Network_OnSockConnDL(Handle socket, any we)
 {
 	if(!SocketIsConnected(socket))
 	{
@@ -386,7 +386,7 @@ public Network_OnSockConnDL(Handle socket, any we)
 	return;
 }
 
-public Network_OnSockRecvDL(Handle socket, char[] data, const size, any we)
+public void Network_OnSockRecvDL(Handle socket, char[] data, const size, any we)
 {
 	int pos = 0;
 	if(!InUpdate)
@@ -404,7 +404,7 @@ public Network_OnSockRecvDL(Handle socket, char[] data, const size, any we)
 }
 
 
-public Network_OnSocketConnect(Handle socket, any client)
+public void Network_OnSocketConnect(Handle socket, any client)
 {
 	if(!SocketIsConnected(socket))
 		return;
@@ -420,7 +420,7 @@ public Network_OnSocketConnect(Handle socket, any client)
 	return;
 }
 
-public Network_OnSocketDisconnect(Handle socket, any client)
+public void Network_OnSocketDisconnect(Handle socket, any client)
 {
 	if(socket == g_hSocket)
 		g_hSocket = INVALID_HANDLE;
@@ -429,7 +429,7 @@ public Network_OnSocketDisconnect(Handle socket, any client)
 	return;
 }
 
-public Network_OnSocketReceive(Handle socket, char[] data, const size, any client) 
+public void Network_OnSocketReceive(Handle socket, char[] data, const size, any client) 
 {
 	if(socket == INVALID_HANDLE || !g_bAuthorized[client])
 		return;
@@ -463,7 +463,7 @@ public Network_OnSocketReceive(Handle socket, char[] data, const size, any clien
 		SocketDisconnect(socket);
 }
 
-public Network_OnSocketError(Handle socket, const errorType, const errorNum, any client)
+public void Network_OnSocketError(Handle socket, const errorType, const errorNum, any client)
 {
 	if(socket == INVALID_HANDLE)
 		return;

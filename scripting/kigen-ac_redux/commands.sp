@@ -597,7 +597,7 @@ public Action Commands_CountReset(Handle timer, any args)
 
 //- Hooks -//
 
-public Commands_CmdEnableChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Commands_CmdEnableChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	bool f_bEnabled = GetConVarBool(convar);
 	if(f_bEnabled == g_bCmdEnabled)

@@ -92,7 +92,7 @@ Eyetest_OnPluginEnd()
 
 //- Clients -//
 
-void Eyetest_OnClientPutInServer(client)
+Eyetest_OnClientPutInServer(client)
 {
 	if(!IsFakeClient(client) && IsPlayerAlive(client))
 		g_bShouldProcess[client] = true;
@@ -154,7 +154,7 @@ public Action Eyetest_Timer(Handle timer, any we)
 
 //- Hooks -//
 
-public Eyetest_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Eyetest_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bEyeEnabled = GetConVarBool(convar);
 	
@@ -172,7 +172,7 @@ public Eyetest_EnableChange(Handle convar, const char[] oldValue, const char[] n
 	}
 }
 
-public Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	bool f_bEnabled = GetConVarBool(convar);
 	
@@ -236,13 +236,13 @@ public Action Eyetest_PlayerDeath(Handle event, const char[] name, bool dontBroa
 
 // Weapon stuff
 
-public OnEntityCreated(entity, const char[] classname)
+public void OnEntityCreated(entity, const char[] classname)
 {
 	if(!g_bAntiWallDisabled && entity > MaxClients && entity < MAX_ENTITIES)
 		g_iWeaponOwner[entity] = 0;
 }
 
-public OnEntityDestroyed(entity)
+public void OnEntityDestroyed(entity)
 {
 	if(!g_bAntiWallDisabled && entity > MaxClients && entity < MAX_ENTITIES)
 		g_iWeaponOwner[entity] = 0;
@@ -276,7 +276,7 @@ public Action Eyetest_Drop(client, weapon)
 
 // Back to it.
 
-public OnGameFrame()
+public void OnGameFrame()
 {
 	if(!g_bAntiWall)
 		return;

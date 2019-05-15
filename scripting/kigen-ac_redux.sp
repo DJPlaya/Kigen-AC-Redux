@@ -144,7 +144,7 @@ public void OnPluginStart()
 	KACR_PrintToServer(KACR_LOADED);
 }
 
-public OnAllPluginsLoaded()
+public void OnAllPluginsLoaded()
 {
 	char f_sReason[256], f_sAuthID[64];
 	
@@ -186,7 +186,7 @@ public OnAllPluginsLoaded()
 	}
 }
 
-public OnPluginEnd()
+public void OnPluginEnd()
 {
 	// Client_OnPluginEnd(); // Currently unused
 	Commands_OnPluginEnd();
@@ -247,7 +247,7 @@ public bool OnClientConnect(client, char[] rejectmsg, size)
 	return Client_OnClientConnect(client, rejectmsg, size);
 }
 
-public OnClientAuthorized(client, const char[] auth)
+public void OnClientAuthorized(client, const char[] auth)
 {
 	if(IsFakeClient(client)) // Bots are annoying...
 		return;
@@ -274,7 +274,7 @@ public OnClientAuthorized(client, const char[] auth)
 		CloseHandle(f_hTemp);
 }
 
-public OnClientPutInServer(client)
+public void OnClientPutInServer(client)
 {
 	Eyetest_OnClientPutInServer(client); // Ok, we'll help them bots too.
 	
@@ -296,7 +296,7 @@ public OnClientPutInServer(client)
 		g_hCLang[client] = g_hSLang;
 }
 
-public OnClientPostAdminCheck(client)
+public void OnClientPostAdminCheck(client)
 {
 	if(IsFakeClient(client)) // Humans for the WIN!
 		return;
@@ -305,7 +305,7 @@ public OnClientPostAdminCheck(client)
 		g_bIsAdmin[client] = true;
 }
 
-public OnClientDisconnect(client)
+public void OnClientDisconnect(client)
 {
 	// if ( IsFake aww, screw it. :P
 	Handle f_hTemp;
@@ -352,7 +352,7 @@ public Action KACR_ClearTimer(Handle timer, any nothing)
 
 //- ConVar Hook -//
 
-public VersionChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void VersionChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	if(!StrEqual(newValue, PLUGIN_VERSION))
 		SetConVarString(g_hCVarVersion, PLUGIN_VERSION);

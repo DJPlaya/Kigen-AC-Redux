@@ -321,7 +321,7 @@ bool Client_OnClientConnect(client, char[] rejectmsg, size)
 	return true;
 }
 
-public OnClientSettingsChanged(client)
+public void OnClientSettingsChanged(client)
 {
 	if(!g_bClientEnable || !g_bClientNameProtect || IsFakeClient(client))
 		return;
@@ -379,7 +379,7 @@ public OnClientSettingsChanged(client)
 	}
 }
 
-public Client_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Client_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bClientEnable = GetConVarBool(convar);
 	if(g_bClientEnable)
@@ -411,7 +411,7 @@ public Client_EnableChange(Handle convar, const char[] oldValue, const char[] ne
 	}
 }
 
-public Client_AntiRespawnChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Client_AntiRespawnChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bClientAntiRespawn = GetConVarBool(convar);
 	if(g_bClientEnable)
@@ -424,7 +424,7 @@ public Client_AntiRespawnChange(Handle convar, const char[] oldValue, const char
 	}
 }
 
-public Client_NameProtectChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Client_NameProtectChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bClientNameProtect = GetConVarBool(convar);
 	if(g_bClientEnable)
@@ -437,7 +437,7 @@ public Client_NameProtectChange(Handle convar, const char[] oldValue, const char
 	}
 }
 
-public Client_AntiSpamConnectChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Client_AntiSpamConnectChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_fClientAntiSpamConnect = GetConVarFloat(convar);
 }
