@@ -3,7 +3,7 @@
 #endif
 #define _smlib_included
 
-#define SMLIB_VERSION "0.9.7"
+#define SMLIB_VERSION "0.9.7-B" // A slightly customized Version to compile againest SM 1.10
 
 #include <smlib/general>
 
@@ -22,7 +22,6 @@
 #include <smlib/game>
 #include <smlib/math>
 #include <smlib/menus>
-//#include <smlib/pluginmanager>
 #include <smlib/server>
 #include <smlib/strings>
 #include <smlib/sql>

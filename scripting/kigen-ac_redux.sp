@@ -19,12 +19,14 @@
 
 //- Includes -//
 
+#pragma newdecls optional
+
 #include <sdktools>
-#include <smlib>
+#include <smlib_kacr>
 #undef REQUIRE_EXTENSIONS 
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
-#include <socket> // Required for the networking Module
+// #include <socket> // Required for the networking Module
 #include <autoexecconfig_kacr>
 
 
