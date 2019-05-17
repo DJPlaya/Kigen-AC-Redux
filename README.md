@@ -21,18 +21,18 @@ Official supported Games:
 #
 Commands | Description | Adminflag
 ------------ | ------------- | -------------
-kacr_addcmd | Adds a Command to be blocked by KACR | ADMFLAG_ROOT
-kacr_addignorecmd | Adds a Command to to ignore on Command spam | ADMFLAG_ROOT
-kacr_removecmd | Removes a Command from the Block List | ADMFLAG_ROOT
-kacr_removeignorecmd | Removes a Command to ignore | ADMFLAG_ROOT
-kacr_addcvar | Adds a CVar to the check list | ADMFLAG_ROOT
-kacr_removecvar | Removes a CVar from the check list | ADMFLAG_ROOT
+kacr_addcmd | Adds a Command to be blocked by KACR | Root
+kacr_addignorecmd | Adds a Command to to ignore on Command spam | Root
+kacr_removecmd | Removes a Command from the Block List | Root
+kacr_removeignorecmd | Removes a Command to ignore | Root
+kacr_addcvar | Adds a CVar to the check list | Root
+kacr_removecvar | Removes a CVar from the check list | Root
 #
 Status Commands | Description | Adminflag
 ------------ | ------------- | -------------
-kacr_status | Reports KACR's Status | ADMFLAG_GENERIC
-kacr_net_status | Reports who has been checked | ADMFLAG_GENERIC
-kacr_cvars_status | Shows the status of all in-game clients | ADMFLAG_GENERIC
+kacr_status | Reports KACR's Status | Generic
+kacr_net_status | Reports who has been checked | Generic
+kacr_cvars_status | Shows the status of all in-game clients | Generic
 #
 #
 Note: A Config File will be automatically created
