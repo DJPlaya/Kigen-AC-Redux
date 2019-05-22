@@ -218,7 +218,7 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 		if(client)
 		{
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			KACR_Log("'%L'<%s> submitted a bad Disconnect and was banned", client, f_sIP);
+			KACR_Log("'%L'<%s> submitted a bad Disconnect Reason and was banned", client, f_sIP);
 			KACR_Ban(client, 0, KACR_BANNED, "KACR: Disconnect Exploit");
 		}
 		

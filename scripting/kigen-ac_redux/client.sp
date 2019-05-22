@@ -290,7 +290,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 		{
 			f_cChar = f_sName[i];
 			if(!IsCharSpace(f_cChar))
-				f_bWhiteSpace = false;
+				f_bWhiteSpace = false; // True if the entire Name is an Whitespace (there cant be Whitespaces after the Name)
 				
 			if(IsCharMB(f_cChar))
 			{
@@ -325,16 +325,18 @@ public void OnClientSettingsChanged(iClient)
 	if(!g_bClientEnable || !g_bClientNameProtect || IsFakeClient(iClient))
 		return;
 		
-	char f_sName[64], f_sIP[64], f_cChar;
+	char f_sName[64];
 	int f_iSize;
 	bool f_bWhiteSpace = true;
 	
-	GetClientIP(iClient, f_sIP, sizeof(f_sIP));
+	GetClientName(iClient, f_sName, sizeof(f_sName));
 	
 	f_iSize = strlen(f_sName);
 	
 	if(f_iSize == 0)
 	{
+		char f_sIP[64];
+		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 		KACR_Log("'%L'<%s> was kicked for having a blank Name (unconnected)", iClient, f_sIP);
 		KACR_Kick(iClient, KACR_CHANGENAME);
 		return;
@@ -346,11 +348,12 @@ public void OnClientSettingsChanged(iClient)
 		return;
 	}
 	
+	char f_cChar;
 	for(int i = 0; i < f_iSize; i++)
 	{
 		f_cChar = f_sName[i];
 		if(!IsCharSpace(f_cChar))
-			f_bWhiteSpace = false;
+			f_bWhiteSpace = false; // True if the entire Name is an Whitespace (there cant be Whitespaces after the Name)
 			
 		if(IsCharMB(f_cChar))
 		{
