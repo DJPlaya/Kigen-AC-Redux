@@ -1,7 +1,7 @@
 /*
 	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018 FunForBattle
+	No Copyright (i guess) 2018-2019 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -136,15 +136,15 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_FAILEDAUTH, "Your client has failed to authorize in time. Please reconnect or restart your game");
 	SetTrieString(f_hTemp, KACR_CLIENTCORRUPT, "Your client has become corrupted or is misconfigured. Please restart your game before reconnecting");
 	SetTrieString(f_hTemp, KACR_REMOVEPLUGINS, "Please remove any third party plugins from your client before joining this server again");
-	SetTrieString(f_hTemp, KACR_HASPLUGIN, "%N (%s) has a plugin running, returned %s");
+	SetTrieString(f_hTemp, KACR_HASPLUGIN, "'%L'<%s> has a plugin running, returned %s");
 	SetTrieString(f_hTemp, KACR_MUTED, "%N has been muted by Kigen's Anti-Cheat Redux");
-	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "%N (%s) returned a bad value on %s (value %s, should be %s)");
+	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "'%L'<%s> returned a bad value on %s (value %s, should be %s)");
 	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "Your ConVar %s should equal %s but it was set to %s. Please correct this before rejoining");
-	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) has ConVar %s set to %s when it should be greater than or equal to %s");
+	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "'%L'<%s> has ConVar %s set to %s when it should be greater than or equal to %s");
 	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "Your ConVar %s should be greater than or equal to %s but was set to %s. Please correct this before rejoining");
-	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) has ConVar %s set to %s when it should be less than or equal to %s");
+	SetTrieString(f_hTemp, KACR_HASNOTLESS, "'%L'<%s> has ConVar %s set to %s when it should be less than or equal to %s");
 	SetTrieString(f_hTemp, KACR_SHOULDLESS, "Your ConVar %s should be less than or equal to %s but was set to %s. Please correct this before rejoining");
-	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) has ConVar %s set to %s when it should be beteween %s and %f");
+	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "'%L'<%s> has ConVar %s set to %s when it should be beteween %s and %f");
 	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "Your ConVar %s should be between %s and %f but was set to %s. Please correct this before rejoining");
 	SetTrieString(f_hTemp, KACR_BANIP, "You were banned by the server");
 	SetTrieString(f_hTemp, KACR_ADDCVARUSAGE, "Usage: kacr_addcvar <cvar name> <comparison type> <action> <value> <value2 if bound>");
@@ -215,15 +215,15 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_FAILEDAUTH, "Votre client n'a pas autorisé une requête. Veuillez vous reconnecter ou redémarrer votre jeu");
 	SetTrieString(f_hTemp, KACR_CLIENTCORRUPT, "Votre client a été corrompu. Veuillez redémarrer votre jeu avant de vous reconnecter");
 	SetTrieString(f_hTemp, KACR_REMOVEPLUGINS, "Veuillez supprimer les plugins tiers de votre client pour rejoindre ce serveur");
-	SetTrieString(f_hTemp, KACR_HASPLUGIN, "%N (%s) a un plugin activé, renvoie: %s");
+	SetTrieString(f_hTemp, KACR_HASPLUGIN, "'%L'<%s> a un plugin activé, renvoie: %s");
 	SetTrieString(f_hTemp, KACR_MUTED, "%N a été rendu silencieux par Kigen's Anti-Cheat Redux");
-	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "%N (%s) a renvoyé une mauvaise valeur pour %s (la valeur %s, devrait être %s)");
+	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "'%L'<%s> a renvoyé une mauvaise valeur pour %s (la valeur %s, devrait être %s)");
 	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "Votre cvar %s devrait être égale à %s mais est réglée à %s. Veuillez corriger! Merci");
-	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) a la cvar %s réglée à %s alors qu'elle devrait être supérieure ou égale à %s");
+	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "'%L'<%s> a la cvar %s réglée à %s alors qu'elle devrait être supérieure ou égale à %s");
 	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "Votre cvar %s devrait être supérieure ou égale à %s mais est réglée à %s. Veuillez corriger! Merci");
-	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) a la cvar %s réglée à %s alors qu'elle devrait être inférieure ou égale à %s");
+	SetTrieString(f_hTemp, KACR_HASNOTLESS, "'%L'<%s> a la cvar %s réglée à %s alors qu'elle devrait être inférieure ou égale à %s");
 	SetTrieString(f_hTemp, KACR_SHOULDLESS, "Votre cvar %s devrait être inférieure ou égale à %s mais est réglée à %s. Veuillez corriger! Merci");
-	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) a la cvar %s réglée à %s walors qu'elle devrait être entre %s et %f");
+	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "'%L'<%s> a la cvar %s réglée à %s walors qu'elle devrait être entre %s et %f");
 	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "Votre cvar %s devrait être entre %s et %f mais est réglée à %s. Veuillez corriger! Merci");
 	SetTrieString(f_hTemp, KACR_BANIP, "Vous avez été banni par le serveur");
 	SetTrieString(f_hTemp, KACR_ADDCVARUSAGE, "Usage: kacr_addcvar <nom de la cvar> <type de comparaison> <action> <value> <valeur2 si encadrement>");
@@ -294,15 +294,15 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_FAILEDAUTH, "Il giocatore non è riuscito ad ottenere l'autorizzazione in tempo.Per favore riconnetti o restarta il tuo gioco");
 	SetTrieString(f_hTemp, KACR_CLIENTCORRUPT, "Il giocatore sta per avere problemi di integrità. Per favore riconnetti o restarta il tuo gioco");
 	SetTrieString(f_hTemp, KACR_REMOVEPLUGINS, "Per favore rimuovi tutti i terzi programmi dal tuo pc prima di collegarti nuovamente a questo server");
-	SetTrieString(f_hTemp, KACR_HASPLUGIN, "%N (%s) ha un programma funzionante, risposta %s");
+	SetTrieString(f_hTemp, KACR_HASPLUGIN, "'%L'<%s> ha un programma funzionante, risposta %s");
 	SetTrieString(f_hTemp, KACR_MUTED, "%N è stato mutato dall'anticheats Kigen Redux");
-	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "%N (%s) non corretta risposta del valore %s (valore %s, deve essere %s)");
+	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "'%L'<%s> non corretta risposta del valore %s (valore %s, deve essere %s)");
 	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "Il tuo valore %s deve essere uguale a %s invece è %s. Per favore modificalo prima di ricollegarti a questo server");
-	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) ha il valore %s è %s quando deve essere maggiore o uguale a %s");
+	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "'%L'<%s> ha il valore %s è %s quando deve essere maggiore o uguale a %s");
 	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "Il tuo valore %s deve essere maggiore o uguale a %s invece è %s. Per favore modificalo prima di ricollegarti");
-	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) ha il valore %s è %s quando deve essere inferiore o uguale a %s");
+	SetTrieString(f_hTemp, KACR_HASNOTLESS, "'%L'<%s> ha il valore %s è %s quando deve essere inferiore o uguale a %s");
 	SetTrieString(f_hTemp, KACR_SHOULDLESS, "Il tuo valore %s deve essere inferiore o uguale a %s invece è %s. Per favore modificalo prima di ricollegarti");
-	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) ha il valore %s a %s quando deve essere tra %s e %f");
+	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "'%L'<%s> ha il valore %s a %s quando deve essere tra %s e %f");
 	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "Il tuo valore %s deve essere tra %s e %f invece è %s. Per favore modificalo prima di ricollegarti");
 	SetTrieString(f_hTemp, KACR_BANIP, "Sei stato bannato dal server");
 	SetTrieString(f_hTemp, KACR_ADDCVARUSAGE, "Utilizzo: kacr_addcvar <nome del cvar> <tipo del confronto> <azione> <valore> <valore2 se bindato>");
@@ -374,15 +374,15 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_FAILEDAUTH, "Dein Spiel hat sich nicht rechtzeitig am Server angemeldet. Bitte reconnecte oder starte dein Spiel neu");
 	SetTrieString(f_hTemp, KACR_CLIENTCORRUPT, "Dein Spiel is möglicherweise beschädigt oder falsch eingestellt. Bitte starte dein Spiel neu before du dich wieder verbindest");
 	SetTrieString(f_hTemp, KACR_REMOVEPLUGINS, "Bitte entferne sämtliche Plugins von deinem Client bevor du dich erneut verbindest");
-	SetTrieString(f_hTemp, KACR_HASPLUGIN, "%N (%s) hat ein Plugin am laufen, Rückgabe %s");
+	SetTrieString(f_hTemp, KACR_HASPLUGIN, "'%L'<%s> hat ein Plugin am laufen, Rückgabe %s");
 	SetTrieString(f_hTemp, KACR_MUTED, "%N wurde stumm geschaltet durch Kigen's Anti-Cheat Redux");
-	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "%N (%s) hat ConVar %s auf einem falschen Wert (Wert %s, sollte %s sein)");
+	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "'%L'<%s> hat ConVar %s auf einem falschen Wert (Wert %s, sollte %s sein)");
 	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "Deine ConVar %s sollte %s sein, aber sie ist auf %s gesetzt. Bitte korrigiere das vor dem reconnecten");
-	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) hat ConVar %s auf %s, der Wert sollte allerdings größer oder gleich %s sein");
+	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "'%L'<%s> hat ConVar %s auf %s, der Wert sollte allerdings größer oder gleich %s sein");
 	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "Deine ConVar %s sollte größer oder gleich %s sein, aber sie ist auf %s gesetzt. Bitte korrigiere das vor dem reconnecten");
-	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) hat ConVar %s auf %s, der Wert sollte allerdings kleiner oder gleich %s sein");
+	SetTrieString(f_hTemp, KACR_HASNOTLESS, "'%L'<%s> hat ConVar %s auf %s, der Wert sollte allerdings kleiner oder gleich %s sein");
 	SetTrieString(f_hTemp, KACR_SHOULDLESS, "Deine ConVar %s sollte kleiner oder gleich %s sein, aber sie ist auf %s gesetzt. Bitte korrigiere das vor dem reconnecten");
-	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) hat ConVar %s auf %s, der Wert sollte allerdings zwischen %s und %f liegen");
+	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "'%L'<%s> hat ConVar %s auf %s, der Wert sollte allerdings zwischen %s und %f liegen");
 	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "Deine ConVar %s sollte zwischen %s und %f eingestellt sein, aber sie ist auf %s gesetzt. Bitte korrigiere das vor dem reconnecten");
 	SetTrieString(f_hTemp, KACR_BANIP, "Du wurdest vom Server gebannt");
 	SetTrieString(f_hTemp, KACR_ADDCVARUSAGE, "Anwendung: kacr_addcvar <CVar Name> <Vergleichstyp> <Aktionstyp> <Startwert> <Endwert when nötig>");
@@ -454,15 +454,15 @@ Trans_OnPluginStart()
 	SetTrieString(f_hTemp, KACR_FAILEDAUTH, "המשתמש שלך כשל להתחבר .אנא התחבר מחדש או הפעל מחדש את המשחק");
 	SetTrieString(f_hTemp, KACR_CLIENTCORRUPT, "המשתמש שלך נפגם או שהוא מוגדר בצורה שגויה. הפעל מחדש את המשחק לפני שתתחבר מחדש");
 	SetTrieString(f_hTemp, KACR_REMOVEPLUGINS, "אנא תמחק תוכנות צד-3 לפני התחברות לשרת, רק אחרי המחיקה תוכל להתחבר לשרת");
-	SetTrieString(f_hTemp, KACR_HASPLUGIN, "%N (%s) משתמש בתוכנת פלאגין, חוזר %s");
+	SetTrieString(f_hTemp, KACR_HASPLUGIN, "'%L'<%s> משתמש בתוכנת פלאגין, חוזר %s");
 	SetTrieString(f_hTemp, KACR_MUTED, "%N הושתק על ידי האנטי ציט");
-	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "%N (%s) החזיר ערך שלילי %s (הערך %s, אמור להיות %s)");
+	SetTrieString(f_hTemp, KACR_HASNOTEQUAL, "'%L'<%s> החזיר ערך שלילי %s (הערך %s, אמור להיות %s)");
 	SetTrieString(f_hTemp, KACR_SHOULDEQUAL, "הקונבאר שלך %s אמור להיות %s אבל הוא שונה ל %s אנא תקן זאת לפני הצטרפות לשרת");
-	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "%N (%s) הקונבאר של %s שונה ל %s כשהוא אמור להיות %s");
+	SetTrieString(f_hTemp, KACR_HASNOTGREATER, "'%L'<%s> הקונבאר של %s שונה ל %s כשהוא אמור להיות %s");
 	SetTrieString(f_hTemp, KACR_SHOULDGREATER, "הקונבאר שלך %s אמור להיות גדול או שווה ל %s אבל הוא שונה ל %s. אנא תקן זאת לפני הצטרפות לשרת");
-	SetTrieString(f_hTemp, KACR_HASNOTLESS, "%N (%s) הקונבאר של %s שונה ל %s כאשר הוא אמור להיות שווה ל %s");
+	SetTrieString(f_hTemp, KACR_HASNOTLESS, "'%L'<%s> הקונבאר של %s שונה ל %s כאשר הוא אמור להיות שווה ל %s");
 	SetTrieString(f_hTemp, KACR_SHOULDLESS, "הקונבאר שלך %אמור להיות שווה או נמוך מ %s אבל הוא שונה ל %s. אנא תקן זאת לפני הצטרפות לשרת");
-	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "%N (%s) הקונבאר %s שונה ל  %s כאשר זה צריך להיות %s ו %f");
+	SetTrieString(f_hTemp, KACR_HASNOTBOUND, "'%L'<%s> הקונבאר %s שונה ל  %s כאשר זה צריך להיות %s ו %f");
 	SetTrieString(f_hTemp, KACR_SHOULDBOUND, "הקונבאר שלך %s אמור להיות בין  %s ל %f אבל הוא שונה ל %s. אנא תקן זאת לפני הצטרפות לשרת");
 	SetTrieString(f_hTemp, KACR_BANIP, "הורחקת מן השרת");
 	SetTrieString(f_hTemp, KACR_ADDCVARUSAGE, "שימוש: kacr_addcvar <cvar name> <comparison type> <action> <value> <value2 if bound>");

@@ -1,7 +1,7 @@
 /*
 	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018 FunForBattle
+	No Copyright (i guess) 2018-2019 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by

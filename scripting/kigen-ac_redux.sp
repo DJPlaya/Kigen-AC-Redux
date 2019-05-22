@@ -1,7 +1,7 @@
 /*
 	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018 FunForBattle
+	No Copyright (i guess) 2018-2019 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -100,6 +100,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 	MarkNativeAsOptional("SDKUnhook");
 	MarkNativeAsOptional("SBBanPlayer");
 	MarkNativeAsOptional("SBPP_BanPlayer");
+	
 	return APLRes_Success;
 }
 
@@ -176,7 +177,7 @@ public void OnAllPluginsLoaded()
 				continue;
 			}
 			
-			if(IsClientAuthorized(iCount) && GetClientAuthId(iCount, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)))
+			if(IsClientAuthorized(iCount) && GetClientAuthId(iCount, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 			{
 				OnClientAuthorized(iCount, f_sAuthID);
 				OnClientPostAdminCheck(iCount);

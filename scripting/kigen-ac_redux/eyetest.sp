@@ -1,7 +1,7 @@
 /*
 	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018 FunForBattle
+	No Copyright (i guess) 2018-2019 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -126,10 +126,10 @@ public Action Eyetest_Timer(Handle timer, any we)
 	}
 	
 	float f_vAngles[3], f_fX, f_fZ;
-	char f_sAuthID[64], f_sIP[64];
-	for(int i = 1; i <= MaxClients; i++)
+	char f_sIP[64];
+	for(int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if(g_bShouldProcess[i] && GetClientEyeAngles(i, f_vAngles))
+		if(g_bShouldProcess[iClient] && GetClientEyeAngles(iClient, f_vAngles))
 		{
 			f_fX = f_vAngles[0];
 			f_fZ = f_vAngles[2];
@@ -141,13 +141,13 @@ public Action Eyetest_Timer(Handle timer, any we)
 				
 			if(f_fX > 90.0 || f_fX < -90.0 || f_fZ > 90.0 || f_fZ < -90.0)
 			{
-				GetClientAuthId(i, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID));
-				GetClientIP(i, f_sIP, sizeof(f_sIP));
-				KACR_Log("'%N'(ID: %s | IP: %s) was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", i, f_sAuthID, f_sIP, f_fX, f_vAngles[1], f_fZ);
-				KACR_Ban(i, 0, KACR_BANNED, "KACR: Eye Angles Violation");
+				GetClientIP(iClient, f_sIP, sizeof(f_sIP));
+				KACR_Log("'%L'<%s> was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", iClient, f_sIP, f_fX, f_vAngles[1], f_fZ);
+				KACR_Ban(iClient, 0, KACR_BANNED, "KACR: Eye Angles Violation");
 			}
 		}
 	}
+	
 	return Plugin_Continue;
 }
 

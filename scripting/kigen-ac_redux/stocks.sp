@@ -1,7 +1,7 @@
 /*
 	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018 FunForBattle
+	No Copyright (i guess) 2018-2019 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@
 /*
 * Translates an String depending on the Clients Region
 * 
-* @param Client			Client UID.
-* @param Translation	The Name of the Translation.
-* @param Destination	The Destination String for the Output.
-* @param Maxlenght		Maximum Lenght of the Destination String.
+* @param iClient			Client UID.
+* @param cTranslation	The Name of the Translation.
+* @param cDestination	The Destination String for the Output.
+* @param iMaxlenght		Maximum Lenght of the Destination String.
 */
 stock KACR_Translate(client, char[] cTranslation, char[] cDestination, iMaxlenght)
 {
@@ -39,8 +39,8 @@ stock KACR_Translate(client, char[] cTranslation, char[] cDestination, iMaxlengh
 /*
 * Sends an Command Reply to an Client
 * 
-* @param Client			Client UID.
-* @param Translation	The Name of the Translation.
+* @param iClient			Client UID.
+* @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
 stock KACR_ReplyToCommand(client, const char[] cTranslation, any ...)
@@ -60,7 +60,7 @@ stock KACR_ReplyToCommand(client, const char[] cTranslation, any ...)
 /*
 * Sends an Translated Message to the Server Console
 * 
-* @param Translation	The Name of the Translation.
+* @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
 stock KACR_PrintToServer(const char[] cTranslation, any ...)
@@ -74,8 +74,8 @@ stock KACR_PrintToServer(const char[] cTranslation, any ...)
 /*
 * Sends an Translated Message to a Client
 * 
-* @param Client			Client UID.
-* @param Translation	The Name of the Translation.
+* @param iClient			Client UID.
+* @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
 stock KACR_PrintToChat(client, const char[] cTranslation, any ...)
@@ -89,7 +89,7 @@ stock KACR_PrintToChat(client, const char[] cTranslation, any ...)
 /*
 * Sends an Message to all Online Admins
 * 
-* @param Translation	The Name of the Translation.
+* @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
 stock KACR_PrintToChatAdmins(const char[] cTranslation, any ...)
@@ -109,7 +109,7 @@ stock KACR_PrintToChatAdmins(const char[] cTranslation, any ...)
 /*
 * Sends an Translated Message to all Clients
 * 
-* @param Translation	The Name of the Translation.
+* @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
 stock KACR_PrintToChatAll(const char[] cTranslation, any ...)
@@ -129,8 +129,8 @@ stock KACR_PrintToChatAll(const char[] cTranslation, any ...)
 /*
 * Kicks an Client with an Translated Reason
 * 
-* @param Client			Client UID.
-* @param Translation	The Name of the Translation.
+* @param iClient		Client UID.
+* @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
 stock KACR_Kick(iClient, const char[] cTranslation, any ...)
@@ -139,33 +139,39 @@ stock KACR_Kick(iClient, const char[] cTranslation, any ...)
 	GetTrieString(g_hCLang[iClient], cTranslation, f_sFormat, sizeof(f_sFormat));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
 	KickClient(iClient, "%s", f_sBuffer);
-	OnClientDisconnect(iClient); // Do this since the client is no longer useful to us. - Kigen
+	OnClientDisconnect(iClient); // Do this since the client is no longer useful to us. - Kigen // TODO: Needed?
 }
 
 /*
 * Bans an Client with an Translated Reason and time
 * 
-* @param Client			Client UID.
-* @param Time			Bantime, 0 = Forever.
-* @param Translation	The Name of the Translation.
-* @param Reason			The Ban Reason.
-* @param ...			Variable number of format parameters.
+* @param iClient		Client UID.
+* @param iTime			Bantime, 0 = Forever.
+* @param cTranslation	The Translated Ban Reason displayed to the Client, use NULL to use the Ban Reason.
+* @param cReason		The Ban Reason.
+* @param ...			Variable Number of Format Parameters.
 */
-stock KACR_Ban(client, time, const char[] cTranslation, const char[] cReason, any ...)
+stock KACR_Ban(iClient, iTime, const char[] cTranslation, const char[] cReason, any ...)
 {
 	char f_sBuffer[256], f_sEReason[256];
-	GetTrieString(g_hCLang[client], cTranslation, f_sEReason, sizeof(f_sEReason));
-	VFormat(f_sBuffer, sizeof(f_sBuffer), cReason, 5);
-	if(g_bSourceBans)
-		SBBanPlayer(0, client, time, f_sBuffer);
-		
-	else if(g_bSourceBansPP)
-		SBPP_BanPlayer(0, client, time, f_sBuffer); // Admin 0 is the Server in SBPP, this ID CAN be created or edited manually in the Database to show Name "Server" on the Webpanel
+	if(strcmp(cTranslation, "NULL")) // No Translation existing
+		Format(f_sEReason, 256, "%s", cReason);
 		
 	else
-		BanClient(client, time, BANFLAG_AUTO, f_sBuffer, f_sEReason, "KACR");
+		GetTrieString(g_hCLang[iClient], cTranslation, f_sEReason, 256);
 		
-	OnClientDisconnect(client); // Bashats!
+	VFormat(f_sBuffer, 256, cReason, 5);
+	
+	if(g_bSourceBans)
+		SBBanPlayer(0, iClient, iTime, f_sBuffer);
+		
+	else if(g_bSourceBansPP)
+		SBPP_BanPlayer(0, iClient, iTime, f_sBuffer); // Admin 0 is the Server in SBPP, this ID CAN be created or edited manually in the Database to show Name "Server" on the Webpanel
+		
+	else
+		BanClient(iClient, iTime, BANFLAG_AUTO, f_sBuffer, f_sEReason, "KACR");
+		
+	OnClientDisconnect(iClient); // Bashats! // TODO: Needed?
 }
 
 
@@ -174,7 +180,7 @@ stock KACR_Ban(client, time, const char[] cTranslation, const char[] cReason, an
 /*
 * Logs an Error Message
 * 
-* @param Text			Message to log.
+* @param cText			Message to log.
 * @param ...			Variable number of format parameters.
 */
 KACR_Log(const char[] cText, any ...)
@@ -189,7 +195,7 @@ KACR_Log(const char[] cText, any ...)
 /*
 * Makes an String Lowercase
 * 
-* @param Text			String to Convert.
+* @param cText			String to Convert.
 */
 stock StringToLower(char[] cText)
 {

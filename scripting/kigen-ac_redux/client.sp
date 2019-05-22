@@ -1,7 +1,7 @@
 /*
 	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018 FunForBattle
+	No Copyright (i guess) 2018-2019 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -22,14 +22,13 @@
 #define MAX_CONNECTIONS 128
 
 Handle g_hCVarClientEnable, g_hCVarClientAntiRespawn, g_hCVarClientNameProtect, g_hCVarClientAntiSpamConnect;
-bool g_bClientEnable = true, g_bClientNameProtect = true;
-bool g_bClientAntiRespawn;
+bool g_bClientEnable, g_bClientNameProtect, g_bClientAntiRespawn;
 float g_fClientAntiSpamConnect = 0.0;
-int g_iClientStatus, g_iClientAntiRespawnStatus, g_iClientNameProtectStatus;
-// int g_iClientAntiSpamConnectStatus;
+
 Handle g_hClientSpawned;
-int g_iClientClass[MAXPLAYERS + 1] =  { -1, ... };
 char g_sClientConnections[MAX_CONNECTIONS][64];
+int g_iClientClass[MAXPLAYERS + 1] =  { -1, ... };
+int g_iClientStatus, g_iClientAntiRespawnStatus, g_iClientNameProtectStatus; // int g_iClientAntiSpamConnectStatus;
 bool g_bClientMapStarted;
 
 
@@ -42,7 +41,7 @@ Client_OnPluginStart()
 	
 	if(hGame == Engine_CSS || hGame == Engine_CSGO)
 	{
-		g_hCVarClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "0", "This will prevent Clients from leaving the Game then rejoining to Respawn", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVarClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "0", "This will prevent Clients from leaving the Game and then rejoining to Respawn", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bClientAntiRespawn = GetConVarBool(g_hCVarClientAntiRespawn);
 		
 		g_hClientSpawned = CreateTrie();
@@ -112,7 +111,7 @@ public Action Client_JoinClass(client, args)
 		
 	char f_sAuthID[64], f_sTemp[64];
 	int f_iTemp;
-	if(!GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)))
+	if(!GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
 	if(!GetTrieValue(g_hClientSpawned, f_sAuthID, f_iTemp))
@@ -196,7 +195,7 @@ public Action Client_PlayerSpawn(Handle event, const char[] name, bool dontBroad
 		
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	char f_sAuthID[64];
-	if(!client || GetClientTeam(client) < 2 || !GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)))
+	if(!client || GetClientTeam(client) < 2 || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
 	RemoveFromTrie(g_hClientSpawned, f_sAuthID);
@@ -211,7 +210,7 @@ public Action Client_PlayerDeath(Handle event, const char[] name, bool dontBroad
 		
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	char f_sAuthID[64];
-	if(!client || !GetClientAuthId(client, AuthId_Steam3, f_sAuthID, sizeof(f_sAuthID)))
+	if(!client || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
 	SetTrieValue(g_hClientSpawned, f_sAuthID, true);
@@ -239,7 +238,7 @@ public Action Client_CleanEvent(Handle event, const char[] name, bool dontBroadc
 	}
 }
 
-bool Client_OnClientConnect(client, char[] rejectmsg, size)
+bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 {
 	if(!g_bClientEnable)
 		return true;
@@ -248,14 +247,14 @@ bool Client_OnClientConnect(client, char[] rejectmsg, size)
 	{
 		char f_sClientIP[64];
 		
-		GetClientIP(client, f_sClientIP, sizeof(f_sClientIP));
+		GetClientIP(iClient, f_sClientIP, sizeof(f_sClientIP));
 		
 		for(int i = 0; i < MAX_CONNECTIONS; i++)
 		{
 			if(StrEqual(g_sClientConnections[i], f_sClientIP))
 			{
-				Format(rejectmsg, size, "Please wait one minute before retrying to connect");
-				BanIdentity(f_sClientIP, 1, BANFLAG_IP, "Spam Connecting"); // We do not want this hooked, so no source.
+				BanIdentity(f_sClientIP, 1, BANFLAG_IP, "Please wait one minute before retrying to connect"); // We do not want this hooked, so no source // Since its just a min ban, using SB/SBPP would be dump
+				KACR_Log("'%L'<%s> was banned for 1 minute for spam connecting", iClient, f_sClientIP);
 				return false;
 			}
 		}
@@ -277,7 +276,7 @@ bool Client_OnClientConnect(client, char[] rejectmsg, size)
 		int f_iSize;
 		bool f_bWhiteSpace = true;
 		
-		GetClientName(client, f_sName, sizeof(f_sName));
+		GetClientName(iClient, f_sName, sizeof(f_sName));
 		
 		f_iSize = strlen(f_sName);
 		
@@ -321,31 +320,29 @@ bool Client_OnClientConnect(client, char[] rejectmsg, size)
 	return true;
 }
 
-public void OnClientSettingsChanged(client)
+public void OnClientSettingsChanged(iClient)
 {
-	if(!g_bClientEnable || !g_bClientNameProtect || IsFakeClient(client))
+	if(!g_bClientEnable || !g_bClientNameProtect || IsFakeClient(iClient))
 		return;
 		
-	char f_sName[64], f_sAuthID[64], f_sIP[64], f_cChar;
+	char f_sName[64], f_sIP[64], f_cChar;
 	int f_iSize;
 	bool f_bWhiteSpace = true;
 	
-	GetClientName(client, f_sName, 64);
-	GetClientAuthId(client, AuthId_Steam3, f_sAuthID, 64);
-	GetClientIP(client, f_sIP, 64);
+	GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 	
 	f_iSize = strlen(f_sName);
 	
 	if(f_iSize == 0)
 	{
-		KACR_Log("'%s'(ID: %s | IP: %s) was kicked for having a blank Name (unconnected)", f_sName, f_sAuthID, f_sIP);
-		KACR_Kick(client, KACR_CHANGENAME);
+		KACR_Log("'%L'<%s> was kicked for having a blank Name (unconnected)", iClient, f_sIP);
+		KACR_Kick(iClient, KACR_CHANGENAME);
 		return;
 	}
 	
 	if(f_sName[0] == '&')
 	{
-		KACR_Kick(client, KACR_CHANGENAME);
+		KACR_Kick(iClient, KACR_CHANGENAME);
 		return;
 	}
 	
@@ -360,21 +357,21 @@ public void OnClientSettingsChanged(client)
 			i++;
 			if(f_cChar == 194 && f_sName[i] == 160)
 			{
-				KACR_Kick(client, KACR_CHANGENAME);
+				KACR_Kick(iClient, KACR_CHANGENAME);
 				return;
 			}
 		}
 		
 		else if(f_cChar < 32)
 		{
-			KACR_Kick(client, KACR_CHANGENAME);
+			KACR_Kick(iClient, KACR_CHANGENAME);
 			return;
 		}
 	}
 	
 	if(f_bWhiteSpace)
 	{
-		KACR_Kick(client, KACR_CHANGENAME);
+		KACR_Kick(iClient, KACR_CHANGENAME);
 		return;
 	}
 }

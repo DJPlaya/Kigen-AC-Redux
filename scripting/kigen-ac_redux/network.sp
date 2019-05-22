@@ -1,7 +1,7 @@
 /*
 	Kigen's Anti-Cheat
 	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018 FunForBattle
+	No Copyright (i guess) 2018-2019 FunForBattle
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -137,10 +137,10 @@ public Action Network_Checked(client, args)
 		}
 	}
 	
-	char f_sAuthID[64];
+	char f_sIP[64];
 	for(int i=1; i<=MaxClients; i++)
-		if(g_bInGame[i] && GetClientAuthString(i, f_sAuthID, sizeof(f_sAuthID)))
-			ReplyToCommand(client, "%N (%s): %s", i, f_sAuthID, (g_bChecked[i]) ? "Checked" : "Waiting");
+		if(g_bInGame[i] && GetClientIP(i, f_sIP, sizeof(f_sIP)))
+			ReplyToCommand(client, "'%L'<%s>: %s", i, f_sIP, (g_bChecked[i]) ? "Checked" : "Waiting");
 			
 	return Plugin_Handled;
 }
@@ -410,7 +410,7 @@ public void Network_OnSocketConnect(Handle socket, any client)
 		return;
 		
 	char f_sAuthID[64];
-	if(!g_bAuthorized[client] || !GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID)))
+	if(!g_bAuthorized[client] || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		SocketDisconnect(socket);
 		
 	else
@@ -437,11 +437,12 @@ public void Network_OnSocketReceive(Handle socket, char[] data, const size, any 
 	g_bChecked[client] = true;
 	if(StrEqual(data, "_BAN"))
 	{
-		char f_sAuthID[64], f_sBuffer[256];
-		GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
+		char f_sAuthID[64], f_sIP[64], f_sBuffer[256];
+		GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID));
 		KACR_Translate(client, KACR_GBANNED, f_sBuffer, sizeof(f_sBuffer));
 		SetTrieString(g_hDenyArray, f_sAuthID, f_sBuffer);
-		KACR_Log("%N (%s) is on the KACR global banlist.", client, f_sAuthID);
+		GetClientIP(iClient f_sIP, sizeof(f_sIP));
+		KACR_Log("'%L'<%s> is on the KACR global Banlist.", client, f_sIP);
 		KACR_Kick(client, KACR_GBANNED);
 	}
 	
@@ -452,10 +453,10 @@ public void Network_OnSocketReceive(Handle socket, char[] data, const size, any 
 	
 	else
 	{
-		char f_sAuthID[64];
-		GetClientAuthString(client, f_sAuthID, sizeof(f_sAuthID));
 		g_bChecked[client] = false;
-		KACR_Log("%N (%s) got unknown reply from KACR master server. Data: %s", f_sAuthID, data);
+		char f_sIP[64];
+		GetClientIP(client, f_sIP, sizeof(f_sIP));
+		KACR_Log("[Error] Got unknown Reply from KACR master Server for Client '%L'<%s>. Data: %s", client, f_sIP, data);
 		Status_Report(g_iNetStatus, KACR_ERROR);
 	}
 	
