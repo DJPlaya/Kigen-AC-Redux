@@ -1,7 +1,7 @@
 # Kigen Anti Cheat Redux
 
 Requires:
-- SourceMod 1.8 (Project Target: 1.10)
+- SourceMod 1.8 or Higher (use the _legacy build for 1.8/1.9 and the regular one for 1.10)
 - Sockets 3.0.1 or newer
 
 Optional:
