@@ -52,7 +52,8 @@ kacr_eyes_antiwall | 1/0 | Enable Anti-Wallhack
 kacr_cmds_enable | 1/0 | If the Commands Module of KACR is enabled
 kacr_cmds_spam | 0-120 | Amount of Commands in one Second before Kick. 0 to disable
 kacr_cmds_log | 1/0 | Log Command Usage. Use only for debugging Purposes
-
+#
+#
 
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.
 I hope this Plugin will help some Server Owners even doe its still in an early Stage of development.
@@ -60,3 +61,5 @@ Ime still working on my own AC System, so dont exspect massive Changes here. Pro
 Since i havent implemented an Updater yet (or renewed the old one), watch this Project on GitHub so you will be informed about Updates.
 
 ![How to watch](https://help.github.com/assets/images/help/notifications/watcher_picker.gif)
+
+If you want to help you can Contribute to the Project by submitting Code, Bugs, False-Positives, Wiki Entrys and Translations.
