@@ -86,7 +86,7 @@ Network_OnClientDisconnect(client)
 
 public void Network_ConVarChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
-	bool f_bNetEnabled = g_bCVarNetEnabled;
+	bool bNetEnabled = g_bCVarNetEnabled;
 	
 	g_bCVarNetUseBanlist = GetConVarBool(g_hCVarNetUseBanlist);
 	g_bCVarNetUseUpdate = GetConVarBool(g_hCVarNetUseUpdate);
@@ -97,10 +97,10 @@ public void Network_ConVarChange(Handle convar, const char[] oldValue, const cha
 	else
 		g_bCVarNetEnabled = GetConVarBool(g_hCVarNetEnabled);
 		
-	if(g_bCVarNetEnabled && !f_bNetEnabled)
+	if(g_bCVarNetEnabled && !bNetEnabled)
 		Status_Report(g_iNetStatus, KACR_ON);
 		
-	else if(f_bNetEnabled)
+	else if(bNetEnabled)
 		Status_Report(g_iNetStatus, KACR_OFF);
 }
 
@@ -118,9 +118,9 @@ public Action Network_Checked(client, args)
 
 	if(args)
 	{
-		char f_sArg[64];
-		GetCmdArg(1, f_sArg, sizeof(f_sArg));
-		if(StrEqual(f_sArg, "revalidate"))
+		char sArg[64];
+		GetCmdArg(1, sArg, sizeof(sArg));
+		if(StrEqual(sArg, "revalidate"))
 		{
 			for(int i=1; i<=MaxClients; i++)
 				if(g_bInGame[i] && !g_bChecked[i])
@@ -137,10 +137,10 @@ public Action Network_Checked(client, args)
 		}
 	}
 	
-	char f_sIP[64];
+	char sIP[64];
 	for(int i=1; i<=MaxClients; i++)
-		if(g_bInGame[i] && GetClientIP(i, f_sIP, sizeof(f_sIP)))
-			ReplyToCommand(client, "'%L'<%s>: %s", i, f_sIP, (g_bChecked[i]) ? "Checked" : "Waiting");
+		if(g_bInGame[i] && GetClientIP(i, sIP, sizeof(sIP)))
+			ReplyToCommand(client, "'%L'<%s>: %s", i, sIP, (g_bChecked[i]) ? "Checked" : "Waiting");
 			
 	return Plugin_Handled;
 }
@@ -156,12 +156,12 @@ public Action Network_Timer(Handle timer, any we)
 		return Plugin_Continue;
 	}
 	
-	Handle f_hTemp;
-	f_hTemp = g_hSocket;
-	if(f_hTemp != INVALID_HANDLE)
+	Handle hTemp;
+	hTemp = g_hSocket;
+	if(hTemp != INVALID_HANDLE)
 	{
 		g_hSocket = INVALID_HANDLE;
-		CloseHandle(f_hTemp);
+		CloseHandle(hTemp);
 	}
 	
 	if(!g_bCVarNetEnabled)
@@ -258,11 +258,11 @@ public void Network_OnSockRecvVer(Handle socket, char[] data, const size, any we
 		if(SocketIsConnected(socket))
 			SocketDisconnect(socket);
 			
-		char path[256], f_sTemp[64];
+		char path[256], sTemp[64];
 		g_iInError = 9999;
 		LogMessage("Received that KACR is out of date, updating to newest version.");
 		Format(UpdatePath, sizeof(UpdatePath), "%s", data[10]);
-		GetPluginFilename(GetMyHandle(), f_sTemp, sizeof(f_sTemp));
+		GetPluginFilename(GetMyHandle(), sTemp, sizeof(sTemp));
 		BuildPath(Path_SM , path, sizeof(path), "plugins\\disabled");
 		if(!DirExists(path))
 			if(!CreateDirectory(path, 0777))
@@ -273,7 +273,7 @@ public void Network_OnSockRecvVer(Handle socket, char[] data, const size, any we
 			}
 			
 		StrCat(path, sizeof(path), "\\");
-		StrCat(path, sizeof(path), f_sTemp);
+		StrCat(path, sizeof(path), sTemp);
 		DeleteFile(path);
 		g_hUpdateFile = OpenFile(path, "ab"); // Set to ab to avoid issues with devicenull's patch for the upload exploit.
 		if(g_hUpdateFile == INVALID_HANDLE)
@@ -409,12 +409,12 @@ public void Network_OnSocketConnect(Handle socket, any client)
 	if(!SocketIsConnected(socket))
 		return;
 		
-	char f_sAuthID[64];
-	if(!g_bAuthorized[client] || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
+	char sAuthID[64];
+	if(!g_bAuthorized[client] || !GetClientAuthId(client, AuthId_Steam2, sAuthID, sizeof(sAuthID)))
 		SocketDisconnect(socket);
 		
 	else
-		SocketSend(socket, f_sAuthID, strlen(f_sAuthID)+1); // Send that \0! - Kigen
+		SocketSend(socket, sAuthID, strlen(sAuthID)+1); // Send that \0! - Kigen
 		
 	Status_Report(g_iNetStatus, KACR_ON);
 	return;
@@ -437,12 +437,12 @@ public void Network_OnSocketReceive(Handle socket, char[] data, const size, any 
 	g_bChecked[client] = true;
 	if(StrEqual(data, "_BAN"))
 	{
-		char f_sAuthID[64], f_sIP[64], f_sBuffer[256];
-		GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID));
-		KACR_Translate(client, KACR_GBANNED, f_sBuffer, sizeof(f_sBuffer));
-		SetTrieString(g_hDenyArray, f_sAuthID, f_sBuffer);
-		GetClientIP(iClient f_sIP, sizeof(f_sIP));
-		KACR_Log("'%L'<%s> is on the KACR global Banlist.", client, f_sIP);
+		char sAuthID[64], sIP[64], sBuffer[256];
+		GetClientAuthId(client, AuthId_Steam2, sAuthID, sizeof(sAuthID));
+		KACR_Translate(client, KACR_GBANNED, sBuffer, sizeof(sBuffer));
+		g_hDenyArray.SetString(sAtuhID, sBuffer);
+		GetClientIP(iClient sIP, sizeof(sIP));
+		KACR_Log("'%L'<%s> is on the KACR global Banlist.", client, sIP);
 		KACR_Kick(client, KACR_GBANNED);
 	}
 	
@@ -454,9 +454,9 @@ public void Network_OnSocketReceive(Handle socket, char[] data, const size, any 
 	else
 	{
 		g_bChecked[client] = false;
-		char f_sIP[64];
-		GetClientIP(client, f_sIP, sizeof(f_sIP));
-		KACR_Log("[Error] Got unknown Reply from KACR master Server for Client '%L'<%s>. Data: %s", client, f_sIP, data);
+		char sIP[64];
+		GetClientIP(client, sIP, sizeof(sIP));
+		KACR_Log("[Error] Got unknown Reply from KACR master Server for Client '%L'<%s>. Data: %s", client, sIP, data);
 		Status_Report(g_iNetStatus, KACR_ERROR);
 	}
 	

@@ -25,7 +25,7 @@ Handle g_hCVarClientEnable, g_hCVarClientAntiRespawn, g_hCVarClientNameProtect, 
 bool g_bClientEnable, g_bClientNameProtect, g_bClientAntiRespawn;
 float g_fClientAntiSpamConnect = 0.0;
 
-Handle g_hClientSpawned;
+StringMap g_hClientSpawned;
 char g_sClientConnections[MAX_CONNECTIONS][64];
 int g_iClientClass[MAXPLAYERS + 1] =  { -1, ... };
 int g_iClientStatus, g_iClientAntiRespawnStatus, g_iClientNameProtectStatus; // int g_iClientAntiSpamConnectStatus;
@@ -44,7 +44,7 @@ Client_OnPluginStart()
 		g_hCVarClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "0", "This will prevent Clients from leaving the Game and then rejoining to Respawn", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bClientAntiRespawn = GetConVarBool(g_hCVarClientAntiRespawn);
 		
-		g_hClientSpawned = CreateTrie();
+		g_hClientSpawned = new StringMap();
 		
 		HookConVarChange(g_hCVarClientAntiRespawn, Client_AntiRespawnChange);
 		
@@ -114,7 +114,7 @@ public Action Client_JoinClass(client, args)
 	if(!GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
-	if(!GetTrieValue(g_hClientSpawned, f_sAuthID, f_iTemp))
+	if(!g_hClientSpawned.GetValue(f_sAuthID, f_iTemp))
 		return Plugin_Continue;
 		
 	GetCmdArgString(f_sTemp, sizeof(f_sTemp));
@@ -198,7 +198,7 @@ public Action Client_PlayerSpawn(Handle event, const char[] name, bool dontBroad
 	if(!client || GetClientTeam(client) < 2 || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
-	RemoveFromTrie(g_hClientSpawned, f_sAuthID);
+	g_hClientSpawned.Remove(f_sAuthID);
 	
 	return Plugin_Continue
 }
@@ -213,7 +213,7 @@ public Action Client_PlayerDeath(Handle event, const char[] name, bool dontBroad
 	if(!client || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
-	SetTrieValue(g_hClientSpawned, f_sAuthID, true);
+	g_hClientSpawned.SetValue(f_sAuthID, true);
 	
 	return Plugin_Continue
 }
@@ -225,8 +225,8 @@ public Action Client_RoundStart(Handle event, const char[] name, bool dontBroadc
 
 public Action Client_CleanEvent(Handle event, const char[] name, bool dontBroadcast)
 {
-	CloseHandle(g_hClientSpawned);
-	g_hClientSpawned = CreateTrie();
+	CloseHandle(g_hClientSpawned); // Really needed? We could just clear it?
+	g_hClientSpawned = new StringMap();
 	
 	for(int i = 1; i <= MaxClients; i++)
 	{

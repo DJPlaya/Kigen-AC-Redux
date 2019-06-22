@@ -53,18 +53,18 @@ native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sRea
 
 //- Global Variables -//
 
-Handle g_hCLang[MAXPLAYERS + 1] = {INVALID_HANDLE, ...};
-Handle g_hSLang;
-Handle g_hValidateTimer[MAXPLAYERS + 1] = {INVALID_HANDLE, ...};
-Handle g_hDenyArray, g_hClearTimer, g_hCVarVersion;
+Handle g_hValidateTimer[MAXPLAYERS + 1];
+Handle g_hClearTimer, g_hCVarVersion;
 
-EngineVersion hGame
+StringMap g_hCLang[MAXPLAYERS + 1];
+StringMap g_hSLang, g_hDenyArray;
+EngineVersion hGame;
 
-bool g_bConnected[MAXPLAYERS + 1] = {false, ...}; // I use these instead of the natives because they are cheaper to call
-bool g_bAuthorized[MAXPLAYERS + 1] = {false, ...}; // when I need to check on a client's state.  Natives are very taxing on
-bool g_bInGame[MAXPLAYERS + 1] = {false, ...}; // system resources as compared to these. - Kigen
-bool g_bIsAdmin[MAXPLAYERS + 1] = {false, ...};
-bool g_bIsFake[MAXPLAYERS + 1] = {false, ...};
+bool g_bConnected[MAXPLAYERS + 1]; // I use these instead of the natives because they are cheaper to call
+bool g_bAuthorized[MAXPLAYERS + 1]; // when I need to check on a client's state.  Natives are very taxing on
+bool g_bInGame[MAXPLAYERS + 1]; // system resources as compared to these. - Kigen
+bool g_bIsAdmin[MAXPLAYERS + 1];
+bool g_bIsFake[MAXPLAYERS + 1];
 
 bool g_bSourceBans, g_bSourceBansPP, g_bMapStarted;
 
@@ -109,7 +109,7 @@ public void OnPluginStart()
 	Handle f_hTemp;
 	char f_sLang[8];
 	
-	g_hDenyArray = CreateTrie();
+	g_hDenyArray = new StringMap();
 	hGame = GetEngineVersion(); // Identify the game
 	
 	AutoExecConfig_SetFile("Kigen-AC_Redux"); // Set which file to write Cvars to
@@ -126,8 +126,8 @@ public void OnPluginStart()
 	
 	//- Get server language -//
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
-	if(!GetTrieValue(g_hLanguages, f_sLang, any:g_hSLang)) // If we can't find the server's language revert to English. - Kigen
-		GetTrieValue(g_hLanguages, "en", any:g_hSLang);
+	if(!g_hLanguages.GetValue(f_sLang, any:g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
+		g_hLanguages.GetValue("en", any:g_hSLang);
 		
 	g_hClearTimer = CreateTimer(14400.0, KACR_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
@@ -257,8 +257,7 @@ public void OnClientAuthorized(client, const char[] auth)
 		
 	Handle f_hTemp;
 	char f_sReason[256];
-	
-	if(GetTrieString(g_hDenyArray, auth, f_sReason, sizeof(f_sReason)))
+	if(g_hDenyArray.GetString(auth, f_sReason, sizeof(f_sReason)))
 	{
 		KickClient(client, "%s", f_sReason);
 		OnClientDisconnect(client);
@@ -295,7 +294,7 @@ public void OnClientPutInServer(client)
 		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
 		
 	GetLanguageInfo(GetClientLanguage(client), f_sLang, sizeof(f_sLang));
-	if(!GetTrieValue(g_hLanguages, f_sLang, g_hCLang[client]))
+	if(!g_hLanguages.GetValue(f_sLang, g_hCLang[client]))
 		g_hCLang[client] = g_hSLang;
 }
 
@@ -350,7 +349,7 @@ public Action KACR_ValidateTimer(Handle timer, any client)
 
 public Action KACR_ClearTimer(Handle timer, any nothing)
 {
-	ClearTrie(g_hDenyArray);
+	g_hDenyArray.Clear();
 }
 
 //- ConVar Hook -//

@@ -30,10 +30,10 @@
 stock KACR_Translate(client, char[] cTranslation, char[] cDestination, iMaxlenght)
 {
 	if(client)
-		GetTrieString(g_hCLang[client], cTranslation, cDestination, iMaxlenght);
+		g_hCLang[client].GetString(cTranslation, cDestination, iMaxlenght);
 		
 	else
-		GetTrieString(g_hSLang, cTranslation, cDestination, iMaxlenght);
+		g_hSLang.GetString(cTranslation, cDestination, iMaxlenght);
 }
 
 /*
@@ -48,10 +48,10 @@ stock KACR_ReplyToCommand(client, const char[] cTranslation, any ...)
 	char f_sBuffer[256], f_sFormat[256];
 	
 	if(!client)
-		GetTrieString(g_hSLang, cTranslation, f_sFormat, sizeof(f_sFormat));
+		g_hSLang.GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 		
 	else
-		GetTrieString(g_hCLang[client], cTranslation, f_sFormat, sizeof(f_sFormat));
+		g_hCLang[client].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 		
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
 	ReplyToCommand(client, "[Kigen-AC_Redux] %s", f_sBuffer);
@@ -66,7 +66,7 @@ stock KACR_ReplyToCommand(client, const char[] cTranslation, any ...)
 stock KACR_PrintToServer(const char[] cTranslation, any ...)
 {
 	char f_sBuffer[256], f_sFormat[256];
-	GetTrieString(g_hSLang, cTranslation, f_sFormat, sizeof(f_sFormat));
+	g_hSLang.GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
 	PrintToServer("[Kigen-AC_Redux] %s", f_sBuffer);
 }
@@ -81,7 +81,7 @@ stock KACR_PrintToServer(const char[] cTranslation, any ...)
 stock KACR_PrintToChat(client, const char[] cTranslation, any ...)
 {
 	char f_sBuffer[256], f_sFormat[256];
-	GetTrieString(g_hCLang[client], cTranslation, f_sFormat, sizeof(f_sFormat));
+	g_hCLang[client].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
 	PrintToChat(client, "[Kigen-AC_Redux] %s", f_sBuffer);
 }
@@ -99,7 +99,7 @@ stock KACR_PrintToChatAdmins(const char[] cTranslation, any ...)
 	{
 		if(g_bIsAdmin[i])
 		{
-			GetTrieString(g_hCLang[i], cTranslation, f_sFormat, sizeof(f_sFormat));
+			g_hCLang[i].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
 			PrintToChat(i, "[Kigen-AC_Redux] %s", f_sBuffer);
 		}
@@ -119,7 +119,7 @@ stock KACR_PrintToChatAll(const char[] cTranslation, any ...)
 	{
 		if(g_bInGame[i])
 		{
-			GetTrieString(g_hCLang[i], cTranslation, f_sFormat, sizeof(f_sFormat));
+			g_hCLang[i].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
 			PrintToChat(i, "[Kigen-AC_Redux] %s", f_sBuffer);
 		}
@@ -136,7 +136,7 @@ stock KACR_PrintToChatAll(const char[] cTranslation, any ...)
 stock KACR_Kick(iClient, const char[] cTranslation, any ...)
 {
 	char f_sBuffer[256], f_sFormat[256];
-	GetTrieString(g_hCLang[iClient], cTranslation, f_sFormat, sizeof(f_sFormat));
+	g_hCLang[iClient].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
 	KickClient(iClient, "%s", f_sBuffer);
 	OnClientDisconnect(iClient); // Do this since the client is no longer useful to us. - Kigen // TODO: Needed?
@@ -158,7 +158,7 @@ stock KACR_Ban(iClient, iTime, const char[] cTranslation, const char[] cReason, 
 		Format(f_sEReason, 256, "%s", cReason);
 		
 	else
-		GetTrieString(g_hCLang[iClient], cTranslation, f_sEReason, 256);
+		g_hCLang[iClient].GetString(cTranslation, f_sEReason, 256);
 		
 	VFormat(f_sBuffer, 256, cReason, 5);
 	

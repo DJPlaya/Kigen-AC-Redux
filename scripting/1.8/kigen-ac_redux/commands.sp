@@ -22,14 +22,15 @@
 
 //- Global Variables -//
 
-Handle g_hBlockedCmds, g_hIgnoredCmds;
-bool g_bCmdEnabled = true;
-bool g_bLogCmds;
-int g_iCmdSpam = 30;
-int g_iCmdCount[MAXPLAYERS + 1] =  { 0, ... };
 Handle g_hCountReset, g_hCVarCmdEnable, g_hCVarCmdSpam, g_hCVarCmdLog;
+StringMap g_hBlockedCmds, g_hIgnoredCmds;
+
 char g_sCmdLogPath[256];
-int g_iCmdStatus, g_iCmdSpamStatus;
+
+bool g_bCmdEnabled = true, g_bLogCmds;
+
+int g_iCmdCount[MAXPLAYERS + 1] =  { 0, ... };
+int g_iCmdStatus, g_iCmdSpamStatus, g_iCmdSpam = 30;
 
 
 //- Plugin Functions -//
@@ -86,8 +87,8 @@ Commands_OnAllPluginsLoaded()
 	char f_sName[64];
 	bool f_bIsCommand, f_iFlags;
 	
-	g_hBlockedCmds = CreateTrie();
-	g_hIgnoredCmds = CreateTrie();
+	g_hBlockedCmds = new StringMap();// CreateTrie();
+	g_hIgnoredCmds = new StringMap();// CreateTrie();
 	
 	// Exploitable needed commands.  Sigh....
 	RegConsoleCmd("ent_create", Commands_BlockEntExploit);
@@ -95,66 +96,66 @@ Commands_OnAllPluginsLoaded()
 	RegConsoleCmd("give", Commands_BlockEntExploit);
 	
 	// Blocked Commands // Note: True sets them to ban, false does not.
-	SetTrieValue(g_hBlockedCmds, "ai_test_los", false);
-	SetTrieValue(g_hBlockedCmds, "changelevel", true);
-	SetTrieValue(g_hBlockedCmds, "cl_fullupdate", false);
-	SetTrieValue(g_hBlockedCmds, "dbghist_addline", false);
-	SetTrieValue(g_hBlockedCmds, "dbghist_dump", false);
-	SetTrieValue(g_hBlockedCmds, "drawcross", false);
-	SetTrieValue(g_hBlockedCmds, "drawline", false);
-	SetTrieValue(g_hBlockedCmds, "dump_entity_sizes", false);
-	SetTrieValue(g_hBlockedCmds, "dump_globals", false);
-	SetTrieValue(g_hBlockedCmds, "dump_panels", false);
-	SetTrieValue(g_hBlockedCmds, "dump_terrain", false);
-	SetTrieValue(g_hBlockedCmds, "dumpcountedstrings", false);
-	SetTrieValue(g_hBlockedCmds, "dumpentityfactories", false);
-	SetTrieValue(g_hBlockedCmds, "dumpeventqueue", false);
-	SetTrieValue(g_hBlockedCmds, "dumpgamestringtable", false);
-	SetTrieValue(g_hBlockedCmds, "editdemo", false);
-	SetTrieValue(g_hBlockedCmds, "endround", false);
-	SetTrieValue(g_hBlockedCmds, "groundlist", false);
-	SetTrieValue(g_hBlockedCmds, "listmodels", false);
-	SetTrieValue(g_hBlockedCmds, "map_showspawnpoints", false);
-	SetTrieValue(g_hBlockedCmds, "mem_dump", false);
-	SetTrieValue(g_hBlockedCmds, "mp_dump_timers", false);
-	SetTrieValue(g_hBlockedCmds, "npc_ammo_deplete", false);
-	SetTrieValue(g_hBlockedCmds, "npc_heal", false);
-	SetTrieValue(g_hBlockedCmds, "npc_speakall", false);
-	SetTrieValue(g_hBlockedCmds, "npc_thinknow", false);
-	SetTrieValue(g_hBlockedCmds, "physics_budget", false);
-	SetTrieValue(g_hBlockedCmds, "physics_debug_entity", false);
-	SetTrieValue(g_hBlockedCmds, "physics_highlight_active", false);
-	SetTrieValue(g_hBlockedCmds, "physics_report_active", false);
-	SetTrieValue(g_hBlockedCmds, "physics_select", false);
-	SetTrieValue(g_hBlockedCmds, "q_sndrcn", true);
-	SetTrieValue(g_hBlockedCmds, "report_entities", false);
-	SetTrieValue(g_hBlockedCmds, "report_touchlinks", false);
-	SetTrieValue(g_hBlockedCmds, "report_simthinklist", false);
-	SetTrieValue(g_hBlockedCmds, "respawn_entities", false);
-	SetTrieValue(g_hBlockedCmds, "rr_reloadresponsesystems", false);
-	SetTrieValue(g_hBlockedCmds, "scene_flush", false);
-	SetTrieValue(g_hBlockedCmds, "send_me_rcon", true);
-	SetTrieValue(g_hBlockedCmds, "snd_digital_surround", false);
-	SetTrieValue(g_hBlockedCmds, "snd_restart", false);
-	SetTrieValue(g_hBlockedCmds, "soundlist", false);
-	SetTrieValue(g_hBlockedCmds, "soundscape_flush", false);
-	SetTrieValue(g_hBlockedCmds, "sv_benchmark_force_start", false);
-	SetTrieValue(g_hBlockedCmds, "sv_findsoundname", false);
-	SetTrieValue(g_hBlockedCmds, "sv_soundemitter_filecheck", false);
-	SetTrieValue(g_hBlockedCmds, "sv_soundemitter_flush", false);
-	SetTrieValue(g_hBlockedCmds, "sv_soundscape_printdebuginfo", false);
-	SetTrieValue(g_hBlockedCmds, "wc_update_entity", false);
+	g_hBlockedCmds.SetValue("ai_test_los", false);
+	g_hBlockedCmds.SetValue("changelevel", true);
+	g_hBlockedCmds.SetValue("cl_fullupdate", false);
+	g_hBlockedCmds.SetValue("dbghist_addline", false);
+	g_hBlockedCmds.SetValue("dbghist_dump", false);
+	g_hBlockedCmds.SetValue("drawcross", false);
+	g_hBlockedCmds.SetValue("drawline", false);
+	g_hBlockedCmds.SetValue("dump_entity_sizes", false);
+	g_hBlockedCmds.SetValue("dump_globals", false);
+	g_hBlockedCmds.SetValue("dump_panels", false);
+	g_hBlockedCmds.SetValue("dump_terrain", false);
+	g_hBlockedCmds.SetValue("dumpcountedstrings", false);
+	g_hBlockedCmds.SetValue("dumpentityfactories", false);
+	g_hBlockedCmds.SetValue("dumpeventqueue", false);
+	g_hBlockedCmds.SetValue("dumpgamestringtable", false);
+	g_hBlockedCmds.SetValue("editdemo", false);
+	g_hBlockedCmds.SetValue("endround", false);
+	g_hBlockedCmds.SetValue("groundlist", false);
+	g_hBlockedCmds.SetValue("listmodels", false);
+	g_hBlockedCmds.SetValue("map_showspawnpoints", false);
+	g_hBlockedCmds.SetValue("mem_dump", false);
+	g_hBlockedCmds.SetValue("mp_dump_timers", false);
+	g_hBlockedCmds.SetValue("npc_ammo_deplete", false);
+	g_hBlockedCmds.SetValue("npc_heal", false);
+	g_hBlockedCmds.SetValue("npc_speakall", false);
+	g_hBlockedCmds.SetValue("npc_thinknow", false);
+	g_hBlockedCmds.SetValue("physics_budget", false);
+	g_hBlockedCmds.SetValue("physics_debug_entity", false);
+	g_hBlockedCmds.SetValue("physics_highlight_active", false);
+	g_hBlockedCmds.SetValue("physics_report_active", false);
+	g_hBlockedCmds.SetValue("physics_select", false);
+	g_hBlockedCmds.SetValue("q_sndrcn", true);
+	g_hBlockedCmds.SetValue("report_entities", false);
+	g_hBlockedCmds.SetValue("report_touchlinks", false);
+	g_hBlockedCmds.SetValue("report_simthinklist", false);
+	g_hBlockedCmds.SetValue("respawn_entities", false);
+	g_hBlockedCmds.SetValue("rr_reloadresponsesystems", false);
+	g_hBlockedCmds.SetValue("scene_flush", false);
+	g_hBlockedCmds.SetValue("send_me_rcon", true);
+	g_hBlockedCmds.SetValue("snd_digital_surround", false);
+	g_hBlockedCmds.SetValue("snd_restart", false);
+	g_hBlockedCmds.SetValue("soundlist", false);
+	g_hBlockedCmds.SetValue("soundscape_flush", false);
+	g_hBlockedCmds.SetValue("sv_benchmark_force_start", false);
+	g_hBlockedCmds.SetValue("sv_findsoundname", false);
+	g_hBlockedCmds.SetValue("sv_soundemitter_filecheck", false);
+	g_hBlockedCmds.SetValue("sv_soundemitter_flush", false);
+	g_hBlockedCmds.SetValue("sv_soundscape_printdebuginfo", false);
+	g_hBlockedCmds.SetValue("wc_update_entity", false);
 	
 	if(hGame == Engine_Left4Dead || hGame == Engine_Left4Dead2)
 	{
-		SetTrieValue(g_hIgnoredCmds, "choose_closedoor", true);
-		SetTrieValue(g_hIgnoredCmds, "choose_opendoor", true);
+		g_hIgnoredCmds.SetValue("choose_closedoor", true);
+		g_hIgnoredCmds.SetValue("choose_opendoor", true);
 	}
 	
-	SetTrieValue(g_hIgnoredCmds, "buy", true);
-	SetTrieValue(g_hIgnoredCmds, "buyammo1", true);
-	SetTrieValue(g_hIgnoredCmds, "buyammo2", true);
-	SetTrieValue(g_hIgnoredCmds, "use", true);
+	g_hIgnoredCmds.SetValue("buy", true);
+	g_hIgnoredCmds.SetValue("buyammo1", true);
+	g_hIgnoredCmds.SetValue("buyammo2", true);
+	g_hIgnoredCmds.SetValue("use", true);
 	
 	if(g_bCmdEnabled)
 		g_hCountReset = CreateTimer(1.0, Commands_CountReset, _, TIMER_REPEAT);
@@ -272,7 +273,7 @@ public Action Commands_AddCmd(client, args)
 	else
 		f_bBan = false;
 		
-	if(SetTrieValue(g_hBlockedCmds, f_sCmdName, f_bBan))
+	if(g_hBlockedCmds.SetValue(f_sCmdName, f_bBan))
 		KACR_ReplyToCommand(client, KACR_ADDCMDSUCCESS, f_sCmdName);
 		
 	else
@@ -293,7 +294,7 @@ public Action Commands_AddIgnoreCmd(client, args)
 	
 	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
 	
-	if(SetTrieValue(g_hIgnoredCmds, f_sCmdName, true))
+	if(g_hIgnoredCmds.SetValue(f_sCmdName, true))
 		KACR_ReplyToCommand(client, KACR_ADDIGNCMDSUCCESS, f_sCmdName);
 		
 	else
@@ -313,7 +314,7 @@ public Action Commands_RemoveCmd(client, args)
 	char f_sCmdName[64];
 	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
 	
-	if(RemoveFromTrie(g_hBlockedCmds, f_sCmdName))
+	if(g_hBlockedCmds.Remove(f_sCmdName))
 		KACR_ReplyToCommand(client, KACR_REMCMDSUCCESS, f_sCmdName);
 		
 	else
@@ -333,7 +334,7 @@ public Action Commands_RemoveIgnoreCmd(client, args)
 	char f_sCmdName[64];
 	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
 	
-	if(RemoveFromTrie(g_hIgnoredCmds, f_sCmdName))
+	if(g_hIgnoredCmds.Remove(f_sCmdName))
 		KACR_ReplyToCommand(client, KACR_REMIGNCMDSUCCESS, f_sCmdName);
 		
 	else
@@ -441,7 +442,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 	StringToLower(f_sCmd);
 	
 	// Check to see if this person is command spamming.
-	if(g_iCmdSpam != 0 && !GetTrieValue(g_hIgnoredCmds, f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[iClient]++ > g_iCmdSpam)
+	if(g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[iClient]++ > g_iCmdSpam)
 	{
 		char f_sIP[64], f_sCmdString[128];
 		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
@@ -451,7 +452,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 		return Plugin_Stop;
 	}
 	
-	if(GetTrieValue(g_hBlockedCmds, f_sCmd, f_bBan))
+	if(g_hBlockedCmds.GetValue(f_sCmd, f_bBan))
 	{
 		if(f_bBan)
 		{
@@ -492,7 +493,7 @@ public Action Commands_ClientCheck(client, args)
 	GetCmdArg(0, f_sCmd, sizeof(f_sCmd));
 	StringToLower(f_sCmd);
 	
-	if(GetTrieValue(g_hBlockedCmds, f_sCmd, f_bBan))
+	if(g_hBlockedCmds.GetValue(f_sCmd, f_bBan))
 	{
 		if(f_bBan)
 		{
@@ -533,7 +534,7 @@ public Action Commands_SpamCheck(client, args)
 	GetCmdArg(0, f_sCmd, sizeof(f_sCmd)); // This command's name.
 	StringToLower(f_sCmd);
 	
-	if(g_iCmdSpam != 0 && !GetTrieValue(g_hIgnoredCmds, f_sCmd, f_bBan) && g_iCmdCount[client]++ > g_iCmdSpam)
+	if(g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(f_sCmd, f_bBan) && g_iCmdCount[client]++ > g_iCmdSpam)
 	{
 		char f_sIP[64], f_sCmdString[128];
 		GetClientIP(client, f_sIP, sizeof(f_sIP));
@@ -543,7 +544,7 @@ public Action Commands_SpamCheck(client, args)
 		return Plugin_Stop;
 	}
 	
-	if(GetTrieValue(g_hBlockedCmds, f_sCmd, f_bBan))
+	if(g_hBlockedCmds.GetValue(f_sCmd, f_bBan))
 	{
 		if(f_bBan)
 		{
