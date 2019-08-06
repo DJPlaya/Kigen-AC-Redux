@@ -123,7 +123,7 @@ CVars_OnPluginStart()
 	CVars_AddCVar("cl_clock_correction", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_leveloverview", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_overdraw_test", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
-	CVars_AddCVar("cl_particles_show_bbox", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
+	CVars_AddCVar("cl_particle_show_bbox", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL); // cl_particles_show_bbox
 	CVars_AddCVar("cl_phys_timescale", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_showevents", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	
@@ -892,6 +892,17 @@ public void CVars_EnableChange(Handle convar, const char[] oldValue, const char[
 
 //- Private Functions -//
 
+/*
+* Adds an Cvar to the Checklist
+* 
+* @param cCvar				Cvar to check for
+* @param iComparisonType	How to compare (COMP_...)
+* @param iAction			What todo when detected
+* @param fValue1			Allowed Value Range
+* @param fValue2			Allowed Value Range
+* @param iImportance		Priority (PRIORITY_...)
+* @param cAlternative		URL to show to the Player
+*/
 bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_sValue, float f_fValue2, f_iImportance, const char f_sAlternative[] = "")
 {
 	Handle f_hConVar = INVALID_HANDLE, f_hArray;
