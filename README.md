@@ -36,6 +36,7 @@ kacr_cvars_status | Shows the status of all in-game clients | Generic
 #
 #
 Note: A Config File will be automatically created
+Note: If any of this ConVars do not work, the Module propably got disabled, check kacr_status for this
 
 ConVar | Possible Value | Description
 ------------ | ------------- | -------------
