@@ -21,7 +21,7 @@
 
 #define POINT_ALMOST_VISIBLE 0.75
 #define POINT_MID_VISIBLE 0.6
-#define MAX_ENTITIES 4096 // Well, 2048 is hardcoded but for compactibility its worth using a few Bytes more
+#define MAX_ENTITIES 2048 // 2048 is hardcoded
 
 
 //- Global Variables -//
@@ -39,41 +39,43 @@ bool g_bShouldProcess[MAXPLAYERS + 1], g_bHooked[MAXPLAYERS + 1];
 
 Eyetest_OnPluginStart()
 {
-	if(hGame != Engine_CSGO && hGame != Engine_CSS && hGame != Engine_Insurgency && hGame != Engine_Left4Dead2 && hGame != Engine_HL2DM)
-	{
-		g_hCVarEyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-		Eyetest_EnableChange(g_hCVarEyeEnable, "", "");
+	/*if(hGame != Engine_CSGO && hGame != Engine_CSS && hGame != Engine_Insurgency && hGame != Engine_Left4Dead2 && hGame != Engine_HL2DM)
+	{*/
+	g_hCVarEyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	Eyetest_EnableChange(g_hCVarEyeEnable, "", "");
+	
+	if(g_bEyeEnabled)
+		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_ON);
 		
-		if(g_bEyeEnabled)
-			g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_ON);
-			
-		else
-			g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_OFF);
-			
-		HookConVarChange(g_hCVarEyeEnable, Eyetest_EnableChange);
-	}
+	else
+		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_OFF);
+		
+	HookConVarChange(g_hCVarEyeEnable, Eyetest_EnableChange);
+	/*}
 	
 	else
-		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_DISABLED);
+		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_DISABLED);*/
 		
-	if(GetMaxEntities() > MAX_ENTITIES) // More possible Entitys then we set in the Plugin? // < ???
+	if(GetMaxEntities() <= MAX_ENTITIES)
 	{
 		g_bAntiWallDisabled = false;
 		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_OFF);
 		
 		g_hCVarAntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "0", "Enable Anti-Wallhack", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		
-		KACR_Log("[Error] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
-		PrintToServer("[Kigen-AC_Redux] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
-		
 		Eyetest_AntiWallChange(g_hCVarAntiWall, "", "");
 		
 		HookConVarChange(g_hCVarAntiWall, Eyetest_AntiWallChange);
 	}
 	
-	else
+	else // More possible Entitys then we set in the Plugin?!
+	{
 		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_DISABLED);
 		
+		KACR_Log("[Error] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
+		PrintToServer("[Kigen-AC_Redux] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
+	}
+	
 	HookEvent("player_spawn", Eyetest_PlayerSpawn);
 	HookEvent("player_death", Eyetest_PlayerDeath);
 }
@@ -461,7 +463,7 @@ stock bool IsPointVisible(const float start[3], const float end[3])
 Eyetest_Hook(client)
 {
 	g_bHooked[client] = true;
-	SDKHook(client, SDKHook_SetTransmit, Eyetest_Transmit); // TODO: Crash Reason - Issue #6
+	SDKHook(client, SDKHook_SetTransmit, Eyetest_Transmit); // TODO: Crash Reason??
 	// SDKHook(client, SDKHook_PreThink, Eyetest_Prethink);
 	SDKHook(client, SDKHook_WeaponEquip, Eyetest_Equip);
 	SDKHook(client, SDKHook_WeaponDrop, Eyetest_Drop);
