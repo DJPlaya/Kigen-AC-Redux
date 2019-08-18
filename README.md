@@ -1,7 +1,7 @@
 # Kigen Anti Cheat Redux
 
 Requires:
-- SourceMod 1.8 or Higher (the regular Build is for 1.10, 1.8/.19 need to use kigen-ac_redux_legacy)
+- SourceMod 1.8 or Higher (kigen-ac_redux is for 1.10, kigen-ac_redux_legacy for 1.8/1.9)
 - Sockets 3.0.1 or newer
 
 Optional:
@@ -36,6 +36,7 @@ kacr_cvars_status | Shows the status of all in-game clients | Generic
 #
 #
 Note: A Config File will be automatically created
+Note: If any of this ConVars do not work, the Module propably got disabled, check kacr_status for this
 
 ConVar | Possible Value | Description
 ------------ | ------------- | -------------

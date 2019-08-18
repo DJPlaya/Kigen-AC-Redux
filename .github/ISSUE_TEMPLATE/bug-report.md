@@ -26,5 +26,8 @@ Steps to reproduce the Behavior:
 3. Scroll down to '....'
 4. See Error
 
+**kacr_status output**
+Paste the output of the Command here if possile
+
 **Additional**
 Add any other Context or Media about the Problem here
