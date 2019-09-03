@@ -22,11 +22,11 @@
 #pragma newdecls optional
 
 #include <sdktools>
-#include <smlib_kacr>
 #undef REQUIRE_EXTENSIONS 
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
 // #include <socket> // Required for the networking Module
+#include <smlib_kacr>
 #include <autoexecconfig_kacr>
 
 
@@ -40,32 +40,21 @@ native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sRea
 
 #define PLUGIN_VERSION "0.1"
 
-#define GAME_OTHER	0
-#define GAME_CSS	1
-#define GAME_TF2	2
-#define GAME_DOD	3
-#define GAME_INS	4
-#define GAME_L4D	5
-#define GAME_L4D2	6
-#define GAME_HL2DM	7
-#define GAME_CSGO	8
-
 
 //- Global Variables -//
 
 Handle g_hValidateTimer[MAXPLAYERS + 1];
 Handle g_hClearTimer, g_hCVarVersion;
+EngineVersion hGame;
 
 StringMap g_hCLang[MAXPLAYERS + 1];
 StringMap g_hSLang, g_hDenyArray;
-EngineVersion hGame;
 
 bool g_bConnected[MAXPLAYERS + 1]; // I use these instead of the natives because they are cheaper to call
 bool g_bAuthorized[MAXPLAYERS + 1]; // when I need to check on a client's state.  Natives are very taxing on
 bool g_bInGame[MAXPLAYERS + 1]; // system resources as compared to these. - Kigen
 bool g_bIsAdmin[MAXPLAYERS + 1];
 bool g_bIsFake[MAXPLAYERS + 1];
-
 bool g_bSourceBans, g_bSourceBansPP, g_bMapStarted;
 
 
@@ -126,20 +115,20 @@ public void OnPluginStart()
 	
 	//- Get server language -//
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
-	if(!g_hLanguages.GetValue(f_sLang, any:g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
+	if (!g_hLanguages.GetValue(f_sLang, any:g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
 		g_hLanguages.GetValue("en", any:g_hSLang);
-		
+	
 	g_hClearTimer = CreateTimer(14400.0, KACR_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
 	//- Prevent Speeds -//
 	f_hTemp = FindConVar("sv_max_usercmd_future_ticks");
-	if(f_hTemp != INVALID_HANDLE)
+	if (f_hTemp != INVALID_HANDLE)
 		SetConVarInt(f_hTemp, 1);
-		
+	
 	AutoExecConfig_ExecuteFile(); // Execute the Config
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
 	
-	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY|FCVAR_SPONLY|FCVAR_DONTRECORD|FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
+	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
 	
 	SetConVarString(g_hCVarVersion, PLUGIN_VERSION); // TODO: Is this really needed?
 	HookConVarChange(g_hCVarVersion, VersionChange); // TODO: HMMM? Propably related to the old Updater System
@@ -151,10 +140,10 @@ public void OnAllPluginsLoaded()
 {
 	char f_sReason[256], f_sAuthID[64];
 	
-	if(FindPluginByFile("sbpp_main.smx"))
+	if (FindPluginByFile("sbpp_main.smx"))
 		g_bSourceBansPP = true;
 		
-	else if(FindPluginByFile("sourcebans.smx"))
+	else if (FindPluginByFile("sourcebans.smx"))
 		g_bSourceBans = true;
 		
 	else // Rare but possible, someone unloaded SB and we would still think its active :O
@@ -167,23 +156,23 @@ public void OnAllPluginsLoaded()
 	Commands_OnAllPluginsLoaded();
 	
 	//- Late load stuff -//
-	for(int iCount = 1; iCount <= MaxClients; iCount++)
+	for (int iCount = 1; iCount <= MaxClients; iCount++)
 	{
-		if(IsClientConnected(iCount))
+		if (IsClientConnected(iCount))
 		{
-			if(!OnClientConnect(iCount, f_sReason, sizeof(f_sReason)))
+			if (!OnClientConnect(iCount, f_sReason, sizeof(f_sReason))) // TODO: Is this really needed?
 			{
 				KickClient(iCount, "%s", f_sReason);
 				continue;
 			}
 			
-			if(IsClientAuthorized(iCount) && GetClientAuthId(iCount, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
+			if (IsClientAuthorized(iCount) && GetClientAuthId(iCount, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 			{
 				OnClientAuthorized(iCount, f_sAuthID);
 				OnClientPostAdminCheck(iCount);
 			}
 			
-			if(IsClientInGame(iCount))
+			if (IsClientInGame(iCount))
 				OnClientPutInServer(iCount);
 		}
 	}
@@ -198,7 +187,7 @@ public void OnPluginEnd()
 	// RCON_OnPluginEnd(); // Currently unused
 	// Status_OnPluginEnd(); // Currently unused
 	
-	for(int iClient = 0; iClient <= MaxClients; iClient++)
+	for (int iClient = 0; iClient <= MaxClients; iClient++)
 	{
 		g_bConnected[iClient] = false;
 		g_bAuthorized[iClient] = false;
@@ -207,13 +196,13 @@ public void OnPluginEnd()
 		g_hCLang[iClient] = g_hSLang;
 		g_bShouldProcess[iClient] = false;
 		
-		if(g_hValidateTimer[iClient] != INVALID_HANDLE)
+		if (g_hValidateTimer[iClient] != INVALID_HANDLE)
 			CloseHandle(g_hValidateTimer[iClient]);
 			
 		CVars_OnClientDisconnect(iClient);
 	}
 	
-	if(g_hClearTimer != INVALID_HANDLE)
+	if (g_hClearTimer != INVALID_HANDLE)
 		CloseHandle(g_hClearTimer);
 }
 
@@ -238,7 +227,7 @@ public void OnMapEnd()
 
 public bool OnClientConnect(client, char[] rejectmsg, size)
 {
-	if(IsFakeClient(client)) // Bots suck.
+	if (IsFakeClient(client)) // Bots suck.
 	{
 		g_bIsFake[client] = true;
 		return true;
@@ -252,12 +241,12 @@ public bool OnClientConnect(client, char[] rejectmsg, size)
 
 public void OnClientAuthorized(client, const char[] auth)
 {
-	if(IsFakeClient(client)) // Bots are annoying...
+	if (IsFakeClient(client)) // Bots are annoying...
 		return;
 		
 	Handle f_hTemp;
 	char f_sReason[256];
-	if(g_hDenyArray.GetString(auth, f_sReason, sizeof(f_sReason)))
+	if (g_hDenyArray.GetString(auth, f_sReason, sizeof(f_sReason)))
 	{
 		KickClient(client, "%s", f_sReason);
 		OnClientDisconnect(client);
@@ -266,13 +255,13 @@ public void OnClientAuthorized(client, const char[] auth)
 	
 	g_bAuthorized[client] = true;
 	
-	if(g_bInGame[client])
+	if (g_bInGame[client])
 		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
 		
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
 	
-	if(f_hTemp != INVALID_HANDLE)
+	if (f_hTemp != INVALID_HANDLE)
 		CloseHandle(f_hTemp);
 }
 
@@ -280,30 +269,30 @@ public void OnClientPutInServer(client)
 {
 	Eyetest_OnClientPutInServer(client); // Ok, we'll help them bots too.
 	
-	if(IsFakeClient(client)) // Death to them bots!
+	if (IsFakeClient(client)) // Death to them bots!
 		return;
 		
 	char f_sLang[8];
 	
 	g_bInGame[client] = true;
 	
-	if(!g_bAuthorized[client]) // Not authorized yet?!?
+	if (!g_bAuthorized[client]) // Not authorized yet?!?
 		g_hValidateTimer[client] = CreateTimer(10.0, KACR_ValidateTimer, client);
 		
 	else
 		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
 		
 	GetLanguageInfo(GetClientLanguage(client), f_sLang, sizeof(f_sLang));
-	if(!g_hLanguages.GetValue(f_sLang, g_hCLang[client]))
+	if (!g_hLanguages.GetValue(f_sLang, g_hCLang[client]))
 		g_hCLang[client] = g_hSLang;
 }
 
 public void OnClientPostAdminCheck(client)
 {
-	if(IsFakeClient(client)) // Humans for the WIN!
+	if (IsFakeClient(client)) // Humans for the WIN!
 		return;
 		
-	if((GetUserFlagBits(client) & ADMFLAG_GENERIC))
+	if ((GetUserFlagBits(client) & ADMFLAG_GENERIC))
 		g_bIsAdmin[client] = true;
 }
 
@@ -321,13 +310,13 @@ public void OnClientDisconnect(client)
 	g_bShouldProcess[client] = false;
 	g_bHooked[client] = false;
 	
-	for(int iCount = 1; iCount <= MaxClients; iCount++)
-		if(g_bConnected[iCount] && (!IsClientConnected(iCount) || IsFakeClient(iCount)))
-			OnClientDisconnect(iCount);
-			
+	for (int iCount = 1; iCount <= MaxClients; iCount++)
+	if (g_bConnected[iCount] && (!IsClientConnected(iCount) || IsFakeClient(iCount)))
+		OnClientDisconnect(iCount);
+		
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
-	if(f_hTemp != INVALID_HANDLE)
+	if (f_hTemp != INVALID_HANDLE)
 		CloseHandle(f_hTemp);
 		
 	CVars_OnClientDisconnect(client);
@@ -340,7 +329,7 @@ public Action KACR_ValidateTimer(Handle timer, any client)
 {
 	g_hValidateTimer[client] = INVALID_HANDLE;
 	
-	if(!g_bInGame[client] || g_bAuthorized[client])
+	if (!g_bInGame[client] || g_bAuthorized[client])
 		return Plugin_Stop;
 		
 	KACR_Kick(client, KACR_FAILEDAUTH);
@@ -356,6 +345,6 @@ public Action KACR_ClearTimer(Handle timer, any nothing)
 
 public void VersionChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
-	if(!StrEqual(newValue, PLUGIN_VERSION))
+	if (!StrEqual(newValue, PLUGIN_VERSION))
 		SetConVarString(g_hCVarVersion, PLUGIN_VERSION);
-}
+} 

@@ -61,13 +61,13 @@ public Action Status_Status(client, args)
 	
 	int f_iCount = GetArraySize(g_hStatusArray)
 	KACR_ReplyToCommand(client, KACR_STATUSREPORT);
-	if(!f_iCount)
+	if (!f_iCount)
 	{
 		KACR_ReplyToCommand(client, KACR_NOREPORT);
 		return Plugin_Handled;
 	}
 	
-	for(int i = 0; i < f_iCount; i++)
+	for (int i = 0; i < f_iCount; i++)
 	{
 		f_hTemp = GetArrayCell(g_hStatusArray, i);
 		GetArrayString(f_hTemp, CELL_MODULENAME, f_sTemp, sizeof(f_sTemp));
@@ -80,4 +80,4 @@ public Action Status_Status(client, args)
 	}
 	
 	return Plugin_Handled;
-}
+} 

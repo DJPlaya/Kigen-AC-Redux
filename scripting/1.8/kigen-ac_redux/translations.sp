@@ -107,13 +107,13 @@ Trans_OnPluginStart()
 	g_hLanguages.SetValue("he", any:new StringMap()); // Hebrew
 	
 	//- English -// Done by Kigen
-	if(!g_hLanguages.GetValue("en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Hashmap for English"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for English");
 		KACR_Log("[Error] Unable to create Language Hashmap for English");
 	}
-		
+	
 	// Load the phrases into Translations.
 	f_hTemp.SetString(KACR_LOADED, "Kigen's Anti-Cheat Redux has been loaded successfully");
 	f_hTemp.SetString(KACR_BANNED, "You have been banned for a cheating infraction");
@@ -187,13 +187,13 @@ Trans_OnPluginStart()
 	
 	
 	//- French -// Thanks to Vintage > http://kigenac.com/memberlist.php?mode=viewprofile&u=1035
-	if(!g_hLanguages.GetValue("fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Hashmap for French"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for French");
 		KACR_Log("[Error] Unable to create Language Hashmap for French");
 	}
-		
+	
 	f_hTemp.SetString(KACR_LOADED, "Kigen's Anti-Cheat Redux est opérationnel");
 	f_hTemp.SetString(KACR_BANNED, "Vous avez été banni pour cheat détecté");
 	f_hTemp.SetString(KACR_GBANNED, "Vous avez été banni de tous les serveurs protégés par Kigen's Anti-Cheat Redux (KACR). Voir https://djplaya.github.io/kigen-ac_redux pour plus d'informations");
@@ -266,13 +266,13 @@ Trans_OnPluginStart()
 	
 	
 	//- Italian -// Thanks to Asterix > http://kigenac.com/memberlist.php?mode=viewprofile&u=116
-	if(!g_hLanguages.GetValue("it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Hashmap for Italian"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for Italian");
 		KACR_Log("[Error] Unable to create Language Hashmap for Italian");
 	}
-		
+	
 	f_hTemp.SetString(KACR_LOADED, "L'anticheats Kigen Redux è stato caricato con successo");
 	f_hTemp.SetString(KACR_BANNED, "Sei stato bannato per aver utilizzato dei trucchi");
 	f_hTemp.SetString(KACR_GBANNED, "Sei bannato da tutti i server protetti dall'anticheats Kigen Redux (KACR). Visita https://djplaya.github.io/kigen-ac_redux per ulteriori informazioni");
@@ -345,7 +345,7 @@ Trans_OnPluginStart()
 	
 	
 	//- German -// Done by Playa
-	if(!g_hLanguages.GetValue("de", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("de", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Hashmap for German"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for German");
@@ -425,7 +425,7 @@ Trans_OnPluginStart()
 	
 	
 	//- Hebrew -// Thanks to Shazero Sicario > Discord: WildGamer.net#4916
-	if(!g_hLanguages.GetValue("he", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("he", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		// SetFailState("Unable to create Language Hashmap for Hebrew"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for Hebrew");
@@ -447,7 +447,7 @@ Trans_OnPluginStart()
 	f_hTemp.SetString(KACR_ADDIGNCMDUSAGE, "שימוש: kacr_addignorecmd <command name>");
 	f_hTemp.SetString(KACR_ADDIGNCMDSUCCESS, "הוספת בהצלחה את %s לרשימת הסניון");
 	f_hTemp.SetString(KACR_ADDIGNCMDFAILURE, "%s כבר קיים ברשימת הסניון");
-	f_hTemp.SetString(KACR_REMIGNCMDUSAGE,  "שימוש: kacr_removeignorecmd <command name>");
+	f_hTemp.SetString(KACR_REMIGNCMDUSAGE, "שימוש: kacr_removeignorecmd <command name>");
 	f_hTemp.SetString(KACR_REMIGNCMDSUCCESS, "הסרת בהצלחה את %s מרשימת הסינון");
 	f_hTemp.SetString(KACR_REMIGNCMDFAILURE, "%s לא נמצא ברשימת הסינון");
 	f_hTemp.SetString(KACR_FAILEDTOREPLY, "המשתמש שלך אינו נענה למשחק אנא התחבר מחדש או הפעל מחדש את המשחק");
@@ -502,4 +502,4 @@ Trans_OnPluginStart()
 	f_hTemp.SetString(KACR_SAYBLOCK, "[KACR] הסיבה שלך נחסמה בשל תו לא חוקי");
 	f_hTemp.SetString(KACR_FORCEDREVAL, "[KACR] חידוש אימות בכפייה על כל השחקנים המחוברים");
 	f_hTemp.SetString(KACR_CANNOTREVAL, "[KACR] א ניתן לאלץ את ההתאמה עד שכל שחקן כבר אומת");
-}
+} 

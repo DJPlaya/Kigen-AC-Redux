@@ -29,7 +29,7 @@
 */
 stock KACR_Translate(client, char[] cTranslation, char[] cDestination, iMaxlenght)
 {
-	if(client)
+	if (client)
 		g_hCLang[client].GetString(cTranslation, cDestination, iMaxlenght);
 		
 	else
@@ -43,11 +43,11 @@ stock KACR_Translate(client, char[] cTranslation, char[] cDestination, iMaxlengh
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_ReplyToCommand(client, const char[] cTranslation, any ...)
+stock KACR_ReplyToCommand(client, const char[] cTranslation, any...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	
-	if(!client)
+	if (!client)
 		g_hSLang.GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 		
 	else
@@ -63,7 +63,7 @@ stock KACR_ReplyToCommand(client, const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToServer(const char[] cTranslation, any ...)
+stock KACR_PrintToServer(const char[] cTranslation, any...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	g_hSLang.GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
@@ -78,7 +78,7 @@ stock KACR_PrintToServer(const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToChat(client, const char[] cTranslation, any ...)
+stock KACR_PrintToChat(client, const char[] cTranslation, any...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	g_hCLang[client].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
@@ -92,12 +92,12 @@ stock KACR_PrintToChat(client, const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToChatAdmins(const char[] cTranslation, any ...)
+stock KACR_PrintToChatAdmins(const char[] cTranslation, any...)
 {
 	char f_sBuffer[256], f_sFormat[256];
-	for(int i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if(g_bIsAdmin[i])
+		if (g_bIsAdmin[i])
 		{
 			g_hCLang[i].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
@@ -112,12 +112,12 @@ stock KACR_PrintToChatAdmins(const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToChatAll(const char[] cTranslation, any ...)
+stock KACR_PrintToChatAll(const char[] cTranslation, any...)
 {
 	char f_sBuffer[256], f_sFormat[256];
-	for(int i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if(g_bInGame[i])
+		if (g_bInGame[i])
 		{
 			g_hCLang[i].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
@@ -133,7 +133,7 @@ stock KACR_PrintToChatAll(const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_Kick(iClient, const char[] cTranslation, any ...)
+stock KACR_Kick(iClient, const char[] cTranslation, any...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	g_hCLang[iClient].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
@@ -151,10 +151,10 @@ stock KACR_Kick(iClient, const char[] cTranslation, any ...)
 * @param cReason		The Ban Reason.
 * @param ...			Variable Number of Format Parameters.
 */
-stock KACR_Ban(iClient, iTime, const char[] cTranslation, const char[] cReason, any ...)
+stock KACR_Ban(iClient, iTime, const char[] cTranslation, const char[] cReason, any...)
 {
 	char f_sBuffer[256], f_sEReason[256];
-	if(strcmp(cTranslation, "NULL")) // No Translation existing
+	if (strcmp(cTranslation, "NULL")) // No Translation existing
 		Format(f_sEReason, 256, "%s", cReason);
 		
 	else
@@ -162,10 +162,10 @@ stock KACR_Ban(iClient, iTime, const char[] cTranslation, const char[] cReason, 
 		
 	VFormat(f_sBuffer, 256, cReason, 5);
 	
-	if(g_bSourceBans)
+	if (g_bSourceBans)
 		SBBanPlayer(0, iClient, iTime, f_sBuffer);
 		
-	else if(g_bSourceBansPP)
+	else if (g_bSourceBansPP)
 		SBPP_BanPlayer(0, iClient, iTime, f_sBuffer); // Admin 0 is the Server in SBPP, this ID CAN be created or edited manually in the Database to show Name "Server" on the Webpanel
 		
 	else
@@ -183,7 +183,7 @@ stock KACR_Ban(iClient, iTime, const char[] cTranslation, const char[] cReason, 
 * @param cText			Message to log.
 * @param ...			Variable number of format parameters.
 */
-KACR_Log(const char[] cText, any ...)
+KACR_Log(const char[] cText, any...)
 {
 	char f_sBuffer[256], f_sPath[256];
 	VFormat(f_sBuffer, sizeof(f_sBuffer), cText, 2);
@@ -200,6 +200,6 @@ KACR_Log(const char[] cText, any ...)
 stock StringToLower(char[] cText)
 {
 	int f_iSize = strlen(cText);
-	for(new i = 0; i < f_iSize; i++)
+	for (new i = 0; i < f_iSize; i++)
 		cText[i] = CharToLower(cText[i]);
-}
+} 

@@ -67,9 +67,9 @@ Handle g_hCVarCVarsEnabled, g_hCVars;
 Handle g_hCurrentQuery[MAXPLAYERS + 1], g_hReplyTimer[MAXPLAYERS + 1], g_hPeriodicTimer[MAXPLAYERS + 1];
 StringMap g_hCVarIndex;
 
-char g_sQueryResult[][] = {"Okay", "Not found", "Not valid", "Protected"};
+char g_sQueryResult[][] =  { "Okay", "Not found", "Not valid", "Protected" };
 
-int g_iCurrentIndex[MAXPLAYERS + 1] =  {0, ...}, g_iRetryAttempts[MAXPLAYERS + 1] =  {0, ...};
+int g_iCurrentIndex[MAXPLAYERS + 1] =  { 0, ... }, g_iRetryAttempts[MAXPLAYERS + 1] =  { 0, ... };
 int g_iSize = 0, g_iCVarsStatus;
 
 bool g_bCVarsEnabled = true;
@@ -84,7 +84,7 @@ CVars_OnPluginStart()
 	bool f_bIsCommand;
 	int f_iFlags;
 	
-	g_hCVarCVarsEnabled = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD|FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVarCVarsEnabled = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCVarsEnabled = GetConVarBool(g_hCVarCVarsEnabled);
 	
 	HookConVarChange(g_hCVarCVarsEnabled, CVars_EnableChange);
@@ -127,7 +127,7 @@ CVars_OnPluginStart()
 	CVars_AddCVar("cl_phys_timescale", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_showevents", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	
-	if(hGame == Engine_Insurgency)
+	if (hGame == Engine_Insurgency)
 		CVars_AddCVar("fog_enable", COMP_EQUAL, ACTION_KICK, "1.0", 0.0, PRIORITY_NORMAL);
 		
 	else
@@ -166,15 +166,15 @@ CVars_OnPluginStart()
 	//- Replication Protection -//
 	
 	f_hConCommand = FindFirstConCommand(f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags);
-	if(f_hConCommand == INVALID_HANDLE)
+	if (f_hConCommand == INVALID_HANDLE)
 		SetFailState("Failed getting first ConVar");
 		
 	do
 	{
-		if(!f_bIsCommand && (f_iFlags & FCVAR_REPLICATED))
+		if (!f_bIsCommand && (f_iFlags & FCVAR_REPLICATED))
 		{
 			f_hConVar = FindConVar(f_sName);
-			if(f_hConVar == INVALID_HANDLE)
+			if (f_hConVar == INVALID_HANDLE)
 				continue;
 				
 			CVars_ReplicateConVar(f_hConVar);
@@ -182,7 +182,7 @@ CVars_OnPluginStart()
 		}
 	}
 	
-	while(FindNextConCommand(f_hConCommand, f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags));
+	while (FindNextConCommand(f_hConCommand, f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags));
 	
 	CloseHandle(f_hConCommand);
 	
@@ -191,7 +191,7 @@ CVars_OnPluginStart()
 	RegAdminCmd("kacr_removecvar", CVars_CmdRemCVar, ADMFLAG_ROOT, "Removes a CVar from the Checklist");
 	RegAdminCmd("kacr_cvars_status", CVars_CmdStatus, ADMFLAG_GENERIC, "Shows the Status of all in-game Clients");
 	
-	if(g_bCVarsEnabled)
+	if (g_bCVarsEnabled)
 		g_iCVarsStatus = Status_Register(KACR_CVARS, KACR_ON);
 		
 	else
@@ -209,14 +209,14 @@ CVars_OnClientDisconnect(client)
 	g_iRetryAttempts[client] = 0;
 	
 	f_hTemp = g_hPeriodicTimer[client];
-	if(f_hTemp != INVALID_HANDLE)
+	if (f_hTemp != INVALID_HANDLE)
 	{
 		g_hPeriodicTimer[client] = INVALID_HANDLE;
 		CloseHandle(f_hTemp);
 	}
 	
 	f_hTemp = g_hReplyTimer[client];
-	if(f_hTemp != INVALID_HANDLE)
+	if (f_hTemp != INVALID_HANDLE)
 	{
 		g_hReplyTimer[client] = INVALID_HANDLE;
 		CloseHandle(f_hTemp);
@@ -228,43 +228,43 @@ CVars_OnClientDisconnect(client)
 
 public Action CVars_CmdStatus(iCmdCaller, args)
 {
-	if(iCmdCaller && !IsClientInGame(iCmdCaller))
+	if (iCmdCaller && !IsClientInGame(iCmdCaller))
 		return Plugin_Handled;
 		
 	Handle f_hTemp;
 	char f_sIP[64], f_sCVarName[64];
 	
-	for(int iClients = 1; iClients <= MaxClients; iClients++)
-		if(g_bInGame[iClients])
+	for (int iClients = 1; iClients <= MaxClients; iClients++)
+	if (g_bInGame[iClients])
+	{
+		GetClientIP(iClients, f_sIP, sizeof(f_sIP));
+		f_hTemp = g_hCurrentQuery[iClients];
+		if (f_hTemp == INVALID_HANDLE)
 		{
-			GetClientIP(iClients, f_sIP, sizeof(f_sIP));
-			f_hTemp = g_hCurrentQuery[iClients];
-			if(f_hTemp == INVALID_HANDLE)
+			if (g_hPeriodicTimer[iClients] == INVALID_HANDLE)
 			{
-				if(g_hPeriodicTimer[iClients] == INVALID_HANDLE)
-				{
-					KACR_Log("[Error] '%L'<%s> doesn't have a periodic Timer running and no active Queries", iClients, f_sIP);
-					ReplyToCommand(iCmdCaller, "[Error][Kigen-AC_Redux] '%L'<%s> didn't have a periodic Timer running nor active Queries", iClients, f_sIP);
-					g_hPeriodicTimer[iClients] = CreateTimer(0.1, CVars_PeriodicTimer, iClients);
-					continue;
-				}
-				
-				ReplyToCommand(iCmdCaller, "[Kigen-AC_Redux] '%L'<%s> is waiting for a new Query. Current Index: %d", iClients, f_sIP, g_iCurrentIndex[iClients]);
+				KACR_Log("[Error] '%L'<%s> doesn't have a periodic Timer running and no active Queries", iClients, f_sIP);
+				ReplyToCommand(iCmdCaller, "[Error][Kigen-AC_Redux] '%L'<%s> didn't have a periodic Timer running nor active Queries", iClients, f_sIP);
+				g_hPeriodicTimer[iClients] = CreateTimer(0.1, CVars_PeriodicTimer, iClients);
+				continue;
 			}
 			
-			else
-			{
-				GetArrayString(f_hTemp, CELL_NAME, f_sCVarName, sizeof(f_sCVarName));
-				ReplyToCommand(iCmdCaller, "[Kigen-AC_Redux] '%L'<%s> has active Query on %s. Current Index: %d. Retry Attempts: %d", iClients, f_sIP, f_sCVarName, g_iCurrentIndex[iClients], g_iRetryAttempts[iClients]);
-			}
+			ReplyToCommand(iCmdCaller, "[Kigen-AC_Redux] '%L'<%s> is waiting for a new Query. Current Index: %d", iClients, f_sIP, g_iCurrentIndex[iClients]);
 		}
 		
+		else
+		{
+			GetArrayString(f_hTemp, CELL_NAME, f_sCVarName, sizeof(f_sCVarName));
+			ReplyToCommand(iCmdCaller, "[Kigen-AC_Redux] '%L'<%s> has active Query on %s. Current Index: %d. Retry Attempts: %d", iClients, f_sIP, f_sCVarName, g_iCurrentIndex[iClients], g_iRetryAttempts[iClients]);
+		}
+	}
+	
 	return Plugin_Handled;
 }
 
 public Action CVars_CmdAddCVar(client, args)
 {
-	if(args != 4 && args != 5)
+	if (args != 4 && args != 5)
 	{
 		KACR_ReplyToCommand(client, KACR_ADDCVARUSAGE);
 		return Plugin_Handled;
@@ -278,19 +278,19 @@ public Action CVars_CmdAddCVar(client, args)
 	
 	GetCmdArg(2, f_sTemp, sizeof(f_sTemp));
 	
-	if(StrEqual(f_sTemp, "=") || StrEqual(f_sTemp, "equal"))
+	if (StrEqual(f_sTemp, "=") || StrEqual(f_sTemp, "equal"))
 		f_iCompType = COMP_EQUAL;
 		
-	else if(StrEqual(f_sTemp, "<") || StrEqual(f_sTemp, "greater"))
+	else if (StrEqual(f_sTemp, "<") || StrEqual(f_sTemp, "greater"))
 		f_iCompType = COMP_GREATER;
 		
-	else if(StrEqual(f_sTemp, ">") || StrEqual(f_sTemp, "less"))
+	else if (StrEqual(f_sTemp, ">") || StrEqual(f_sTemp, "less"))
 		f_iCompType = COMP_LESS;
 		
-	else if(StrEqual(f_sTemp, "bound") || StrEqual(f_sTemp, "between"))
+	else if (StrEqual(f_sTemp, "bound") || StrEqual(f_sTemp, "between"))
 		f_iCompType = COMP_BOUND;
 		
-	else if(StrEqual(f_sTemp, "strequal"))
+	else if (StrEqual(f_sTemp, "strequal"))
 		f_iCompType = COMP_STRING;
 		
 	else
@@ -299,7 +299,7 @@ public Action CVars_CmdAddCVar(client, args)
 		return Plugin_Handled;
 	}
 	
-	if(f_iCompType == COMP_BOUND && args < 5)
+	if (f_iCompType == COMP_BOUND && args < 5)
 	{
 		KACR_ReplyToCommand(client, KACR_ADDCVARBADBOUND);
 		return Plugin_Handled;
@@ -307,19 +307,19 @@ public Action CVars_CmdAddCVar(client, args)
 	
 	GetCmdArg(3, f_sTemp, sizeof(f_sTemp));
 	
-	if(StrEqual(f_sTemp, "warn"))
+	if (StrEqual(f_sTemp, "warn"))
 		f_iAction = ACTION_WARN;
 		
-	else if(StrEqual(f_sTemp, "motd"))
+	else if (StrEqual(f_sTemp, "motd"))
 		f_iAction = ACTION_MOTD;
 		
-	else if(StrEqual(f_sTemp, "mute"))
+	else if (StrEqual(f_sTemp, "mute"))
 		f_iAction = ACTION_MUTE;
 		
-	else if(StrEqual(f_sTemp, "kick"))
+	else if (StrEqual(f_sTemp, "kick"))
 		f_iAction = ACTION_KICK;
 		
-	else if(StrEqual(f_sTemp, "ban"))
+	else if (StrEqual(f_sTemp, "ban"))
 		f_iAction = ACTION_BAN;
 		
 	else
@@ -330,15 +330,15 @@ public Action CVars_CmdAddCVar(client, args)
 	
 	GetCmdArg(4, f_sValue, sizeof(f_sValue));
 	
-	if(f_iCompType == COMP_BOUND)
+	if (f_iCompType == COMP_BOUND)
 	{
 		GetCmdArg(5, f_sTemp, sizeof(f_sTemp));
 		f_fValue2 = StringToFloat(f_sTemp);
 	}
 	
-	if(CVars_AddCVar(f_sCVarName, f_iCompType, f_iAction, f_sValue, f_fValue2, PRIORITY_NORMAL))
+	if (CVars_AddCVar(f_sCVarName, f_iCompType, f_iAction, f_sValue, f_fValue2, PRIORITY_NORMAL))
 	{
-		if(client)
+		if (client)
 		{
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			KACR_Log("'%L'<%s> added Convar %s to the Check List", client, f_sIP, f_sCVarName);
@@ -355,7 +355,7 @@ public Action CVars_CmdAddCVar(client, args)
 
 public Action CVars_CmdRemCVar(iClient, args)
 {
-	if(args != 1)
+	if (args != 1)
 	{
 		KACR_ReplyToCommand(iClient, KACR_REMCVARUSAGE);
 		return Plugin_Handled;
@@ -365,9 +365,9 @@ public Action CVars_CmdRemCVar(iClient, args)
 	
 	GetCmdArg(1, f_sCVarName, sizeof(f_sCVarName));
 	
-	if(CVars_RemoveCVar(f_sCVarName))
+	if (CVars_RemoveCVar(f_sCVarName))
 	{
-		if(iClient)
+		if (iClient)
 		{
 			char f_sIP[64];
 			GetClientIP(iClient, f_sIP, sizeof(f_sIP));
@@ -391,10 +391,10 @@ public Action CVars_CmdRemCVar(iClient, args)
 
 public Action CVars_PeriodicTimer(Handle timer, any client)
 {
-	if(g_hPeriodicTimer[client] == INVALID_HANDLE)
+	if (g_hPeriodicTimer[client] == INVALID_HANDLE)
 		return Plugin_Stop;
 		
-	if(!g_bCVarsEnabled)
+	if (!g_bCVarsEnabled)
 	{
 		g_hPeriodicTimer[client] = CreateTimer(60.0, CVars_PeriodicTimer, client);
 		return Plugin_Stop;
@@ -402,14 +402,14 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 	
 	g_hPeriodicTimer[client] = INVALID_HANDLE;
 	
-	if(!g_bConnected[client])
+	if (!g_bConnected[client])
 		return Plugin_Stop;
 		
 	char f_sName[64];
 	Handle f_hCVar;
 	int f_iIndex;
 	
-	if(g_iSize < 1)
+	if (g_iSize < 1)
 	{
 		PrintToServer("[Kigen-AC_Redux] Nothing in Convar List");
 		CreateTimer(10.0, CVars_PeriodicTimer, client);
@@ -417,7 +417,7 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 	}
 	
 	f_iIndex = g_iCurrentIndex[client]++;
-	if(f_iIndex >= g_iSize)
+	if (f_iIndex >= g_iSize)
 	{
 		f_iIndex = 0;
 		g_iCurrentIndex[client] = 1;
@@ -425,7 +425,7 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 	
 	f_hCVar = GetArrayCell(g_hCVars, f_iIndex);
 	
-	if(GetArrayCell(f_hCVar, CELL_CHANGED) == INVALID_HANDLE)
+	if (GetArrayCell(f_hCVar, CELL_CHANGED) == INVALID_HANDLE)
 	{
 		GetArrayString(f_hCVar, 0, f_sName, sizeof(f_sName));
 		g_hCurrentQuery[client] = f_hCVar;
@@ -442,14 +442,14 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 public Action CVars_ReplyTimer(Handle timer, any userid)
 {
 	int client = GetClientOfUserId(userid);
-	if(!client || g_hReplyTimer[client] == INVALID_HANDLE)
+	if (!client || g_hReplyTimer[client] == INVALID_HANDLE)
 		return Plugin_Stop;
 		
 	g_hReplyTimer[client] = INVALID_HANDLE;
-	if(!g_bCVarsEnabled || !g_bConnected[client] || g_hPeriodicTimer[client] != INVALID_HANDLE)
+	if (!g_bCVarsEnabled || !g_bConnected[client] || g_hPeriodicTimer[client] != INVALID_HANDLE)
 		return Plugin_Stop;
 		
-	if(g_iRetryAttempts[client]++ > 3)
+	if (g_iRetryAttempts[client]++ > 3)
 		KACR_Kick(client, KACR_FAILEDTOREPLY);
 		
 	else
@@ -457,7 +457,7 @@ public Action CVars_ReplyTimer(Handle timer, any userid)
 		char f_sName[64];
 		Handle f_hCVar;
 		
-		if(g_iSize < 1)
+		if (g_iSize < 1)
 		{
 			PrintToServer("[Kigen-AC_Redux] Nothing in Convar List");
 			CreateTimer(10.0, CVars_PeriodicTimer, client);
@@ -466,7 +466,7 @@ public Action CVars_ReplyTimer(Handle timer, any userid)
 		
 		f_hCVar = g_hCurrentQuery[client];
 		
-		if(GetArrayCell(f_hCVar, CELL_CHANGED) == INVALID_HANDLE)
+		if (GetArrayCell(f_hCVar, CELL_CHANGED) == INVALID_HANDLE)
 		{
 			GetArrayString(f_hCVar, 0, f_sName, sizeof(f_sName));
 			QueryClientConVar(client, f_sName, CVars_QueryCallback, client);
@@ -485,7 +485,7 @@ public void CVars_ReplicateTimer(any f_hConVar)
 	char f_sName[64];
 	
 	GetConVarName(f_hConVar, f_sName, sizeof(f_sName));
-	if(g_bCVarsEnabled && StrEqual(f_sName, "sv_cheats") && GetConVarInt(f_hConVar) != 0)
+	if (g_bCVarsEnabled && StrEqual(f_sName, "sv_cheats") && GetConVarInt(f_hConVar) != 0)
 		SetConVarInt(f_hConVar, 0);
 		
 	CVars_ReplicateConVar(f_hConVar);
@@ -502,12 +502,12 @@ public Action CVars_ReplicateCheck(Handle timer, any f_hIndex)
 
 public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
 {
-	if(!g_bConnected[client])
+	if (!g_bConnected[client])
 		return;
 		
-	if(!g_bCVarsEnabled)
+	if (!g_bCVarsEnabled)
 	{
-		if(g_hPeriodicTimer[client] == INVALID_HANDLE)
+		if (g_hPeriodicTimer[client] == INVALID_HANDLE)
 			g_hPeriodicTimer[client] = CreateTimer(60.0, CVars_PeriodicTimer, client);
 			
 		return;
@@ -521,7 +521,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	
 	GetClientIP(client, f_sIP, sizeof(f_sIP));
 	
-	if(g_hPeriodicTimer[client] != INVALID_HANDLE)
+	if (g_hPeriodicTimer[client] != INVALID_HANDLE)
 		f_bContinue = false;
 		
 	else
@@ -530,9 +530,9 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	f_hConVar = g_hCurrentQuery[client];
 	
 	// We weren't expecting a reply or convar we queried is no longer valid and we cannot find it.
-	if(f_hConVar == INVALID_HANDLE && !g_hCVarIndex.GetValue(cvarName, f_hConVar))
+	if (f_hConVar == INVALID_HANDLE && !g_hCVarIndex.GetValue(cvarName, f_hConVar))
 	{
-		if(g_hPeriodicTimer[client] == INVALID_HANDLE) // Client doesn't have active query or a timer active for them?  Ballocks!
+		if (g_hPeriodicTimer[client] == INVALID_HANDLE) // Client doesn't have active query or a timer active for them?  Ballocks!
 			g_hPeriodicTimer[client] = CreateTimer(GetRandomFloat(0.5, 2.0), CVars_PeriodicTimer, client);
 			
 		return;
@@ -541,9 +541,9 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	GetArrayString(f_hConVar, CELL_NAME, f_sCVarName, sizeof(f_sCVarName));
 	
 	// Make sure this query replied correctly.
-	if(!StrEqual(cvarName, f_sCVarName)) // CVar not expected.
+	if (!StrEqual(cvarName, f_sCVarName)) // CVar not expected.
 	{
-		if(!g_hCVarIndex.GetValue(cvarName, f_hConVar)) // CVar doesn't exist in our list.
+		if (!g_hCVarIndex.GetValue(cvarName, f_hConVar)) // CVar doesn't exist in our list.
 		{
 			KACR_Log("Unknown CVar Reply: '%L'<%s> was kicked for a corrupted Return with Convar Name \"%s\" (expecting \"%s\") with Value \"%s\".", client, f_sIP, cvarName, f_sCVarName, cvarValue);
 			KACR_Kick(client, KACR_CLIENTCORRUPT);
@@ -559,12 +559,12 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	f_iCompType = GetArrayCell(f_hConVar, CELL_COMPTYPE);
 	f_iAction = GetArrayCell(f_hConVar, CELL_ACTION);
 	
-	if(f_bContinue)
+	if (f_bContinue)
 	{
 		f_hTemp = g_hReplyTimer[client];
 		g_hCurrentQuery[client] = INVALID_HANDLE;
 		
-		if(f_hTemp != INVALID_HANDLE)
+		if (f_hTemp != INVALID_HANDLE)
 		{
 			g_hReplyTimer[client] = INVALID_HANDLE;
 			CloseHandle(f_hTemp);
@@ -573,15 +573,15 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	}
 	
 	// Check if it should exist.
-	if(f_iCompType == COMP_NONEXIST)
+	if (f_iCompType == COMP_NONEXIST)
 	{
-		if(result != ConVarQuery_NotFound)
+		if (result != ConVarQuery_NotFound)
 		{
-			switch(f_iAction)
+			switch (f_iAction)
 			{
 				case ACTION_WARN:
-					KACR_PrintToChatAdmins(KACR_HASPLUGIN, client, f_sIP, f_sCVarName);
-					
+				KACR_PrintToChatAdmins(KACR_HASPLUGIN, client, f_sIP, f_sCVarName);
+				
 				case ACTION_MOTD:
 				{
 					GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -611,13 +611,13 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 			}
 		}
 		
-		if(f_bContinue)
+		if (f_bContinue)
 			g_hPeriodicTimer[client] = CreateTimer(GetRandomFloat(1.0, 3.0), CVars_PeriodicTimer, client);
 			
 		return;
 	}
 	
-	if(result != ConVarQuery_Okay) // ConVar should exist. // TODO: Add an CVar to decide
+	if (result != ConVarQuery_Okay) // ConVar should exist. // TODO: Add an CVar to decide
 	{
 		KACR_Log("Bad CVar Query Result: '%L'<%s> returned Query Result \"%s\" (expected Okay) on ConVar \"%s\" (Value \"%s\").", client, f_sIP, g_sQueryResult[result], cvarName, cvarValue);
 		KickClient(client, "KACR: '%s' Violation (bad Query Result).", cvarName); // TODO: Add Translation
@@ -627,27 +627,27 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	}
 	
 	// Check if the ConVar was recently changed.
-	if(GetArrayCell(f_hConVar, CELL_CHANGED) != INVALID_HANDLE)
+	if (GetArrayCell(f_hConVar, CELL_CHANGED) != INVALID_HANDLE)
 	{
 		g_hPeriodicTimer[client] = CreateTimer(GetRandomFloat(1.0, 3.0), CVars_PeriodicTimer, client);
 		return;
 	}
 	
 	f_hTemp = GetArrayCell(f_hConVar, CELL_HANDLE);
-	if(f_hTemp == INVALID_HANDLE || f_iCompType != COMP_EQUAL)
+	if (f_hTemp == INVALID_HANDLE || f_iCompType != COMP_EQUAL)
 		GetArrayString(f_hConVar, CELL_VALUE, f_sValue, sizeof(f_sValue));
 		
 	else
 		GetConVarString(f_hTemp, f_sValue, sizeof(f_sValue));
 		
-	if(f_iCompType == COMP_BOUND)
+	if (f_iCompType == COMP_BOUND)
 		f_fValue2 = GetArrayCell(f_hConVar, CELL_VALUE2);
 		
-	if(f_iCompType != COMP_STRING)
+	if (f_iCompType != COMP_STRING)
 	{
 		f_iSize = strlen(cvarValue);
-		for(int i = 0; i < f_iSize; i++)
-			if(!IsCharNumeric(cvarValue[i]) && cvarValue[i] != '.')
+		for (int i = 0; i < f_iSize; i++)
+			if (!IsCharNumeric(cvarValue[i]) && cvarValue[i] != '.')
 			{
 				KACR_Log("Corrupted CVar Response: '%L'<%s> was kicked for returning a corrupted Value on '%s' (%s), Value set at \"%s\" (expected \"%s\").", client, f_sIP, f_sCVarName, cvarName, cvarValue, f_sValue);
 				KACR_Kick(client, KACR_CLIENTCORRUPT);
@@ -656,17 +656,17 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	}
 	
 	
-	switch(f_iCompType)
+	switch (f_iCompType)
 	{
 		case COMP_EQUAL:
 		{
-			if(StringToFloat(f_sValue) != StringToFloat(cvarValue))
+			if (StringToFloat(f_sValue) != StringToFloat(cvarValue))
 			{
-				switch(f_iAction)
+				switch (f_iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
-						
+					KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
+					
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -699,13 +699,13 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		
 		case COMP_GREATER:
 		{
-			if(StringToFloat(f_sValue) > StringToFloat(cvarValue))
+			if (StringToFloat(f_sValue) > StringToFloat(cvarValue))
 			{
-				switch(f_iAction)
+				switch (f_iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTGREATER, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
-						
+					KACR_PrintToChatAdmins(KACR_HASNOTGREATER, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
+					
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -738,13 +738,13 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		
 		case COMP_LESS:
 		{
-			if(StringToFloat(f_sValue) < StringToFloat(cvarValue))
+			if (StringToFloat(f_sValue) < StringToFloat(cvarValue))
 			{
-				switch(f_iAction)
+				switch (f_iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTLESS, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
-						
+					KACR_PrintToChatAdmins(KACR_HASNOTLESS, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
+					
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -777,13 +777,13 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		
 		case COMP_BOUND:
 		{
-			if(StringToFloat(f_sValue) >= StringToFloat(cvarValue) && f_fValue2 <= StringToFloat(cvarValue))
+			if (StringToFloat(f_sValue) >= StringToFloat(cvarValue) && f_fValue2 <= StringToFloat(cvarValue))
 			{
-				switch(f_iAction)
+				switch (f_iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTBOUND, client, f_sIP, f_sCVarName, cvarValue, f_sValue, f_fValue2);
-						
+					KACR_PrintToChatAdmins(KACR_HASNOTBOUND, client, f_sIP, f_sCVarName, cvarValue, f_sValue, f_fValue2);
+					
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -816,13 +816,13 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		
 		case COMP_STRING:
 		{
-			if(!StrEqual(f_sValue, cvarValue))
+			if (!StrEqual(f_sValue, cvarValue))
 			{
-				switch(f_iAction)
+				switch (f_iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
-						
+					KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
+					
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -854,7 +854,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		}
 	}
 	
-	if(f_bContinue)
+	if (f_bContinue)
 		g_hPeriodicTimer[client] = CreateTimer(GetRandomFloat(0.5, 2.0), CVars_PeriodicTimer, client);
 }
 
@@ -866,10 +866,10 @@ public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] n
 	Handle f_hCVarIndex, f_hTimer;
 	char f_sName[64];
 	GetConVarName(convar, f_sName, sizeof(f_sName));
-	if(g_hCVarIndex.GetValue(f_sName, f_hCVarIndex))
+	if (g_hCVarIndex.GetValue(f_sName, f_hCVarIndex))
 	{
 		f_hTimer = GetArrayCell(f_hCVarIndex, CELL_CHANGED);
-		if(f_hTimer != INVALID_HANDLE)
+		if (f_hTimer != INVALID_HANDLE)
 			CloseHandle(f_hTimer);
 			
 		f_hTimer = CreateTimer(30.0, CVars_ReplicateCheck, f_hCVarIndex);
@@ -882,7 +882,7 @@ public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] n
 public void CVars_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bCVarsEnabled = GetConVarBool(convar);
-	if(g_bCVarsEnabled)
+	if (g_bCVarsEnabled)
 		Status_Report(g_iCVarsStatus, KACR_ON);
 		
 	else
@@ -908,13 +908,13 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 	Handle f_hConVar = INVALID_HANDLE, f_hArray;
 	
 	f_hConVar = FindConVar(f_sName);
-	if(f_hConVar != INVALID_HANDLE && (GetConVarFlags(f_hConVar) & FCVAR_REPLICATED) && (f_iComparisonType == COMP_EQUAL || f_iComparisonType == COMP_STRING))
+	if (f_hConVar != INVALID_HANDLE && (GetConVarFlags(f_hConVar) & FCVAR_REPLICATED) && (f_iComparisonType == COMP_EQUAL || f_iComparisonType == COMP_STRING))
 		f_iComparisonType = COMP_EQUAL;
-	
+		
 	else
 		f_hConVar = INVALID_HANDLE;
 		
-	if(g_hCVarIndex.GetValue(f_sName, f_hArray)) // Check if CVar check already exists.
+	if (g_hCVarIndex.GetValue(f_sName, f_hArray)) // Check if CVar check already exists.
 	{
 		SetArrayString(f_hArray, CELL_NAME, f_sName); // Name			0
 		SetArrayCell(f_hArray, CELL_COMPTYPE, f_iComparisonType); // Comparison Type	1
@@ -940,7 +940,7 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 		PushArrayCell(f_hArray, f_iImportance); // Importance		7
 		PushArrayCell(f_hArray, INVALID_HANDLE); // Changed		8
 		
-		if(!g_hCVarIndex.SetValue(f_sName, f_hArray))
+		if (!g_hCVarIndex.SetValue(f_sName, f_hArray))
 		{
 			CloseHandle(f_hArray);
 			KACR_Log("Unable to add ConVar to Trie Link List '%s'", f_sName);
@@ -950,7 +950,7 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 		PushArrayCell(g_hCVars, f_hArray);
 		g_iSize = GetArraySize(g_hCVars);
 		
-		if(f_iImportance != PRIORITY_NORMAL && g_bMapStarted)
+		if (f_iImportance != PRIORITY_NORMAL && g_bMapStarted)
 			CVars_CreateNewOrder();
 	}
 	
@@ -962,17 +962,17 @@ stock bool CVars_RemoveCVar(char[] f_sName)
 	Handle f_hConVar;
 	int f_iIndex;
 	
-	if(!g_hCVarIndex.GetValue(f_sName, f_hConVar))
+	if (!g_hCVarIndex.GetValue(f_sName, f_hConVar))
 		return false;
 		
 	f_iIndex = FindValueInArray(g_hCVars, f_hConVar);
-	if(f_iIndex == -1)
+	if (f_iIndex == -1)
 		return false;
 		
-	for(int i = 0; i <= MaxClients; i++)
-		if(g_hCurrentQuery[i] == f_hConVar)
-			g_hCurrentQuery[i] = INVALID_HANDLE;
-			
+	for (int i = 0; i <= MaxClients; i++)
+	if (g_hCurrentQuery[i] == f_hConVar)
+		g_hCurrentQuery[i] = INVALID_HANDLE;
+		
 	RemoveFromArray(g_hCVars, f_iIndex);
 	g_hCVarIndex.Remove(f_sName);
 	CloseHandle(f_hConVar);
@@ -992,17 +992,17 @@ stock CVars_CreateNewOrder()
 	f_hPNormal = CreateArray(64);
 	
 	// Get priorities.
-	for(int i = 0; i < g_iSize; i++)
+	for (int i = 0; i < g_iSize; i++)
 	{
 		f_hCurrent = GetArrayCell(g_hCVars, i);
 		f_iTemp = GetArrayCell(f_hCurrent, CELL_PRIORITY);
-		if(f_iTemp == PRIORITY_NORMAL)
+		if (f_iTemp == PRIORITY_NORMAL)
 			PushArrayCell(f_hPNormal, f_hCurrent);
 			
-		else if(f_iTemp == PRIORITY_MEDIUM)
+		else if (f_iTemp == PRIORITY_MEDIUM)
 			PushArrayCell(f_hPMedium, f_hCurrent);
 			
-		else if(f_iTemp == PRIORITY_HIGH)
+		else if (f_iTemp == PRIORITY_HIGH)
 			PushArrayCell(f_hPHigh, f_hCurrent);
 	}
 	
@@ -1011,7 +1011,7 @@ stock CVars_CreateNewOrder()
 	f_iNormal = GetArraySize(f_hPNormal) - 1;
 	
 	// Start randomizing!
-	while(f_iHigh > -1)
+	while (f_iHigh > -1)
 	{
 		f_iTemp = GetRandomInt(0, f_iHigh);
 		f_hOrder[f_iCurrent++] = GetArrayCell(f_hPHigh, f_iTemp);
@@ -1019,7 +1019,7 @@ stock CVars_CreateNewOrder()
 		f_iHigh--;
 	}
 	
-	while(f_iMedium > -1)
+	while (f_iMedium > -1)
 	{
 		f_iTemp = GetRandomInt(0, f_iMedium);
 		f_hOrder[f_iCurrent++] = GetArrayCell(f_hPMedium, f_iTemp);
@@ -1027,7 +1027,7 @@ stock CVars_CreateNewOrder()
 		f_iMedium--;
 	}
 	
-	while(f_iNormal > -1)
+	while (f_iNormal > -1)
 	{
 		f_iTemp = GetRandomInt(0, f_iNormal);
 		f_hOrder[f_iCurrent++] = GetArrayCell(f_hPNormal, f_iTemp);
@@ -1037,7 +1037,7 @@ stock CVars_CreateNewOrder()
 	
 	ClearArray(g_hCVars);
 	
-	for(int i = 0; i < g_iSize; i++)
+	for (int i = 0; i < g_iSize; i++)
 		PushArrayCell(g_hCVars, f_hOrder[i]);
 		
 	CloseHandle(f_hPHigh);
@@ -1050,15 +1050,15 @@ stock CVars_ReplicateConVar(Handle f_hConVar)
 	char f_sCVarName[64], f_sValue[64];
 	GetConVarName(f_hConVar, f_sCVarName, sizeof(f_sCVarName));
 	GetConVarString(f_hConVar, f_sValue, sizeof(f_sValue));
-	for(int i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if(g_bConnected[i])
+		if (g_bConnected[i])
 		{
-			if(!IsClientConnected(i) || IsFakeClient(i))
+			if (!IsClientConnected(i) || IsFakeClient(i))
 				OnClientDisconnect(i);
 				
-			else if(!SendConVarValue(i, f_hConVar, f_sValue))
+			else if (!SendConVarValue(i, f_hConVar, f_sValue))
 				continue; // KACR_Log("'%L' failed to accept replication of '%s' (Value: %s)", i, f_sCVarName, f_sValue); - This happens if the netchan isn't created yet, cvars will replicate once it is created.
 		}
 	}
-}
+} 
