@@ -6,7 +6,7 @@ Requires:
 
 Optional:
 - Sourcebans++
-- Sourcebans
+- Sourcebans 2.X (V1 is unsupported)
 
 Official supported Games:
 - Counter-Strike: Global Offensive
