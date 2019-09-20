@@ -61,6 +61,6 @@ I hope this Plugin will help some Server Owners even doe its still in an early S
 Ime still working on my own AC System, so dont exspect massive Changes here. Propapbly i will merge this Project some Day into "Cheat Acid".
 Since i havent implemented an Updater yet (or renewed the old one), watch this Project on GitHub so you will be informed about Updates.
 
-![How to watch](https://help.github.com/assets/images/help/notifications/watcher_picker.gif)
+![How to watch](https://help.github.com/assets/images/help/repository/repo-actions-watch.png)
 
 If you want to help you can Contribute to the Project by submitting Code, Bugs, False-Positives, Wiki Entrys and Translations.
