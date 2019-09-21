@@ -18,8 +18,6 @@ Official supported Games:
 - Half-Life 2: Deathmatch
   #### Most Elements of KACR will work on any Half Life Engine Game
 #
-#
-
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.
 I hope this Plugin will help some Server Owners even doe its still in an early Stage of development.
 Ime still working on my own AC System, so dont exspect massive Changes here. Propapbly i will merge this Project some Day into "Cheat Acid".
