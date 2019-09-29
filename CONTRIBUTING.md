@@ -19,16 +19,16 @@ Update Information go like this:
 # Contribution guidelines
 
 
-**Index of contents**
-* What chances do I have to add new code to smlib ?
-	* Through pull requests
-	* Write/Push access (direct committing)
-* General rules
-* Checklist before submitting pull requests / committing new code
-* Consistent code style
-	* smlib code style example
+**Index of Contents**
+* What Chances do I have to add new Code to KACR?
+	* Through Pull Requests
+	* Write/Push Access (Direct Committing)
+* General Rules
+* Checklist before submitting Pull Requests / committing new Code
+* Consistent Code Style
+	* KACR Code Style Example
 
-## What chances do I have to add new code to smlib ?
+## What chances do I have to add new Code to KACR?
 
 ### Through pull requests
 
@@ -81,28 +81,31 @@ We give people push access who have already done some successful pull requests.
 * Write names in [camelCase](https://www.google.at/?q=camelCase)
 * Make a line break if the line is already too long (we don't have a specific width)
 
-### smlib code style example
+### Code Style Example
 ```sourcepawn
 /**
- * Returns the index for the first occurance of the given value.
- * If the value cannot be found, -1 will be returned.
+ * Describe the Function here
  *
- * @param hard     Set this to true to slap the players hard.
- * @return         True if the slapping was successful, false otherwise
+ * @param iClient	Client to Target.
+ * @return		True if succesfull.
  */
-function SlapAllPlayers(bool:hard=true)
-{ // Function opening bracket on next line
-	var var1         = 1; // Variables start with a lower case letter
-	var anotherVar2  = 2;
-
-	for (new client=1; client <= MaxClients; client++) { // for, while, do, switch etc. brackets on same line
-
-		if () { // if, else brackets on same line
-			 // Some code
+stock SomeFunction(int iClient)
+{
+	bool bBool1, bBool2; // Default Value is false
+	bool bBool3 = true;
+	// Mind the Gap
+	for (int iClient = 1; iClient < = MaxClients; iClient++)
+	{
+		if (bBool1 != bBool2) // Mind the Gap
+		{// if, else brackets on same line
+			// Code
+			// Code
 		}
-		else {
-			// Some code
-		}
+		// There must be a Gap after an if/else/case if code comes after that
+		else // Do not open brackets for oneliners
+			DoStuff();
+			// Gap and Tab till next Function if open
+		return;
 	}
 }
 ```
