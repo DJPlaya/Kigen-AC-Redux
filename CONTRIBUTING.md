@@ -5,6 +5,7 @@ All Nouns and proper Names must be capitalized
 Global Variables must be marked with g_
 Variable Names must contain the Data Type and each Word must be capitalized like this: bool bEyetestEnabled
 All Convars must be Hooked, the Function name must begin with ConVarChanged_
+When you define Vars, do not make Bools = False and Handle = Invalid_Handle, thats done automatically nowadays
 
 Update Information go like this:
 
