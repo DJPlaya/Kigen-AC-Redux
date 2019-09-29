@@ -1,9 +1,16 @@
 # Work in Progress
 
+Use the new Syntax and dont forget to optimize every bit of Code
 All Nouns and proper Names must be capitalized
 Global Variables must be marked with g_
 Variable Names must contain the Data Type and each Word must be capitalized like this: bool bEyetestEnabled
+All Convars must be Hooked, the Function name must begin with ConVarChanged_
 
+Update Information go like this:
+
++Added WIP Update System
+*Updated Syntax
+-Removed Backcheck Function
 
 --------------------------------------
 
