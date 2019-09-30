@@ -107,6 +107,8 @@ stock SomeFunction(int iClient)
 			// Gap and Tab till next Function if open
 		return;
 	}
+	// Allways a Gap before the Return of the main Function
+	return Plugin_Handled;
 }
 ```
 
