@@ -15,7 +15,7 @@ Official supported Games:
 - Insurgency
 - Day of Defeat: Source
 - Half-Life 2: Deathmatch
-  #### Most Elements of KACR will work on any Source 2007+ Engine Game
+  #### Most Elements of KACR will work on every Source 2007+ Engine Game
 #
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.
 I hope this Plugin will help some Server Owners even doe its still in an early Stage of development.
