@@ -25,3 +25,4 @@ Since i havent implemented an Updater yet (or renewed the old one), watch this P
 ![How to watch](https://help.github.com/assets/images/help/repository/repo-actions-watch.png)
 
 If you want to help you can Contribute to the Project by submitting Code, Bugs, False-Positives, Wiki Entrys and Translations.
+Information on how to submit Code, Wiki Entrys and Translations can be found in CONTRIBUTING.md
