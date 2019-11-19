@@ -18,9 +18,8 @@ Official supported Games:
   #### Most Elements of KACR will work on every Source 2007+ Engine Game
 #
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.
-I hope this Plugin will help some Server Owners even doe its still in an early Stage of development.
-Ime still working on my own AC System, so dont exspect massive Changes here. Propapbly i will merge this Project some Day into "Cheat Acid".
-Since i havent implemented an Updater yet (or renewed the old one), watch this Project on GitHub so you will be informed about Updates.
+I hope this Plugin will help some Server Owners. Propapbly i will merge this Project some Day into "Cheat Acid".
+Since i havent implemented an Updater yet, watch this Project on GitHub so you will be informed about Updates.
 
 ![How to watch](https://help.github.com/assets/images/help/repository/repo-actions-watch.png)
 
