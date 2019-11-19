@@ -1,4 +1,4 @@
-# [WIP] Kigen Anti Cheat Redux
+# Kigen Anti Cheat Redux
 
 Requires:
 - SourceMod 1.8 or Higher (kigen-ac_redux is for 1.10, kigen-ac_redux_legacy for 1.8/1.9)
