@@ -4,9 +4,9 @@
 
 #define MAX_CONNECTIONS 128 // Sourcemod says their max is 65, but Source's max is up to 128
 
-Handle g_hCVarClientEnable, g_hCVarClientAntiRespawn, g_hCVarClientNameProtect, g_hCVarClientNameProtectAction, g_hCVarClientAntiSpamConnect, g_hCVarClientAntiSpamConnectAction;
-bool g_bClientEnable, g_bClientNameProtect, g_bClientAntiRespawn;
-int g_iClientNameProtectAction, g_iClientAntiSpamConnect, g_iClientAntiSpamConnectAction; 
+Handle g_hCVarClientEnable, g_hCVarClientAntiRespawn, g_hCVarClientNameProtect, g_hCVarClientAntiSpamConnect, g_hCVarClientAntiSpamConnectAction;
+bool g_bClientEnable, g_bClientAntiRespawn;
+int g_iClientNameProtect, g_iClientAntiSpamConnect, g_iClientAntiSpamConnectAction; 
 
 StringMap g_hClientSpawned;
 char g_sClientConnections[MAX_CONNECTIONS][64];
@@ -39,10 +39,8 @@ public void Client_OnPluginStart()
 		RegConsoleCmd("joinclass", Client_JoinClass);
 	}
 	
-	g_hCVarClientNameProtect = AutoExecConfig_CreateConVar("kacr_client_nameprotect", "1", "This will protect the Server from name Crashes and Hacks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bClientNameProtect = GetConVarBool(g_hCVarClientNameProtect);
-	g_hCVarClientNameProtectAction = AutoExecConfig_CreateConVar("kacr_client_nameprotect_action", "1040", "Action(s) to take when someone has an invalid Name, Time Bans will be 1 min", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
-	g_iClientNameProtectAction = GetConVarInt(g_hCVarClientNameProtectAction);
+	g_hCVarClientNameProtect = AutoExecConfig_CreateConVar("kacr_client_nameprotect_action", "1040", "Action(s) to take when someone has an invalid Name, Time Bans will be 1 min. Protects the Server from Crashes and Hacks (0 = Disabled)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+	g_iClientNameProtect = GetConVarInt(g_hCVarClientNameProtect);
 	//
 	g_hCVarClientAntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "0", "Seconds to prevent someone from restablishing a Connection. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
 	g_iClientAntiSpamConnect = GetConVarInt(g_hCVarClientAntiSpamConnect);
@@ -61,7 +59,7 @@ public void Client_OnPluginStart()
 				g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_OFF);
 		}
 		
-		if (g_bClientNameProtect)
+		if (g_iClientNameProtect)
 			g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_ON);
 			
 		else
@@ -78,8 +76,7 @@ public void Client_OnPluginStart()
 	}
 	
 	HookConVarChange(g_hCVarClientEnable, Client_EnableChange);
-	HookConVarChange(g_hCVarClientNameProtect, Client_NameProtectChange);
-	HookConVarChange(g_hCVarClientNameProtectAction, Client_NameProtectActionChange);
+	HookConVarChange(g_hCVarClientNameProtect, Client_NameProtectActionChange);
 	HookConVarChange(g_hCVarClientAntiSpamConnect, Client_AntiSpamConnectChange);
 	HookConVarChange(g_hCVarClientAntiSpamConnectAction, Client_AntiSpamConnectActionChange);
 	
@@ -266,59 +263,95 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 		}
 	}
 	
-	if (g_bClientNameProtect)
+	if (g_iClientNameProtect)
 	{
-		char f_sName[64], f_cChar;
-		int f_iSize;
-		bool f_bWhiteSpace = true;
+		int iResult = g_iClientNameProtect;
+		bool bActions[KACR_Action_Count] = KACR_ActionCheck(iResult);
 		
-		GetClientName(iClient, f_sName, sizeof(f_sName));
-		
-		f_iSize = strlen(f_sName);
-		
-		if (f_iSize == 0 || f_sName[0] == '&') // Blank name or &???
+		if(bActions[KACR_Action_Crash] || bActions[KACR_Action_AskSteamAdmin]) // Not Supported
 		{
-			Format(rejectmsg, size, "Please change your name");
-			return false;
+			KACR_Log("[Warning] 'kacr_client_nameprotect_action' cannot be used with Action 32 or 512, running without them");
+			if(bActions[KACR_Action_Crash])
+				iResult = iResult - 32;
+				
+			if(bActions[KACR_Action_AskSteamAdmin])
+				iResult = iResult  - 512;
 		}
 		
-		for (int i = 0; i < f_iSize; i++)
+		if(bActions[KACR_Action_Kick]) // We do refuse the Client, so we cannot kick him or somethin
+			iResult = iResult  - 16;
+			
+		if(bActions[KACR_Action_TimeBan] || bActions[KACR_Action_ServerBan] || bActions[KACR_Action_ServerTimeBan] || bActions[KACR_Action_ServerTimeBan] || bActions[KACR_Action_Kick]) // All of theese do also kick the Client so its equvivalent to refusing him
 		{
-			f_cChar = f_sName[i];
-			if (!IsCharSpace(f_cChar))
-				f_bWhiteSpace = false; // True if the entire Name is an Whitespace (there cant be Whitespaces after the Name)
-				
-			if (IsCharMB(f_cChar))
+			char f_sName[64], f_cChar;
+			int f_iSize;
+			bool f_bWhiteSpace = true;
+			
+			GetClientName(iClient, f_sName, sizeof(f_sName));
+			f_iSize = strlen(f_sName);
+			
+			if (f_iSize == 0 || f_sName[0] == '&') // Blank name or &???
 			{
-				i++;
-				if (f_cChar == 194 && f_sName[i] == 160)
+				Format(rejectmsg, size, "Please change your Name");
+				KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient) // 1 Min Time Ban
+				return false;
+			}
+			
+			for (int i = 0; i < f_iSize; i++)
+			{
+				f_cChar = f_sName[i];
+				if (!IsCharSpace(f_cChar))
+					f_bWhiteSpace = false; // True if the entire Name is an Whitespace (there cant be Whitespaces after the Name)
+					
+				if (IsCharMB(f_cChar))
 				{
-					Format(rejectmsg, size, "Please change your name");
+					i++;
+					if (f_cChar == 194 && f_sName[i] == 160)
+					{
+						Format(rejectmsg, size, "Please change your Name");
+						KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient) // 1 Min Time Ban
+						return false;
+					}
+				}
+				
+				else if (f_cChar < 32)
+				{
+					Format(rejectmsg, size, "Please change your Name");
+					KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient) // 1 Min Time Ban
 					return false;
 				}
 			}
 			
-			else if (f_cChar < 32)
+			if (f_bWhiteSpace) // The entire Name is an Whitespace
 			{
-				Format(rejectmsg, size, "Please change your name");
+				Format(rejectmsg, size, "Please change your Name");
+				KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient) // 1 Min Time Ban
 				return false;
 			}
+			
 		}
 		
-		if (f_bWhiteSpace) // The entire Name is an Whitespace
-		{
-			Format(rejectmsg, size, "Please change your name");
-			return false;
-		}
-		
+		return true;
 	}
+	
+	return 
+	true;
+}
+/*
+* Tests whether the Clients Name is good or bad
+*
+* @param iClient		Client UID.
+* @return				True if the Name is Valid, False if not
+*/
+bool CheckClientName(int iCLient) // TODO
+{
 	
 	return true;
 }
 
 public void OnClientSettingsChanged(iClient)
 {
-	if (!g_bClientEnable || !g_bClientNameProtect || IsFakeClient(iClient))
+	if (!g_bClientEnable || !g_iClientNameProtect || IsFakeClient(iClient))
 		return;
 		
 	char f_sName[64];
@@ -390,7 +423,7 @@ public void Client_EnableChange(Handle hConVar, const char[] cOldValue, const ch
 				Status_Report(g_iClientAntiRespawnStatus, KACR_OFF);
 		}
 		
-		if (g_bClientNameProtect)
+		if (g_iClientNameProtect)
 			Status_Report(g_iClientNameProtectStatus, KACR_ON);
 			
 		else
@@ -420,22 +453,18 @@ public void Client_AntiRespawnChange(Handle hConVar, const char[] cOldValue, con
 	}
 }
 
-public void Client_NameProtectChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+
+public void Client_NameProtectActionChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bClientNameProtect = GetConVarBool(hConVar);
+	g_iClientNameProtect = GetConVarInt(hConVar);
 	if (g_bClientEnable)
 	{
-		if (g_bClientNameProtect)
+		if (g_iClientNameProtect)
 			Status_Report(g_iClientNameProtectStatus, KACR_ON);
 			
 		else
 			Status_Report(g_iClientNameProtectStatus, KACR_OFF);
 	}
-}
-
-public void Client_NameProtectActionChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
-{
-	g_iClientNameProtectAction = GetConVarInt(hConVar);
 }
 
 public void Client_AntiSpamConnectChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
