@@ -1,23 +1,5 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#define TRANSLATIONS
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
 
 //- Defined Translations -//
@@ -94,7 +76,7 @@
 
 StringMap g_hLanguages;
 
-Trans_OnPluginStart()
+public Trans_OnPluginStart()
 {
 	StringMap f_hTemp = new StringMap();
 	g_hLanguages = new StringMap();
@@ -109,9 +91,10 @@ Trans_OnPluginStart()
 	//- English -// Done by Kigen
 	if (!g_hLanguages.GetValue("en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
-		// SetFailState("Unable to create Language Hashmap for English"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for English");
 		KACR_Log("[Error] Unable to create Language Hashmap for English");
+		
+		return;
 	}
 	
 	// Load the phrases into Translations.
@@ -189,9 +172,10 @@ Trans_OnPluginStart()
 	//- French -// Thanks to Vintage > http://kigenac.com/memberlist.php?mode=viewprofile&u=1035
 	if (!g_hLanguages.GetValue("fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
-		// SetFailState("Unable to create Language Hashmap for French"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for French");
 		KACR_Log("[Error] Unable to create Language Hashmap for French");
+		
+		return;
 	}
 	
 	f_hTemp.SetString(KACR_LOADED, "Kigen's Anti-Cheat Redux est opérationnel");
@@ -268,9 +252,10 @@ Trans_OnPluginStart()
 	//- Italian -// Thanks to Asterix > http://kigenac.com/memberlist.php?mode=viewprofile&u=116
 	if (!g_hLanguages.GetValue("it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
-		// SetFailState("Unable to create Language Hashmap for Italian"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for Italian");
 		KACR_Log("[Error] Unable to create Language Hashmap for Italian");
+		
+		return;
 	}
 	
 	f_hTemp.SetString(KACR_LOADED, "L'anticheats Kigen Redux è stato caricato con successo");
@@ -347,9 +332,10 @@ Trans_OnPluginStart()
 	//- German -// Done by Playa
 	if (!g_hLanguages.GetValue("de", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
-		// SetFailState("Unable to create Language Hashmap for German"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for German");
 		KACR_Log("[Error] Unable to create Language Hashmap for German");
+		
+		return;
 	}
 	
 	// Load the phrases into Translations.
@@ -427,9 +413,10 @@ Trans_OnPluginStart()
 	//- Hebrew -// Thanks to Shazero Sicario > Discord: WildGamer.net#4916
 	if (!g_hLanguages.GetValue("he", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
-		// SetFailState("Unable to create Language Hashmap for Hebrew"); // We do not want an AC to break, otherwise our Server would be unprotected :O
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for Hebrew");
 		KACR_Log("[Error] Unable to create Language Hashmap for Hebrew");
+		
+		return;
 	}
 	
 	// Load the phrases into Translations.
@@ -502,4 +489,14 @@ Trans_OnPluginStart()
 	f_hTemp.SetString(KACR_SAYBLOCK, "[KACR] הסיבה שלך נחסמה בשל תו לא חוקי");
 	f_hTemp.SetString(KACR_FORCEDREVAL, "[KACR] חידוש אימות בכפייה על כל השחקנים המחוברים");
 	f_hTemp.SetString(KACR_CANNOTREVAL, "[KACR] א ניתן לאלץ את ההתאמה עד שכל שחקן כבר אומת");
-} 
+	
+	CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemp.Close()' once we dropped legacy support
+	
+	return;
+}
+
+public void Trans_OnPluginEnd()
+{
+	// if(g_hLanguages) // Allways check, else this could Result in Errors // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/	CloseHandle(g_hLanguages); // TODO: Replace with 'g_hLanguages.Close()' once we dropped legacy support
+}

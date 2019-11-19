@@ -1,27 +1,10 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
-#define EYETEST
 
 #define POINT_ALMOST_VISIBLE 0.75
 #define POINT_MID_VISIBLE 0.6
-#define MAX_ENTITIES 2048 // 2048 is hardcoded
+#define MAX_ENTITIES 2048 // 2048 is hardcoded in the Engine
 
 
 //- Global Variables -//
@@ -37,10 +20,10 @@ bool g_bShouldProcess[MAXPLAYERS + 1], g_bHooked[MAXPLAYERS + 1];
 
 //- Plugin Functions -//
 
-Eyetest_OnPluginStart()
+public void Eyetest_OnPluginStart()
 {
-	/*if(hGame != Engine_CSGO && hGame != Engine_CSS && hGame != Engine_Insurgency && hGame != Engine_Left4Dead2 && hGame != Engine_HL2DM)
-	{*/
+	/*if(g_hGame != Engine_CSGO && g_hGame != Engine_CSS && g_hGame != Engine_Insurgency && g_hGame != Engine_Left4Dead2 && g_hGame != Engine_HL2DM)
+	{*/ // TODO: Test on all supported Games
 	g_hCVarEyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	Eyetest_EnableChange(g_hCVarEyeEnable, "", "");
 	
@@ -73,28 +56,28 @@ Eyetest_OnPluginStart()
 		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_DISABLED);
 		
 		KACR_Log("[Error] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
-		PrintToServer("[Kigen-AC_Redux] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
+		PrintToServer("[Error][Kigen-AC_Redux] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
 	}
 	
 	HookEvent("player_spawn", Eyetest_PlayerSpawn);
 	HookEvent("player_death", Eyetest_PlayerDeath);
 }
 
-Eyetest_OnPluginEnd()
+public  void Eyetest_OnPluginEnd()
 {
 	if (g_bAntiWall)
 		for (int i = 1; i <= MaxClients; i++)
 			if (g_bHooked[i])
 				SDKUnhook(i, SDKHook_SetTransmit, Eyetest_Transmit);
 				
-	if (g_hEyeTimer != INVALID_HANDLE)
-		CloseHandle(g_hEyeTimer);
+	// if (g_hEyeTimer != INVALID_HANDLE) // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/	CloseHandle(g_hEyeTimer); // TODO: Replace with 'g_hEyeTimer.Close()' once we dropped legacy support
 }
 
 
 //- Clients -//
 
-Eyetest_OnClientPutInServer(client)
+public  void Eyetest_OnClientPutInServer(client)
 {
 	if (!IsFakeClient(client) && IsPlayerAlive(client))
 		g_bShouldProcess[client] = true;
@@ -137,10 +120,10 @@ public Action Eyetest_Timer(Handle timer, any we)
 			f_fZ = f_vAngles[2];
 			if (f_fX > 180.0)
 				f_fX -= 360.0;
-			
+				
 			if (f_fZ > 180.0)
 				f_fZ -= 360.0;
-			
+				
 			if (f_fX > 90.0 || f_fX < -90.0 || f_fZ > 90.0 || f_fZ < -90.0)
 			{
 				GetClientIP(iClient, f_sIP, sizeof(f_sIP));
@@ -168,8 +151,8 @@ public void Eyetest_EnableChange(Handle convar, const char[] oldValue, const cha
 	
 	else if (!g_bEyeEnabled && g_hEyeTimer != INVALID_HANDLE)
 	{
-		CloseHandle(g_hEyeTimer);
-		g_hEyeTimer = INVALID_HANDLE;
+		CloseHandle(g_hEyeTimer); // TODO: Replace with 'g_hEyeTimer.Close()' once we dropped legacy support
+		// g_hEyeTimer = INVALID_HANDLE;
 		Status_Report(g_iEyeStatus, KACR_OFF);
 	}
 }
@@ -188,7 +171,7 @@ public void Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const c
 	{
 		if (!LibraryExists("sdkhooks"))
 		{
-			LogError("[Kigen-AC_Redux] SDKHooks is not running, cannot enable Anti-Wall");
+			KACR_Log("[Error] SDKHooks is not running, cannot enable Anti-Wall");
 			SetConVarInt(convar, 0);
 			return;
 		}
@@ -269,12 +252,13 @@ public Action Eyetest_Equip(client, weapon) // The Player Picked up a Weapon? Le
 
 public Action Eyetest_Drop(client, weapon)
 {
-	if (g_iWeaponOwner[weapon] >= 1) // Is a Player linked to the Entity? Else we do not Care // TODO: Array index out-of-bounds (index -1, limit 4096) - Issue #13
+	if (g_iWeaponOwner[weapon] >= 1) // Is a Player linked to the Entity? Else we do not Care
 	{
 		g_iWeaponOwner[weapon] = 0;
 		SDKUnhook(weapon, SDKHook_SetTransmit, Eyetest_WeaponTransmit);
 	}
 }
+
 
 // Back to it.
 
@@ -308,7 +292,7 @@ public void OnGameFrame()
 
 // public Eyetest_Prethink(client)
 // {
-// Test for Bhop hacks here.
+// TODO:Test for Bhop hacks here.
 // }
 
 public Action Eyetest_Transmit(entity, client)
@@ -463,7 +447,7 @@ stock bool IsPointVisible(const float start[3], const float end[3])
 Eyetest_Hook(client)
 {
 	g_bHooked[client] = true;
-	SDKHook(client, SDKHook_SetTransmit, Eyetest_Transmit); // TODO: Crash Reason??
+	SDKHook(client, SDKHook_SetTransmit, Eyetest_Transmit);
 	// SDKHook(client, SDKHook_PreThink, Eyetest_Prethink);
 	SDKHook(client, SDKHook_WeaponEquip, Eyetest_Equip);
 	SDKHook(client, SDKHook_WeaponDrop, Eyetest_Drop);
@@ -476,4 +460,4 @@ Eyetest_Unhook(client)
 	// SDKUnhook(client, SDKHook_PreThink, Eyetest_Prethink);
 	SDKUnhook(client, SDKHook_WeaponEquip, Eyetest_Equip);
 	SDKUnhook(client, SDKHook_WeaponDrop, Eyetest_Drop);
-} 
+}

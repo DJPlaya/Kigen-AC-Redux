@@ -1,21 +1,5 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
 #define NETWORK
 
@@ -27,10 +11,10 @@
 Handle g_hCVarNetEnabled, g_hCVarNetUseBanlist, g_hCVarNetUseUpdate, g_hUpdateFile, g_hSocket, g_hTimer, g_hVTimer;
 bool g_bCVarNetEnabled = true, g_bCVarNetUseBanlist = true, g_bCVarNetUseUpdate = true;
 bool g_bVCheckDone, InUpdate;
-bool g_bChecked[MAXPLAYERS + 1] =  { false, ... };
+bool g_bChecked[MAXPLAYERS + 1];
 int g_iInError = 0;
 int g_iNetStatus, g_iCurrentMirror;
-char g_sMirrors[][] =  { "kigenac.com", "nauc.info" };
+char g_sMirrors[][] =  { "kigenac.com", "nauc.info" }; // TODO: Invalid
 char UpdatePath[256];
 
 
@@ -111,7 +95,6 @@ public Action Network_Checked(client, args)
 {
 	if (!g_bCVarNetEnabled || !g_bCVarNetUseBanlist)
 	{
-		// TODO: print error here
 		KACR_ReplyToCommand(client, KACR_DISABLED);
 		return Plugin_Handled;
 	}
@@ -130,8 +113,8 @@ public Action Network_Checked(client, args)
 				}
 				
 			for (int i = 1; i <= MaxClients; i++)
-			g_bChecked[i] = false;
-			
+				g_bChecked[i] = false;
+				
 			KACR_ReplyToCommand(client, KACR_FORCEDREVAL);
 			return Plugin_Handled;
 		}
@@ -267,7 +250,7 @@ public void Network_OnSockRecvVer(Handle socket, char[] data, const size, any we
 		if (!DirExists(path))
 			if (!CreateDirectory(path, 0777))
 			{
-				LogError("Unable to create disabled folder.");
+				KACR_Log("[Error] Unable to create 'disabled' Folder");
 				Status_Report(g_iNetStatus, KACR_ERROR);
 				return;
 			}
@@ -278,7 +261,7 @@ public void Network_OnSockRecvVer(Handle socket, char[] data, const size, any we
 		g_hUpdateFile = OpenFile(path, "ab"); // Set to ab to avoid issues with devicenull's patch for the upload exploit.
 		if(g_hUpdateFile == INVALID_HANDLE)
 		{
-			LogError("Failed to create % s", path);
+			KACR_Log("[Error] Failed to create '%s'", path);
 			Status_Report(g_iNetStatus, KACR_ERROR);
 			return;
 		}
@@ -290,7 +273,7 @@ public void Network_OnSockRecvVer(Handle socket, char[] data, const size, any we
 	
 	else
 	{
-		LogError("Received unknown reply from KACR master during version check,  % s.", data);
+		KACR_Log("[Error] Received unknown Reply from KACR master during Version Check, '%s'", data);
 		g_bVCheckDone = false;
 		if(SocketIsConnected(socket))
 			SocketDisconnect(socket);
@@ -306,7 +289,7 @@ public void Network_OnSockDiscDL(Handle socket, any we)
 	{
 		g_iInError = 12;
 		g_hSocket = INVALID_HANDLE;
-		LogError("Disconnected from % s without getting update.", g_sMirrors[g_iCurrentMirror]);
+		KACR_Log("[Error] Disconnected from '%s' without getting Update", g_sMirrors[g_iCurrentMirror]);
 		g_iCurrentMirror++;
 		if(g_iCurrentMirror >= sizeof(g_sMirrors)) // Switch mirrors.
 			g_iCurrentMirror = 0;
@@ -327,29 +310,29 @@ public void Network_OnSockDiscDL(Handle socket, any we)
 	BuildPath(Path_SM , path, sizeof(path), "plugins\\ % s", path);
 	if(!DeleteFile(path))
 	{
-		LogError("Was unable to delete % s.", path);
+		KACR_Log("[Error] Was unable to delete '%s'", path);
 		Status_Report(g_iNetStatus, KACR_ERROR);
 		return;
 	}
 	
 	if(!RenameFile(path, path2))
 	{
-		LogError("Was unable to rename % s to % s.", path2, path);
+		KACR_Log("[Error] Was unable to rename '%s' to '%s'", path2, path);
 		Status_Report(g_iNetStatus, KACR_ERROR);
 		return;
 	}
 	
 	GetPluginFilename(GetMyHandle(), path, sizeof(path));
 	path[strlen(path)-4] = '\0';
-	InsertServerCommand("sm plugins reload % s", path);
-	LogMessage("Update successful.");
+	InsertServerCommand("sm plugins reload %s", path);
+	KACR_Log("[Info] Update successful");
 }
 
 public void Network_OnSockErrDL(Handle socket, const errorType, const errorNum, any we)
 {
 	g_iInError = 12;
 	g_hSocket = INVALID_HANDLE;
-	LogError("Error received during update:Failed to connect to % s.", g_sMirrors[g_iCurrentMirror]);
+	KACR_Log("[Error] Error received during Update: Failed to connect to '%s'", g_sMirrors[g_iCurrentMirror]);
 	Status_Report(g_iNetStatus, KACR_ERROR);
 	g_iCurrentMirror++;
 	
@@ -364,7 +347,7 @@ public void Network_OnSockConnDL(Handle socket, any we)
 {
 	if(!SocketIsConnected(socket))
 	{
-		LogError("Disconnect on connect to % s", g_sMirrors[g_iCurrentMirror]);
+		KACR_Log("[Error] Disconnect on connect to '%s'", g_sMirrors[g_iCurrentMirror]);
 		g_iInError = 12;
 		Status_Report(g_iNetStatus, KACR_ERROR);
 		g_iCurrentMirror++;
@@ -380,7 +363,7 @@ public void Network_OnSockConnDL(Handle socket, any we)
 	char buff[512];
 	Format(buff, sizeof(buff), "GET % s HTTP / 1.0\r\nHost: % s\r\nConnection:close\r\n\r\n", UpdatePath, g_sMirrors[g_iCurrentMirror]);
 	SocketSend(socket, buff);
-	LogMessage("Connected to % s website, requesting update file.", g_sMirrors[g_iCurrentMirror]);
+	KACR_Log("[Info] Connected to '%s' Website, requesting Update File", g_sMirrors[g_iCurrentMirror]);
 	Status_Report(g_iNetStatus, KACR_ON);
 	return;
 }
@@ -441,7 +424,7 @@ public void Network_OnSocketReceive(Handle socket, char[] data, const size, any 
 		KACR_Translate(client, KACR_GBANNED, sBuffer, sizeof(sBuffer));
 		g_hDenyArray.SetString(sAtuhID, sBuffer);
 		GetClientIP(iClient sIP, sizeof(sIP));
-		KACR_Log("'%L' <  % s > is on the KACR global Banlist.", client, sIP);
+		KACR_Log("'%L' < %s > is on the KACR global Banlist", client, sIP);
 		KACR_Kick(client, KACR_GBANNED);
 	}
 	
@@ -455,7 +438,7 @@ public void Network_OnSocketReceive(Handle socket, char[] data, const size, any 
 		g_bChecked[client] = false;
 		char sIP[64];
 		GetClientIP(client, sIP, sizeof(sIP));
-		KACR_Log("[Error] Got unknown Reply from KACR master Server for Client'%L' <  % s > .Data: % s", client, sIP, data);
+		KACR_Log("[Error] Got unknown Reply from KACR master Server for Client '%L' < %s > .Data: '%s'", client, sIP, data);
 		Status_Report(g_iNetStatus, KACR_ERROR);
 	}
 	

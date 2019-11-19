@@ -1,45 +1,28 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
-#define CLIENT
 
-#define MAX_CONNECTIONS 128
+#define MAX_CONNECTIONS 128 // Sourcemod says their max is 65, but Source's max is up to 128
 
-Handle g_hCVarClientEnable, g_hCVarClientAntiRespawn, g_hCVarClientNameProtect, g_hCVarClientAntiSpamConnect;
+Handle g_hCVarClientEnable, g_hCVarClientAntiRespawn, g_hCVarClientNameProtect, g_hCVarClientNameProtectAction, g_hCVarClientAntiSpamConnect, g_hCVarClientAntiSpamConnectAction;
 bool g_bClientEnable, g_bClientNameProtect, g_bClientAntiRespawn;
-float g_fClientAntiSpamConnect = 0.0;
+int g_iClientNameProtectAction, g_iClientAntiSpamConnect, g_iClientAntiSpamConnectAction; 
 
 StringMap g_hClientSpawned;
 char g_sClientConnections[MAX_CONNECTIONS][64];
 int g_iClientClass[MAXPLAYERS + 1] =  { -1, ... };
-int g_iClientStatus, g_iClientAntiRespawnStatus, g_iClientNameProtectStatus; // int g_iClientAntiSpamConnectStatus;
+int g_iClientStatus, g_iClientAntiRespawnStatus, g_iClientNameProtectStatus;
 bool g_bClientMapStarted;
 
 
 //- Plugin Functions -//
 
-Client_OnPluginStart()
+public void Client_OnPluginStart()
 {
 	g_hCVarClientEnable = AutoExecConfig_CreateConVar("kacr_client_enable", "1", "Enable the Client Protection Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bClientEnable = GetConVarBool(g_hCVarClientEnable);
 	
-	if (hGame == Engine_CSS || hGame == Engine_CSGO)
+	if (g_hGame == Engine_CSS || g_hGame == Engine_CSGO)
 	{
 		g_hCVarClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "0", "This will prevent Clients from leaving the Game and then rejoining to Respawn", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bClientAntiRespawn = GetConVarBool(g_hCVarClientAntiRespawn);
@@ -58,14 +41,18 @@ Client_OnPluginStart()
 	
 	g_hCVarClientNameProtect = AutoExecConfig_CreateConVar("kacr_client_nameprotect", "1", "This will protect the Server from name Crashes and Hacks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bClientNameProtect = GetConVarBool(g_hCVarClientNameProtect);
-	
+	g_hCVarClientNameProtectAction = AutoExecConfig_CreateConVar("kacr_client_nameprotect_action", "1040", "Action(s) to take when someone has an invalid Name, Time Bans will be 1 min", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+	g_iClientNameProtectAction = GetConVarInt(g_hCVarClientNameProtectAction);
+	//
 	g_hCVarClientAntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "0", "Seconds to prevent someone from restablishing a Connection. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
-	g_fClientAntiSpamConnect = GetConVarFloat(g_hCVarClientAntiSpamConnect);
+	g_iClientAntiSpamConnect = GetConVarInt(g_hCVarClientAntiSpamConnect);
+	g_hCVarClientAntiSpamConnectAction = AutoExecConfig_CreateConVar("kacr_client_antispamconnect_action", "1032", "Action(s) to take when someone does Spam Connect, Time Bans will be 1 min", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+	g_iClientAntiSpamConnectAction = GetConVarInt(g_hCVarClientAntiSpamConnectAction);
 	
 	if (g_bClientEnable)
 	{
 		g_iClientStatus = Status_Register(KACR_CLIENTMOD, KACR_ON);
-		if (hGame == Engine_CSS)
+		if (g_hGame == Engine_CSS)
 		{
 			if (g_bClientAntiRespawn)
 				g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_ON);
@@ -84,7 +71,7 @@ Client_OnPluginStart()
 	else
 	{
 		g_iClientStatus = Status_Register(KACR_CLIENTMOD, KACR_OFF);
-		if (hGame == Engine_CSS)
+		if (g_hGame == Engine_CSS)
 			g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_DISABLED);
 			
 		g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_DISABLED);
@@ -92,14 +79,12 @@ Client_OnPluginStart()
 	
 	HookConVarChange(g_hCVarClientEnable, Client_EnableChange);
 	HookConVarChange(g_hCVarClientNameProtect, Client_NameProtectChange);
+	HookConVarChange(g_hCVarClientNameProtectAction, Client_NameProtectActionChange);
 	HookConVarChange(g_hCVarClientAntiSpamConnect, Client_AntiSpamConnectChange);
+	HookConVarChange(g_hCVarClientAntiSpamConnectAction, Client_AntiSpamConnectActionChange);
 	
 	RegConsoleCmd("autobuy", Client_Autobuy);
 }
-
-/*Client_OnPluginEnd()
-{
-}*/
 
 
 //- Commands -//
@@ -158,21 +143,14 @@ public Action Client_Autobuy(client, args)
 	return Plugin_Continue;
 }
 
-
-//- Map -//
-/*Client_OnMapStart() // Currently unused
-{
-	
-}*/
-
-Client_OnMapEnd()
+public void Client_OnMapEnd()
 {
 	g_bClientMapStarted = false;
 	
 	for (int i = 0; i < MAX_CONNECTIONS; i++)
 		strcopy(g_sClientConnections[i], 64, "");
 		
-	if (hGame == Engine_CSS)
+	if (g_hGame == Engine_CSS)
 		Client_CleanEvent(INVALID_HANDLE, "", false);
 }
 
@@ -182,6 +160,7 @@ Client_OnMapEnd()
 public Action Client_AntiSpamConnectTimer(Handle timer, any i)
 {
 	strcopy(g_sClientConnections[i], 64, "");
+	
 	return Plugin_Stop;
 }
 
@@ -225,7 +204,7 @@ public Action Client_RoundStart(Handle event, const char[] name, bool dontBroadc
 
 public Action Client_CleanEvent(Handle event, const char[] name, bool dontBroadcast)
 {
-	CloseHandle(g_hClientSpawned); // Really needed? We could just clear it?
+	CloseHandle(g_hClientSpawned); // Really needed? We could just clear it? // TODO: Replace with 'g_hClientSpawned.Close()' once we dropped legacy support
 	g_hClientSpawned = new StringMap();
 	
 	for (int i = 1; i <= MaxClients; i++)
@@ -242,20 +221,36 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 {
 	if (!g_bClientEnable)
 		return true;
+		
+	char f_sClientIP[64];
+	GetClientIP(iClient, f_sClientIP, sizeof(f_sClientIP));
 	
-	if (g_fClientAntiSpamConnect > 0.0)
+	if (g_iClientAntiSpamConnect > 0)
 	{
-		char f_sClientIP[64];
-		
-		GetClientIP(iClient, f_sClientIP, sizeof(f_sClientIP));
-		
 		for (int i = 0; i < MAX_CONNECTIONS; i++)
 		{
 			if (StrEqual(g_sClientConnections[i], f_sClientIP))
 			{
-				BanIdentity(f_sClientIP, 1, BANFLAG_IP, "Please wait one minute before retrying to connect"); // We do not want this hooked, so no source // Since its just a min ban, using SB/SBPP would be dump
-				KACR_Log("'%L'<%s> was banned for 1 minute for spam connecting", iClient, f_sClientIP);
-				return false;
+				int iResult = g_iClientAntiSpamConnectAction;
+				bool bActions[KACR_Action_Count] = KACR_ActionCheck(iResult);
+				if(bActions[KACR_Action_Crash] || bActions[KACR_Action_AskSteamAdmin]) // Not Supported
+				{
+					KACR_Log("[Warning] 'kacr_client_antispamconnect_action' cannot be used with Action 32 or 512, running without them");
+					if(bActions[KACR_Action_Crash])
+						iResult = iResult - 32;
+						
+					if(bActions[KACR_Action_AskSteamAdmin])
+						iResult = iResult  - 512;
+				}
+				
+				if(bActions[KACR_Action_Kick]) // We do refuse the Client, so we cannot kick him or somethin
+					iResult = iResult  - 16;
+					
+				if(bActions[KACR_Action_TimeBan] || bActions[KACR_Action_ServerBan] || bActions[KACR_Action_ServerTimeBan] || bActions[KACR_Action_ServerTimeBan] || bActions[KACR_Action_Kick]) // All of theese do also kick the Client so its equvivalent to refusing him
+				{
+					KACR_Action(iClient, iResult, 1, "Please wait a bit before retrying to connect", "[KACR] '%L' did Spam the Server with Connects", iClient) // 1 Min Time Ban
+					return false;
+				}
 			}
 		}
 		
@@ -264,7 +259,8 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 			if (g_sClientConnections[i][0] == '\0')
 			{
 				strcopy(g_sClientConnections[i], 64, f_sClientIP);
-				CreateTimer(g_fClientAntiSpamConnect, Client_AntiSpamConnectTimer, i);
+				CreateTimer(view_as<float>(g_iClientAntiSpamConnect), Client_AntiSpamConnectTimer, i);
+				
 				break;
 			}
 		}
@@ -280,7 +276,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 		
 		f_iSize = strlen(f_sName);
 		
-		if (f_iSize < 1 || f_sName[0] == '&')
+		if (f_iSize == 0 || f_sName[0] == '&') // Blank name or &???
 		{
 			Format(rejectmsg, size, "Please change your name");
 			return false;
@@ -309,7 +305,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 			}
 		}
 		
-		if (f_bWhiteSpace)
+		if (f_bWhiteSpace) // The entire Name is an Whitespace
 		{
 			Format(rejectmsg, size, "Please change your name");
 			return false;
@@ -333,16 +329,16 @@ public void OnClientSettingsChanged(iClient)
 	
 	f_iSize = strlen(f_sName);
 	
-	if (f_iSize == 0)
+	if (f_iSize == 0) // Blank Name
 	{
 		char f_sIP[64];
 		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
-		KACR_Log("'%L'<%s> was kicked for having a blank Name (unconnected)", iClient, f_sIP);
 		KACR_Kick(iClient, KACR_CHANGENAME);
+		KACR_Log("'%L'<%s> was kicked for having a blank Name (unconnected)", iClient, f_sIP);
 		return;
 	}
 	
-	if (f_sName[0] == '&')
+	if (f_sName[0] == '&') // &???
 	{
 		KACR_Kick(iClient, KACR_CHANGENAME);
 		return;
@@ -372,20 +368,20 @@ public void OnClientSettingsChanged(iClient)
 		}
 	}
 	
-	if (f_bWhiteSpace)
+	if (f_bWhiteSpace) // The entire Name is an Whitespace
 	{
 		KACR_Kick(iClient, KACR_CHANGENAME);
 		return;
 	}
 }
 
-public void Client_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Client_EnableChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bClientEnable = GetConVarBool(convar);
+	g_bClientEnable = GetConVarBool(hConVar);
 	if (g_bClientEnable)
 	{
 		Status_Report(g_iClientStatus, KACR_ON);
-		if (hGame == Engine_CSS)
+		if (g_hGame == Engine_CSS)
 		{
 			if (g_bClientAntiRespawn)
 				Status_Report(g_iClientAntiRespawnStatus, KACR_ON);
@@ -404,16 +400,16 @@ public void Client_EnableChange(Handle convar, const char[] oldValue, const char
 	else
 	{
 		Status_Report(g_iClientStatus, KACR_OFF);
-		if (hGame == Engine_CSS)
+		if (g_hGame == Engine_CSS)
 			Status_Report(g_iClientAntiRespawnStatus, KACR_DISABLED);
 			
 		Status_Report(g_iClientNameProtectStatus, KACR_DISABLED);
 	}
 }
 
-public void Client_AntiRespawnChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Client_AntiRespawnChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bClientAntiRespawn = GetConVarBool(convar);
+	g_bClientAntiRespawn = GetConVarBool(hConVar);
 	if (g_bClientEnable)
 	{
 		if (g_bClientAntiRespawn)
@@ -424,9 +420,9 @@ public void Client_AntiRespawnChange(Handle convar, const char[] oldValue, const
 	}
 }
 
-public void Client_NameProtectChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Client_NameProtectChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bClientNameProtect = GetConVarBool(convar);
+	g_bClientNameProtect = GetConVarBool(hConVar);
 	if (g_bClientEnable)
 	{
 		if (g_bClientNameProtect)
@@ -437,7 +433,17 @@ public void Client_NameProtectChange(Handle convar, const char[] oldValue, const
 	}
 }
 
-public void Client_AntiSpamConnectChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void Client_NameProtectActionChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_fClientAntiSpamConnect = GetConVarFloat(convar);
-} 
+	g_iClientNameProtectAction = GetConVarInt(hConVar);
+}
+
+public void Client_AntiSpamConnectChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+{
+	g_iClientAntiSpamConnect = GetConVarInt(hConVar);
+}
+
+public void Client_AntiSpamConnectActionChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+{
+	g_iClientAntiSpamConnectAction = GetConVarInt(hConVar);
+}

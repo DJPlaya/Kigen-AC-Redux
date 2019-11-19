@@ -1,23 +1,6 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
-#define CVARS
 
 // Array Index Documentation
 // Arrays that come from g_hCVars are index like below.
@@ -77,7 +60,7 @@ bool g_bCVarsEnabled = true;
 
 //- Plugin Functions -//
 
-CVars_OnPluginStart()
+public void CVars_OnPluginStart()
 {
 	Handle f_hConCommand, f_hConVar;
 	char f_sName[64];
@@ -123,11 +106,11 @@ CVars_OnPluginStart()
 	CVars_AddCVar("cl_clock_correction", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_leveloverview", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_overdraw_test", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
-	CVars_AddCVar("cl_particle_show_bbox", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL); // cl_particles_show_bbox
+	CVars_AddCVar("cl_particle_show_bbox", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL); // TODO: Outdated in CSS? cl_particles_show_bbox
 	CVars_AddCVar("cl_phys_timescale", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_showevents", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	
-	if (hGame == Engine_Insurgency)
+	if (g_hGame == Engine_Insurgency)
 		CVars_AddCVar("fog_enable", COMP_EQUAL, ACTION_KICK, "1.0", 0.0, PRIORITY_NORMAL);
 		
 	else
@@ -167,8 +150,11 @@ CVars_OnPluginStart()
 	
 	f_hConCommand = FindFirstConCommand(f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags);
 	if (f_hConCommand == INVALID_HANDLE)
+	{
+		KACR_Log("[Error] Failed getting first ConVar");
 		SetFailState("Failed getting first ConVar");
-		
+	}
+	
 	do
 	{
 		if (!f_bIsCommand && (f_iFlags & FCVAR_REPLICATED))
@@ -184,7 +170,7 @@ CVars_OnPluginStart()
 	
 	while (FindNextConCommand(f_hConCommand, f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags));
 	
-	CloseHandle(f_hConCommand);
+	CloseHandle(f_hConCommand); // TODO: Replace with 'f_hConCommand.Close()' once we dropped legacy support
 	
 	// Register Admin Commands
 	RegAdminCmd("kacr_addcvar", CVars_CmdAddCVar, ADMFLAG_ROOT, "Adds a CVar to the Checklist");
@@ -201,7 +187,7 @@ CVars_OnPluginStart()
 
 //- Client Commands -//
 
-CVars_OnClientDisconnect(client)
+public void CVars_OnClientDisconnect(client)
 {
 	Handle f_hTemp;
 	
@@ -212,14 +198,14 @@ CVars_OnClientDisconnect(client)
 	if (f_hTemp != INVALID_HANDLE)
 	{
 		g_hPeriodicTimer[client] = INVALID_HANDLE;
-		CloseHandle(f_hTemp);
+		CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemp.Close()' once we dropped legacy support
 	}
 	
 	f_hTemp = g_hReplyTimer[client];
 	if (f_hTemp != INVALID_HANDLE)
 	{
 		g_hReplyTimer[client] = INVALID_HANDLE;
-		CloseHandle(f_hTemp);
+		CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemp.Close()' once we dropped legacy support
 	}
 }
 
@@ -243,8 +229,8 @@ public Action CVars_CmdStatus(iCmdCaller, args)
 		{
 			if (g_hPeriodicTimer[iClients] == INVALID_HANDLE)
 			{
-				KACR_Log("[Error] '%L'<%s> doesn't have a periodic Timer running and no active Queries", iClients, f_sIP);
-				ReplyToCommand(iCmdCaller, "[Error][Kigen-AC_Redux] '%L'<%s> didn't have a periodic Timer running nor active Queries", iClients, f_sIP);
+				KACR_Log("[Warning] '%L'<%s> doesn't have a periodic Timer running and no active Queries", iClients, f_sIP);
+				ReplyToCommand(iCmdCaller, "[Warning][Kigen-AC_Redux] '%L'<%s> dosen't have a periodic Timer running nor active Queries", iClients, f_sIP);
 				g_hPeriodicTimer[iClients] = CreateTimer(0.1, CVars_PeriodicTimer, iClients);
 				continue;
 			}
@@ -567,7 +553,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		if (f_hTemp != INVALID_HANDLE)
 		{
 			g_hReplyTimer[client] = INVALID_HANDLE;
-			CloseHandle(f_hTemp);
+			CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemo.Close()' once we dropped legacy support
 			g_iRetryAttempts[client] = 0;
 		}
 	}
@@ -580,8 +566,8 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 			switch (f_iAction)
 			{
 				case ACTION_WARN:
-				KACR_PrintToChatAdmins(KACR_HASPLUGIN, client, f_sIP, f_sCVarName);
-				
+					KACR_PrintToChatAdmins(KACR_HASPLUGIN, client, f_sIP, f_sCVarName);
+					
 				case ACTION_MOTD:
 				{
 					GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -665,8 +651,8 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (f_iAction)
 				{
 					case ACTION_WARN:
-					KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
-					
+						KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
+						
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -704,8 +690,8 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (f_iAction)
 				{
 					case ACTION_WARN:
-					KACR_PrintToChatAdmins(KACR_HASNOTGREATER, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
-					
+						KACR_PrintToChatAdmins(KACR_HASNOTGREATER, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
+						
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -743,8 +729,8 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (f_iAction)
 				{
 					case ACTION_WARN:
-					KACR_PrintToChatAdmins(KACR_HASNOTLESS, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
-					
+						KACR_PrintToChatAdmins(KACR_HASNOTLESS, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
+						
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -782,8 +768,8 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (f_iAction)
 				{
 					case ACTION_WARN:
-					KACR_PrintToChatAdmins(KACR_HASNOTBOUND, client, f_sIP, f_sCVarName, cvarValue, f_sValue, f_fValue2);
-					
+						KACR_PrintToChatAdmins(KACR_HASNOTBOUND, client, f_sIP, f_sCVarName, cvarValue, f_sValue, f_fValue2);
+						
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -821,8 +807,8 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (f_iAction)
 				{
 					case ACTION_WARN:
-					KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
-					
+						KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, f_sIP, f_sCVarName, cvarValue, f_sValue);
+						
 					case ACTION_MOTD:
 					{
 						GetArrayString(f_hConVar, CELL_ALT, f_sAlternative, sizeof(f_sAlternative));
@@ -869,14 +855,14 @@ public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] n
 	if (g_hCVarIndex.GetValue(f_sName, f_hCVarIndex))
 	{
 		f_hTimer = GetArrayCell(f_hCVarIndex, CELL_CHANGED);
-		if (f_hTimer != INVALID_HANDLE)
-			CloseHandle(f_hTimer);
+		// if (f_hTimer != INVALID_HANDLE) // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/		CloseHandle(f_hTimer); // TODO: Replace with 'f_hTimer.Close()' once we dropped legacy support
 			
 		f_hTimer = CreateTimer(30.0, CVars_ReplicateCheck, f_hCVarIndex);
 		SetArrayCell(f_hCVarIndex, CELL_CHANGED, f_hTimer);
 	}
 	
-	RequestFrame(CVars_ReplicateTimer, convar); //CreateTimer(0.1, CVars_ReplicateTimer, convar); // The delay is so that nothing interferes with the replication
+	RequestFrame(CVars_ReplicateTimer, convar); // CreateTimer(0.1, CVars_ReplicateTimer, convar); // The delay is so that nothing interferes with the replication
 }
 
 public void CVars_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
@@ -905,7 +891,7 @@ public void CVars_EnableChange(Handle convar, const char[] oldValue, const char[
 */
 bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_sValue, float f_fValue2, f_iImportance, const char f_sAlternative[] = "")
 {
-	Handle f_hConVar = INVALID_HANDLE, f_hArray;
+	Handle f_hConVar, f_hArray;
 	
 	f_hConVar = FindConVar(f_sName);
 	if (f_hConVar != INVALID_HANDLE && (GetConVarFlags(f_hConVar) & FCVAR_REPLICATED) && (f_iComparisonType == COMP_EQUAL || f_iComparisonType == COMP_STRING))
@@ -942,8 +928,8 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 		
 		if (!g_hCVarIndex.SetValue(f_sName, f_hArray))
 		{
-			CloseHandle(f_hArray);
-			KACR_Log("Unable to add ConVar to Trie Link List '%s'", f_sName);
+			CloseHandle(f_hArray); // TODO: Replace with 'f_hArray.Close()' once we dropped legacy support
+			KACR_Log("[Error] Unable to add ConVar to Hashmap Link List '%s'", f_sName);
 			return false;
 		}
 		
@@ -975,7 +961,7 @@ stock bool CVars_RemoveCVar(char[] f_sName)
 		
 	RemoveFromArray(g_hCVars, f_iIndex);
 	g_hCVarIndex.Remove(f_sName);
-	CloseHandle(f_hConVar);
+	CloseHandle(f_hConVar); // TODO: Replace with 'f_hConVar.Close()' once we dropped legacy support
 	g_iSize = GetArraySize(g_hCVars);
 	
 	return true;
@@ -1040,9 +1026,9 @@ stock CVars_CreateNewOrder()
 	for (int i = 0; i < g_iSize; i++)
 		PushArrayCell(g_hCVars, f_hOrder[i]);
 		
-	CloseHandle(f_hPHigh);
-	CloseHandle(f_hPMedium);
-	CloseHandle(f_hPNormal);
+	CloseHandle(f_hPHigh); // TODO: Replace with 'f_hPHigh.Close()' once we dropped legacy support
+	CloseHandle(f_hPMedium); // TODO: Replace with 'f_hPMedium.Close()' once we dropped legacy support
+	CloseHandle(f_hPNormal); // TODO: Replace with 'f_hPNormal.Close()' once we dropped legacy support
 }
 
 stock CVars_ReplicateConVar(Handle f_hConVar)
@@ -1061,4 +1047,4 @@ stock CVars_ReplicateConVar(Handle f_hConVar)
 				continue; // KACR_Log("'%L' failed to accept replication of '%s' (Value: %s)", i, f_sCVarName, f_sValue); - This happens if the netchan isn't created yet, cvars will replicate once it is created.
 		}
 	}
-} 
+}

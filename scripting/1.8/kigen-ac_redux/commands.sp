@@ -1,41 +1,23 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#define COMMANDS
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
 
 //- Global Variables -//
 
-Handle g_hCountReset, g_hCVarCmdEnable, g_hCVarCmdSpam, g_hCVarCmdLog;
+Handle g_hg_iSongCountReset, g_hCVarCmdEnable, g_hCVarCmdSpam, g_hCVarCmdLog;
 StringMap g_hBlockedCmds, g_hIgnoredCmds;
 
 char g_sCmdLogPath[256];
 
 bool g_bCmdEnabled = true, g_bLogCmds;
 
-int g_iCmdCount[MAXPLAYERS + 1] =  { 0, ... };
+int g_iCmdg_iSongCount[MAXPLAYERS + 1] =  { 0, ... };
 int g_iCmdStatus, g_iCmdSpamStatus, g_iCmdSpam = 30;
 
 
 //- Plugin Functions -//
 
-Commands_OnPluginStart()
+public void Commands_OnPluginStart()
 {
 	g_hCVarCmdEnable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bCmdEnabled = GetConVarBool(g_hCVarCmdEnable);
@@ -81,14 +63,20 @@ Commands_OnPluginStart()
 	HookEventEx("player_disconnect", Commands_EventDisconnect, EventHookMode_Pre)
 }
 
-Commands_OnAllPluginsLoaded()
+public void Commands_OnPluginEnd()
+{
+	//if (g_hg_iSongCountReset != INVALID_HANDLE) // TODO: Not needed? Ref > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/	CloseHandle(g_hg_iSongCountReset); // TODO: Replace with 'g_hg_iSongCountReset.Close()' once we dropped legacy support
+}
+
+public void Commands_OnAllPluginsLoaded()
 {
 	Handle f_hConCommand;
 	char f_sName[64];
 	bool f_bIsCommand, f_iFlags;
 	
-	g_hBlockedCmds = new StringMap(); // CreateTrie();
-	g_hIgnoredCmds = new StringMap(); // CreateTrie();
+	g_hBlockedCmds = new StringMap();
+	g_hIgnoredCmds = new StringMap();
 	
 	// Exploitable needed commands.  Sigh....
 	RegConsoleCmd("ent_create", Commands_BlockEntExploit);
@@ -107,7 +95,7 @@ Commands_OnAllPluginsLoaded()
 	g_hBlockedCmds.SetValue("dump_globals", false);
 	g_hBlockedCmds.SetValue("dump_panels", false);
 	g_hBlockedCmds.SetValue("dump_terrain", false);
-	g_hBlockedCmds.SetValue("dumpcountedstrings", false);
+	g_hBlockedCmds.SetValue("dumpg_iSongCountedstrings", false);
 	g_hBlockedCmds.SetValue("dumpentityfactories", false);
 	g_hBlockedCmds.SetValue("dumpeventqueue", false);
 	g_hBlockedCmds.SetValue("dumpgamestringtable", false);
@@ -146,7 +134,7 @@ Commands_OnAllPluginsLoaded()
 	g_hBlockedCmds.SetValue("sv_soundscape_printdebuginfo", false);
 	g_hBlockedCmds.SetValue("wc_update_entity", false);
 	
-	if (hGame == Engine_Left4Dead || hGame == Engine_Left4Dead2)
+	if (g_hGame == Engine_Left4Dead2 || g_hGame == Engine_Left4Dead)
 	{
 		g_hIgnoredCmds.SetValue("choose_closedoor", true);
 		g_hIgnoredCmds.SetValue("choose_opendoor", true);
@@ -158,10 +146,10 @@ Commands_OnAllPluginsLoaded()
 	g_hIgnoredCmds.SetValue("use", true);
 	
 	if (g_bCmdEnabled)
-		g_hCountReset = CreateTimer(1.0, Commands_CountReset, _, TIMER_REPEAT);
+		g_hg_iSongCountReset = CreateTimer(1.0, Commands_g_iSongCountReset, _, TIMER_REPEAT);
 		
 	else
-		g_hCountReset = INVALID_HANDLE;
+		g_hg_iSongCountReset = INVALID_HANDLE;
 		
 	// Leaving this in as a fall back incase game isn't compatible with the command listener.
 	if (GetFeatureStatus(FeatureType_Capability, FEATURECAP_COMMANDLISTENER) != FeatureStatus_Available || !AddCommandListener(Commands_CommandListener))
@@ -185,19 +173,13 @@ Commands_OnAllPluginsLoaded()
 		
 		while (FindNextConCommand(f_hConCommand, f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags));
 		
-		CloseHandle(f_hConCommand);
+		f_hConCommand.Close();
 	}
 	
 	RegAdminCmd("kacr_addcmd", Commands_AddCmd, ADMFLAG_ROOT, "Adds a command to be blocked by KACR");
 	RegAdminCmd("kacr_addignorecmd", Commands_AddIgnoreCmd, ADMFLAG_ROOT, "Adds a command to ignore on command spam");
 	RegAdminCmd("kacr_removecmd", Commands_RemoveCmd, ADMFLAG_ROOT, "Removes a command from the block list");
 	RegAdminCmd("kacr_removeignorecmd", Commands_RemoveIgnoreCmd, ADMFLAG_ROOT, "Remove a command to ignore");
-}
-
-Commands_OnPluginEnd()
-{
-	if (g_hCountReset != INVALID_HANDLE)
-		CloseHandle(g_hCountReset);
 }
 
 
@@ -229,11 +211,11 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 	
 	f_iLength = strlen(f_sReason);
 	
-	for (int iCount; iCount < f_iLength; iCount++)
+	for (int ig_iSongCount; ig_iSongCount < f_iLength; ig_iSongCount++)
 	{
-		if (f_sReason[iCount] < 32)
+		if (f_sReason[ig_iSongCount] < 32)
 		{
-			if (f_sReason[iCount] != '\n')
+			if (f_sReason[ig_iSongCount] != '\n')
 			{
 				KACR_Log("Bad Disconnect Reason, \"%s\", Lenght = %d", f_sReason, f_iLength);
 				if (client)
@@ -375,9 +357,9 @@ public Action Commands_FilterSay(client, args)
 	GetCmdArgString(f_sMsg, sizeof(f_sMsg));
 	f_iLen = strlen(f_sMsg);
 	
-	for (int iCount = 0; iCount < f_iLen; iCount++)
+	for (int ig_iSongCount = 0; ig_iSongCount < f_iLen; ig_iSongCount++)
 	{
-		f_cChar = f_sMsg[iCount];
+		f_cChar = f_sMsg[ig_iSongCount];
 		if (f_cChar < 32 && !IsCharMB(f_cChar))
 		{
 			KACR_ReplyToCommand(client, KACR_SAYBLOCK);
@@ -442,7 +424,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 	StringToLower(f_sCmd);
 	
 	// Check to see if this person is command spamming.
-	if (g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdCount[iClient]++ > g_iCmdSpam)
+	if (g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdg_iSongCount[iClient]++ > g_iCmdSpam)
 	{
 		char f_sIP[64], f_sCmdString[128];
 		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
@@ -534,7 +516,7 @@ public Action Commands_SpamCheck(client, args)
 	GetCmdArg(0, f_sCmd, sizeof(f_sCmd)); // This command's name.
 	StringToLower(f_sCmd);
 	
-	if (g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(f_sCmd, f_bBan) && g_iCmdCount[client]++ > g_iCmdSpam)
+	if (g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(f_sCmd, f_bBan) && g_iCmdg_iSongCount[client]++ > g_iCmdSpam)
 	{
 		char f_sIP[64], f_sCmdString[128];
 		GetClientIP(client, f_sIP, sizeof(f_sIP));
@@ -571,16 +553,16 @@ public Action Commands_SpamCheck(client, args)
 
 //- Timers -//
 
-public Action Commands_CountReset(Handle timer, any args)
+public Action Commands_g_iSongCountReset(Handle timer, any args)
 {
 	if (!g_bCmdEnabled)
 	{
-		g_hCountReset = INVALID_HANDLE;
+		g_hg_iSongCountReset = INVALID_HANDLE;
 		return Plugin_Stop;
 	}
 	
-	for (int iCount = 1; iCount <= MaxClients; iCount++)
-		g_iCmdCount[iCount] = 0;
+	for (int ig_iSongCount = 1; ig_iSongCount <= MaxClients; ig_iSongCount++)
+		g_iCmdg_iSongCount[ig_iSongCount] = 0;
 		
 	return Plugin_Continue;
 }
@@ -596,8 +578,8 @@ public void Commands_CmdEnableChange(Handle convar, const char[] oldValue, const
 		
 	if (f_bEnabled)
 	{
-		if (g_hCountReset == INVALID_HANDLE)
-			g_hCountReset = CreateTimer(1.0, Commands_CountReset, _, TIMER_REPEAT);
+		if (g_hg_iSongCountReset == INVALID_HANDLE)
+			g_hg_iSongCountReset = CreateTimer(1.0, Commands_g_iSongCountReset, _, TIMER_REPEAT);
 			
 		g_bCmdEnabled = true;
 		g_iCmdStatus = Status_Register(KACR_CMDMOD, KACR_ON);
@@ -611,10 +593,10 @@ public void Commands_CmdEnableChange(Handle convar, const char[] oldValue, const
 	
 	else if (!f_bEnabled)
 	{
-		if (g_hCountReset != INVALID_HANDLE)
-			CloseHandle(g_hCountReset);
+		// if (g_hg_iSongCountReset != INVALID_HANDLE) // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/		CloseHandle(g_hg_iSongCountReset);// TODO: Replace with 'g_hg_iSongCountReset.Close()' once we dropped legacy support
 			
-		g_hCountReset = INVALID_HANDLE;
+		g_hg_iSongCountReset = INVALID_HANDLE;
 		g_bCmdEnabled = false;
 		Status_Report(g_iCmdStatus, KACR_OFF);
 		Status_Report(g_iCmdSpamStatus, KACR_DISABLED);
@@ -638,4 +620,4 @@ public void Commands_CmdSpamChange(Handle convar, const char[] oldValue, const c
 public void Commands_CmdLogChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bLogCmds = GetConVarBool(convar);
-} 
+}

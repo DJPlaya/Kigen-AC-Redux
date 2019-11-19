@@ -1,23 +1,6 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
-#define RCON
 
 Handle g_hRCONCrash;
 bool g_bRCONPreventEnabled;
@@ -29,9 +12,9 @@ int g_iRCONStatus;
 
 //- Plugin Functions -//
 
-RCON_OnPluginStart()
+public void RCON_OnPluginStart()
 {
-	if (hGame != Engine_CSGO && hGame != Engine_CSS && hGame != Engine_DODS && hGame != Engine_TF2 && hGame != Engine_HL2DM) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
+	if (g_hGame != Engine_CSGO && g_hGame != Engine_CSS && g_hGame != Engine_DODS && g_hGame != Engine_TF2 && g_hGame != Engine_HL2DM) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
 	{
 		g_hRCONCrash = AutoExecConfig_CreateConVar("kacr_rcon_crashprevent", "0", "Enable RCON Crash Prevention", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bRCONPreventEnabled = GetConVarBool(g_hRCONCrash);
@@ -45,14 +28,6 @@ RCON_OnPluginStart()
 			g_iRCONStatus = Status_Register(KACR_RCONPREVENT, KACR_OFF);
 	}
 }
-
-/*RCON_OnPluginEnd()
-{
-}*/
-
-/*RCON_OnMap()
-{
-}*/
 
 
 //- Hooks -//
@@ -125,4 +100,4 @@ public void RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[]
 		g_bRCONPreventEnabled = false;
 		Status_Report(g_iRCONStatus, KACR_OFF);
 	}
-} 
+}

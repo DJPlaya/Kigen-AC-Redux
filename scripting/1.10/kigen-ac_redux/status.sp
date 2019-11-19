@@ -1,39 +1,18 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
-#define STATUS
 
 #define CELL_MODULENAME 0
 #define CELL_MODULESTATUS 1
 
 Handle g_hStatusArray;
 
-Status_OnPluginStart()
+public void Status_OnPluginStart()
 {
 	g_hStatusArray = CreateArray(32);
 	
-	RegAdminCmd("kacr_status", Status_Status, ADMFLAG_GENERIC, "Reports KACR's Status");
+	RegAdminCmd("kacr_status", Status_Cmd, ADMFLAG_GENERIC, "Reports KACR's Status");
 }
-
-/*Status_OnPluginEnd()
-{
-}*/
 
 Status_Register(char[] f_sName, char[] f_sStatus)
 {
@@ -54,20 +33,20 @@ Status_Report(f_iId, char[] f_sStatus)
 	RemoveFromArray(g_hStatusArray, f_iId);
 }*/
 
-public Action Status_Status(client, args)
+public Action Status_Cmd(client, args)
 {
 	Handle f_hTemp;
 	char f_sBuff[256], f_sTemp[64], f_sTemp2[64];
 	
-	int f_iCount = GetArraySize(g_hStatusArray)
+	int f_ig_iSongCount = GetArraySize(g_hStatusArray)
 	KACR_ReplyToCommand(client, KACR_STATUSREPORT);
-	if (!f_iCount)
+	if (!f_ig_iSongCount)
 	{
 		KACR_ReplyToCommand(client, KACR_NOREPORT);
 		return Plugin_Handled;
 	}
 	
-	for (int i = 0; i < f_iCount; i++)
+	for (int i = 0; i < f_ig_iSongCount; i++)
 	{
 		f_hTemp = GetArrayCell(g_hStatusArray, i);
 		GetArrayString(f_hTemp, CELL_MODULENAME, f_sTemp, sizeof(f_sTemp));
@@ -80,4 +59,4 @@ public Action Status_Status(client, args)
 	}
 	
 	return Plugin_Handled;
-} 
+}

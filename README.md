@@ -1,12 +1,13 @@
 # Kigen Anti Cheat Redux
 
 Requires:
-- SourceMod 1.8 or Higher (kigen-ac_redux is for 1.10, kigen-ac_redux_legacy for 1.8/1.9)
+- SourceMod 1.8 or Higher (kigen-ac_redux is for SM 1.10, kigen-ac_redux_legacy for SM 1.8/1.9)
 - Sockets 3.0.1 or newer
 
 Optional:
 - Sourcebans++
 - Sourcebans 2.X (V1 is unsupported)
+- ASteambot
 
 Official supported Games:
 - Counter-Strike: Global Offensive
@@ -19,8 +20,8 @@ Official supported Games:
   #### Most Elements of KACR will work on any Half Life Engine Game
 #
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.
-I hope this Plugin will help some Server Owners even doe its still in an early Stage of development.
-Ime still working on my own AC System, so dont exspect massive Changes here. Propapbly i will merge this Project some Day into "Cheat Acid".
+I hope this Plugin will help some Server Owners even doe it still inent fully up-to-date and stable.
+Propapbly i will merge this Project some Day with "Cheat Acid".
 Since i havent implemented an Updater yet (or renewed the old one), watch this Project on GitHub so you will be informed about Updates.
 
 ![How to watch](https://help.github.com/assets/images/help/repository/repo-actions-watch.png)

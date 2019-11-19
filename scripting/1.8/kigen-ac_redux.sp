@@ -1,51 +1,64 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
-//- Includes -//
+// Compiler Settings
 
 #pragma newdecls optional
+#pragma dynamic 393216 // 1536KB (1024+512) // 25.10.19 - 205924(1.8)-255224(1.10) bytes required - I know this MUCH for a Plugin, the normal Stack is 4KB! But do mind that this is nothing compared to only 1 GB of Memory!
+
+
+//- Includes -//
 
 #include <sdktools>
 #undef REQUIRE_EXTENSIONS 
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
+#include <adminmenu> // Normally this dosent need to be included, but ive got some strange bug with the 1.10 Compiler
 // #include <socket> // Required for the networking Module
-#include <smlib_kacr>
-#include <autoexecconfig_kacr>
+#include <smlib_kacr> // Copyright (C) SMLIB Contributors // This Include is Licensed under GPLv3, see 'Licenses/License_SMLIB.txt' for Details
+#include <ASteambot> // Copyright (c) ASteamBot Contributors // This Include is Licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details
+#include <autoexecconfig_kacr> //  Copyright (C) 2013-2017 Impact // This Include is Licensed under GPLv3, see 'Licenses/License_ASteambot.txt' for Details
 
 
 //- Natives -//
 
-native void SBBanPlayer(client, target, time, char[] reason); // Sourcebans
-native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sReason); // SourceBans++
+// SourceBans++
+native void SBPP_BanPlayer(int iAdmin, int iTarget, int iTime, const char[] sReason);
+native void SBPP_ReportPlayer(int iReporter, int iTarget, const char[] sReason);
+
+// Sourcebans 2.X
+native void SBBanPlayer(client, target, time, char[] reason);
+native void SB_ReportPlayer(int client, int target, const char[] reason);
+
+//native AddTargetsToMenu2(Handle menu, source_client, flags); // TODO: Strange Bug in the 1.10 Compiler
 
 
 //- Defines -//
 
-#define PLUGIN_VERSION "0.1"
+#define PLUGIN_VERSION "0.1" // TODO: No versioning till the first stable Release
+
+#define loop for(;;)
+
+#define KACR_Action_Count 13 // 18.11.19 - 12+1 carry Bit
+#define KACR_Action_Ban 1
+#define KACR_Action_TimeBan 2
+#define KACR_Action_ServerBan 3
+#define KACR_Action_ServerTimeBan 4
+#define KACR_Action_Kick 5
+#define KACR_Action_Crash 6
+#define KACR_Action_ReportSB 7
+#define KACR_Action_ReportAdmins 8
+#define KACR_Action_ReportSteamAdmins 9
+#define KACR_Action_AskSteamAdmin 10
+#define KACR_Action_Log 11
+#define KACR_Action_ReportIRC 12
 
 
 //- Global Variables -//
 
 Handle g_hValidateTimer[MAXPLAYERS + 1];
 Handle g_hClearTimer, g_hCVarVersion;
-EngineVersion hGame;
+EngineVersion g_hGame;
 
 StringMap g_hCLang[MAXPLAYERS + 1];
 StringMap g_hSLang, g_hDenyArray;
@@ -55,17 +68,16 @@ bool g_bAuthorized[MAXPLAYERS + 1]; // when I need to check on a client's state.
 bool g_bInGame[MAXPLAYERS + 1]; // system resources as compared to these. - Kigen
 bool g_bIsAdmin[MAXPLAYERS + 1];
 bool g_bIsFake[MAXPLAYERS + 1];
-bool g_bSourceBans, g_bSourceBansPP, g_bMapStarted;
+bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bMapStarted;
 
 
-//- KACR Modules -// Note: The that ordering of these Includes is imporant
+//- KACR Modules -// Note that the ordering of these Includes is important
 
 #include "kigen-ac_redux/translations.sp"	// Translations Module - NEEDED FIRST
 #include "kigen-ac_redux/client.sp"			// Client Module
 #include "kigen-ac_redux/commands.sp"		// Commands Module
 #include "kigen-ac_redux/cvars.sp"			// CVar Module
 #include "kigen-ac_redux/eyetest.sp"		// Eye Test Module
-// #include "kigen-ac_redux/network.sp"		// Network Module // OUTDATED
 #include "kigen-ac_redux/rcon.sp"			// RCON Module
 #include "kigen-ac_redux/status.sp"			// Status Module
 #include "kigen-ac_redux/stocks.sp"			// Stocks Module
@@ -81,25 +93,26 @@ public Plugin myinfo =
 };
 
 
-//- Plugin Functions -//
+//- Plugin and Config Functions -//
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	MarkNativeAsOptional("SDKHook");
 	MarkNativeAsOptional("SDKUnhook");
-	MarkNativeAsOptional("SBBanPlayer");
 	MarkNativeAsOptional("SBPP_BanPlayer");
+	MarkNativeAsOptional("SBPP_ReportPlayer");
+	MarkNativeAsOptional("SBBanPlayer");
+	MarkNativeAsOptional("SB_ReportPlayer");
 	
 	return APLRes_Success;
 }
 
 public void OnPluginStart()
 {
-	Handle f_hTemp;
 	char f_sLang[8];
 	
 	g_hDenyArray = new StringMap();
-	hGame = GetEngineVersion(); // Identify the game
+	g_hGame = GetEngineVersion(); // Identify the game
 	
 	AutoExecConfig_SetFile("Kigen-AC_Redux"); // Set which file to write Cvars to
 	
@@ -109,7 +122,6 @@ public void OnPluginStart()
 	Commands_OnPluginStart();
 	CVars_OnPluginStart();
 	Eyetest_OnPluginStart();
-	// Network_OnPluginStart(); // OUTDATED
 	RCON_OnPluginStart();
 	Trans_OnPluginStart();
 	
@@ -117,13 +129,8 @@ public void OnPluginStart()
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
 	if (!g_hLanguages.GetValue(f_sLang, any:g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
 		g_hLanguages.GetValue("en", any:g_hSLang);
-	
+		
 	g_hClearTimer = CreateTimer(14400.0, KACR_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
-	
-	//- Prevent Speeds -//
-	f_hTemp = FindConVar("sv_max_usercmd_future_ticks");
-	if (f_hTemp != INVALID_HANDLE)
-		SetConVarInt(f_hTemp, 1);
 	
 	AutoExecConfig_ExecuteFile(); // Execute the Config
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
@@ -131,14 +138,43 @@ public void OnPluginStart()
 	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
 	
 	SetConVarString(g_hCVarVersion, PLUGIN_VERSION); // TODO: Is this really needed?
-	HookConVarChange(g_hCVarVersion, VersionChange); // TODO: HMMM? Propably related to the old Updater System
+	HookConVarChange(g_hCVarVersion, ConVarChanged_Version); // Made, so no one touches the Version
 	
 	KACR_PrintToServer(KACR_LOADED);
 }
 
+public void OnPluginEnd()
+{
+	Commands_OnPluginEnd();
+	Eyetest_OnPluginEnd();
+	Trans_OnPluginEnd();
+	
+	ASteambot_RemoveModule();
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		g_bConnected[iClient] = false;
+		g_bAuthorized[iClient] = false;
+		g_bInGame[iClient] = false;
+		g_bIsAdmin[iClient] = false;
+		g_hCLang[iClient] = g_hSLang;
+		g_bShouldProcess[iClient] = false;
+		
+		// if (g_hValidateTimer[iClient] != INVALID_HANDLE) // TODO: Not needed? Ref > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/		CloseHandle(g_hValidateTimer[iClient]);  // TODO: Replace with 'g_hValidateTimer[iClient].Close()' once we dropped legacy support
+			
+		CVars_OnClientDisconnect(iClient);
+	}
+	
+	CloseHandle(g_hSLang); // TODO: Replace with 'g_hSLang.Close()' once we dropped legacy support
+	CloseHandle(g_hDenyArray); // TODO: Replace with 'g_hDenyArray.Close()' once we dropped legacy support
+	// if (g_hClearTimer != INVALID_HANDLE) // TODO: Not needed? Ref > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/	CloseHandle(g_hClearTimer); // TODO: Replace with 'g_hClearTimer.Close()' once we dropped legacy support
+}
+
 public void OnAllPluginsLoaded()
 {
-	char f_sReason[256], f_sAuthID[64];
+	char cReason[256], cAuthID[64];
 	
 	if (FindPluginByFile("sbpp_main.smx"))
 		g_bSourceBansPP = true;
@@ -152,59 +188,60 @@ public void OnAllPluginsLoaded()
 		g_bSourceBans = false;
 	}
 	
+	if(g_bSourceBansPP && g_bSourceBans)
+		KACR_Log("[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
+		
+		
+	if (LibraryExists("ASteambot"))
+	{
+		ASteambot_RegisterModule("KACR");
+		g_bASteambot = true;
+	}
+	
+	else
+		g_bASteambot = false;
+		
+		
 	//- Module Calls -//
 	Commands_OnAllPluginsLoaded();
 	
 	//- Late load stuff -//
-	for (int iCount = 1; iCount <= MaxClients; iCount++)
+	for (int ig_iSongCount = 1; ig_iSongCount <= MaxClients; ig_iSongCount++)
 	{
-		if (IsClientConnected(iCount))
+		if (IsClientConnected(ig_iSongCount))
 		{
-			if (!OnClientConnect(iCount, f_sReason, sizeof(f_sReason))) // TODO: Is this really needed?
+			if (!OnClientConnect(ig_iSongCount, cReason, sizeof(cReason))) // Check all Clients because were late
 			{
-				KickClient(iCount, "%s", f_sReason);
+				KickClient(ig_iSongCount, "%s", cReason);
 				continue;
 			}
 			
-			if (IsClientAuthorized(iCount) && GetClientAuthId(iCount, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
+			if (IsClientAuthorized(ig_iSongCount) && GetClientAuthId(ig_iSongCount, AuthId_Steam2, cAuthID, sizeof(cAuthID)))
 			{
-				OnClientAuthorized(iCount, f_sAuthID);
-				OnClientPostAdminCheck(iCount);
+				OnClientAuthorized(ig_iSongCount, cAuthID);
+				OnClientPostAdminCheck(ig_iSongCount);
 			}
 			
-			if (IsClientInGame(iCount))
-				OnClientPutInServer(iCount);
+			if (IsClientInGame(ig_iSongCount))
+				OnClientPutInServer(ig_iSongCount);
 		}
 	}
 }
 
-public void OnPluginEnd()
+public void OnConfigsExecuted() // TODO: Make this Part bigger // This dosent belong into cvars because that is for client vars only
 {
-	// Client_OnPluginEnd(); // Currently unused
-	Commands_OnPluginEnd();
-	Eyetest_OnPluginEnd();
-	// Network_OnPluginEnd(); // OUTDATED
-	// RCON_OnPluginEnd(); // Currently unused
-	// Status_OnPluginEnd(); // Currently unused
-	
-	for (int iClient = 0; iClient <= MaxClients; iClient++)
+	//- Prevent Speeds -//
+	Handle hVar1 = FindConVar("sv_max_usercmd_future_ticks");
+	if (hVar1) // != INVALID_HANDLE
 	{
-		g_bConnected[iClient] = false;
-		g_bAuthorized[iClient] = false;
-		g_bInGame[iClient] = false;
-		g_bIsAdmin[iClient] = false;
-		g_hCLang[iClient] = g_hSLang;
-		g_bShouldProcess[iClient] = false;
-		
-		if (g_hValidateTimer[iClient] != INVALID_HANDLE)
-			CloseHandle(g_hValidateTimer[iClient]);
-			
-		CVars_OnClientDisconnect(iClient);
+		if (GetConVarInt(hVar1) != 1) // TODO: Replace with 'hVar1.IntValue != 1' once we dropped legacy Support
+		{
+			KACR_Log("[Warning] 'sv_max_usercmd_future_ticks' was set to '%i' which is a risky Value, we have re-set it to '1'", GetConVarInt(hVar1)); // TODO: Replace with 'hVar1.IntValue' once we dropped legacy Support
+			SetConVarInt(hVar1, 1); // TODO: Replace with 'hVar1.SetInt(...)' once we dropped legacy Support
+		}
 	}
-	
-	if (g_hClearTimer != INVALID_HANDLE)
-		CloseHandle(g_hClearTimer);
 }
+
 
 //- Map Functions -//
 
@@ -212,16 +249,14 @@ public void OnMapStart()
 {
 	g_bMapStarted = true;
 	CVars_CreateNewOrder();
-	// Client_OnMapStart(); // Currently unused 
-	// RCON_OnMap(); // Currently unused
 }
 
 public void OnMapEnd()
 {
 	g_bMapStarted = false;
 	Client_OnMapEnd();
-	// RCON_OnMap(); // Currently unused
 }
+
 
 //- Client Functions -//
 
@@ -245,10 +280,10 @@ public void OnClientAuthorized(client, const char[] auth)
 		return;
 		
 	Handle f_hTemp;
-	char f_sReason[256];
-	if (g_hDenyArray.GetString(auth, f_sReason, sizeof(f_sReason)))
+	char cReason[256];
+	if (g_hDenyArray.GetString(auth, cReason, sizeof(cReason)))
 	{
-		KickClient(client, "%s", f_sReason);
+		KickClient(client, "%s", cReason);
 		OnClientDisconnect(client);
 		return;
 	}
@@ -261,8 +296,8 @@ public void OnClientAuthorized(client, const char[] auth)
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
 	
-	if (f_hTemp != INVALID_HANDLE)
-		CloseHandle(f_hTemp);
+	//if (f_hTemp != INVALID_HANDLE) // TODO: Not needed? Ref > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/	CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemp.Close()' once we dropped legacy support
 }
 
 public void OnClientPutInServer(client)
@@ -310,18 +345,18 @@ public void OnClientDisconnect(client)
 	g_bShouldProcess[client] = false;
 	g_bHooked[client] = false;
 	
-	for (int iCount = 1; iCount <= MaxClients; iCount++)
-	if (g_bConnected[iCount] && (!IsClientConnected(iCount) || IsFakeClient(iCount)))
-		OnClientDisconnect(iCount);
+	for (int ig_iSongCount = 1; ig_iSongCount <= MaxClients; ig_iSongCount++)
+	if (g_bConnected[ig_iSongCount] && (!IsClientConnected(ig_iSongCount) || IsFakeClient(ig_iSongCount)))
+		OnClientDisconnect(ig_iSongCount);
 		
 	f_hTemp = g_hValidateTimer[client];
 	g_hValidateTimer[client] = INVALID_HANDLE;
-	if (f_hTemp != INVALID_HANDLE)
-		CloseHandle(f_hTemp);
-		
+	// if (f_hTemp != INVALID_HANDLE) // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
+/*	*/	CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemp.Close()' once we dropped legacy support
+	
 	CVars_OnClientDisconnect(client);
-	// Network_OnClientDisconnect(client); // OUTDATED
 }
+
 
 //- Timers -//
 
@@ -341,10 +376,10 @@ public Action KACR_ClearTimer(Handle timer, any nothing)
 	g_hDenyArray.Clear();
 }
 
-//- ConVar Hook -//
 
-public void VersionChange(Handle convar, const char[] oldValue, const char[] newValue)
+//- ConVar Hook -//
+public void ConVarChanged_Version(Handle hCvar, const char[] cOldValue, const char[] cNewValue)
 {
-	if (!StrEqual(newValue, PLUGIN_VERSION))
+	if (!StrEqual(cNewValue, PLUGIN_VERSION))
 		SetConVarString(g_hCVarVersion, PLUGIN_VERSION);
-} 
+}

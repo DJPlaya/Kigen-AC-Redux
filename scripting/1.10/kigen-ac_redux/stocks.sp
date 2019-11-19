@@ -1,36 +1,19 @@
-/*
-	Kigen's Anti-Cheat
-	Copyright (C) 2007-2011 CodingDirect LLC
-	No Copyright (i guess) 2018-2019 FunForBattle
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright (C) 2007-2011 CodingDirect LLC
+// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
-#define STOCKS
 
 /*
 * Translates an String depending on the Clients Region
 * 
-* @param iClient			Client UID.
+* @param iClient		Client UID.
 * @param cTranslation	The Name of the Translation.
 * @param cDestination	The Destination String for the Output.
 * @param iMaxlenght		Maximum Lenght of the Destination String.
 */
-stock KACR_Translate(client, char[] cTranslation, char[] cDestination, iMaxlenght)
+KACR_Translate(const iClient, const char[] cTranslation, char[] cDestination, const iMaxlenght)
 {
-	if (client)
-		g_hCLang[client].GetString(cTranslation, cDestination, iMaxlenght);
+	if (iClient)
+		g_hCLang[iClient].GetString(cTranslation, cDestination, iMaxlenght);
 		
 	else
 		g_hSLang.GetString(cTranslation, cDestination, iMaxlenght);
@@ -39,22 +22,22 @@ stock KACR_Translate(client, char[] cTranslation, char[] cDestination, iMaxlengh
 /*
 * Sends an Command Reply to an Client
 * 
-* @param iClient			Client UID.
+* @param iClient		Client UID.
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_ReplyToCommand(client, const char[] cTranslation, any...)
+KACR_ReplyToCommand(const iClient, const char[] cTranslation, any ...)
 {
-	char f_sBuffer[256], f_sFormat[256];
+	char cBuffer[256], cFormat[256];
 	
-	if (!client)
-		g_hSLang.GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
+	if (!iClient)
+		g_hSLang.GetString(cTranslation, cFormat, sizeof(cFormat));
 		
 	else
-		g_hCLang[client].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
+		g_hCLang[iClient].GetString(cTranslation, cFormat, sizeof(cFormat));
 		
-	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
-	ReplyToCommand(client, "[Kigen-AC_Redux] %s", f_sBuffer);
+	VFormat(cBuffer, sizeof(cBuffer), cFormat, 3);
+	ReplyToCommand(iClient, "[Kigen-AC_Redux] %s", cBuffer);
 }
 
 /*
@@ -63,27 +46,27 @@ stock KACR_ReplyToCommand(client, const char[] cTranslation, any...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToServer(const char[] cTranslation, any...)
+KACR_PrintToServer(const char[] cTranslation, any ...)
 {
-	char f_sBuffer[256], f_sFormat[256];
-	g_hSLang.GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
-	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
-	PrintToServer("[Kigen-AC_Redux] %s", f_sBuffer);
+	char cBuffer[256], cFormat[256];
+	g_hSLang.GetString(cTranslation, cFormat, sizeof(cFormat));
+	VFormat(cBuffer, sizeof(cBuffer), cFormat, 2);
+	PrintToServer("[Kigen-AC_Redux] %s", cBuffer);
 }
 
 /*
 * Sends an Translated Message to a Client
 * 
-* @param iClient			Client UID.
+* @param iClient		Client UID.
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToChat(client, const char[] cTranslation, any...)
+KACR_PrintToChat(const iClient, const char[] cTranslation, any ...)
 {
-	char f_sBuffer[256], f_sFormat[256];
-	g_hCLang[client].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
-	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
-	PrintToChat(client, "[Kigen-AC_Redux] %s", f_sBuffer);
+	char cBuffer[256], cFormat[256];
+	g_hCLang[iClient].GetString(cTranslation, cFormat, sizeof(cFormat));
+	VFormat(cBuffer, sizeof(cBuffer), cFormat, 3);
+	PrintToChat(iClient, "[Kigen-AC_Redux] %s", cBuffer);
 }
 
 /*
@@ -92,16 +75,16 @@ stock KACR_PrintToChat(client, const char[] cTranslation, any...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToChatAdmins(const char[] cTranslation, any...)
+KACR_PrintToChatAdmins(const char[] cTranslation, any ...)
 {
-	char f_sBuffer[256], f_sFormat[256];
+	char cBuffer[256], cFormat[256];
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (g_bIsAdmin[i])
 		{
-			g_hCLang[i].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
-			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
-			PrintToChat(i, "[Kigen-AC_Redux] %s", f_sBuffer);
+			g_hCLang[i].GetString(cTranslation, cFormat, sizeof(cFormat));
+			VFormat(cBuffer, sizeof(cBuffer), cFormat, 2);
+			PrintToChat(i, "[Kigen-AC_Redux] %s", cBuffer);
 		}
 	}
 }
@@ -112,18 +95,62 @@ stock KACR_PrintToChatAdmins(const char[] cTranslation, any...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToChatAll(const char[] cTranslation, any...)
+KACR_PrintToChatAll(const char[] cTranslation, any ...)
 {
-	char f_sBuffer[256], f_sFormat[256];
+	char cBuffer[256], cFormat[256];
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (g_bInGame[i])
 		{
-			g_hCLang[i].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
-			VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 2);
-			PrintToChat(i, "[Kigen-AC_Redux] %s", f_sBuffer);
+			g_hCLang[i].GetString(cTranslation, cFormat, sizeof(cFormat));
+			VFormat(cBuffer, sizeof(cBuffer), cFormat, 2);
+			PrintToChat(i, "[Kigen-AC_Redux] %s", cBuffer);
 		}
 	}
+}
+
+/*
+* Sends an Message to an Admin on Steam
+* You should check 'g_bASteambot' and 'ASteambot_IsConnected' before calling this
+* Use \n for splitting Messages with 1,3s Delay between the Parts (usefull to prevent getting blocked from Steam when spamming Stuff)
+* 
+* @param cAdmin		Message to send (max. 900 Chars).
+* @param cText		Message to send (max. 900 Chars).
+* @param ...		Variable number of format parameters.
+*/
+KACR_PrintToSteamAdmin(const cAdmin, const char[] cText, any ...)
+{
+	char cBuffer[256], cFormat[256];
+	VFormat(cBuffer, sizeof(cBuffer), cText, 3);
+	Format(cFormat, sizeof(cFormat), "%s/%s", cAdmin, cBuffer);  // TODO: Let the User Configure multiply Steam Users in one Var
+	ASteambot_SendMesssage(AS_SIMPLE, cFormat);
+}
+
+/*
+* Logs an Error Message
+* 
+* @param cText	Message to log.
+* @param ...	Variable number of format parameters.
+*/
+KACR_Log(const char[] cText, any ...)
+{
+	char cBuffer[256], cPath[256];
+	VFormat(cBuffer, sizeof(cBuffer), cText, 2);
+	BuildPath(Path_SM, cPath, sizeof(cPath), "logs/KACR.log");
+	LogMessage(cBuffer); // Log to SM Log // TODO: Change this in a future Version #26
+	LogToFileEx(cPath, "%s", cBuffer); // Log to KACR.log
+}
+
+/*
+* Makes an String Lowercase
+* 
+* @param cText	String to Convert.
+*/
+StringToLower(char[] cText)
+{
+	int iSize = strlen(cText);
+	for (new i = 0; i < iSize; i++)
+		cText[i] = CharToLower(cText[i]);
 }
 
 /*
@@ -133,13 +160,13 @@ stock KACR_PrintToChatAll(const char[] cTranslation, any...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_Kick(iClient, const char[] cTranslation, any...)
+KACR_Kick(const iClient, const char[] cTranslation, any ...)
 {
-	char f_sBuffer[256], f_sFormat[256];
-	g_hCLang[iClient].GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
-	VFormat(f_sBuffer, sizeof(f_sBuffer), f_sFormat, 3);
-	KickClient(iClient, "%s", f_sBuffer);
-	OnClientDisconnect(iClient); // Do this since the client is no longer useful to us. - Kigen // TODO: Needed?
+	char cBuffer[256], cFormat[256];
+	g_hCLang[iClient].GetString(cTranslation, cFormat, sizeof(cFormat));
+	VFormat(cBuffer, sizeof(cBuffer), cFormat, 3);
+	KickClient(iClient, "%s", cBuffer);
+	OnClientDisconnect(iClient); // Needed, will be executed in the main File
 }
 
 /*
@@ -151,55 +178,560 @@ stock KACR_Kick(iClient, const char[] cTranslation, any...)
 * @param cReason		The Ban Reason.
 * @param ...			Variable Number of Format Parameters.
 */
-stock KACR_Ban(iClient, iTime, const char[] cTranslation, const char[] cReason, any...)
+KACR_Ban(const iClient, iTime, const char[] cTranslation, const char[] cReason, any ...)
 {
-	char f_sBuffer[256], f_sEReason[256];
+	char cBuffer[256], cEReason[256];
 	if (strcmp(cTranslation, "NULL")) // No Translation existing
-		Format(f_sEReason, 256, "%s", cReason);
+		Format(cEReason, sizeof(cEReason), "%s", cReason);
 		
 	else
-		g_hCLang[iClient].GetString(cTranslation, f_sEReason, 256);
+		g_hCLang[iClient].GetString(cTranslation, cEReason, 256);
 		
-	VFormat(f_sBuffer, 256, cReason, 5);
+	VFormat(cBuffer, sizeof(cBuffer), cReason, 5);
 	
-	if (g_bSourceBans)
-		SBBanPlayer(0, iClient, iTime, f_sBuffer);
+	if (g_bSourceBansPP)
+		SBPP_BanPlayer(0, iClient, iTime, cBuffer); // Admin 0 is the Server in SBPP, this ID CAN be created or edited manually in the Database to show Name "Server" on the Webpanel
 		
-	else if (g_bSourceBansPP)
-		SBPP_BanPlayer(0, iClient, iTime, f_sBuffer); // Admin 0 is the Server in SBPP, this ID CAN be created or edited manually in the Database to show Name "Server" on the Webpanel
+	else if (g_bSourceBans)
+		SBBanPlayer(0, iClient, iTime, cBuffer);
 		
 	else
-		BanClient(iClient, iTime, BANFLAG_AUTO, f_sBuffer, f_sEReason, "KACR");
+		if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cBuffer, cEReason, "KACR"))
+			KACR_Log("[Error] Failed to Server Ban Client '%L'", iClient);
+			
+	OnClientDisconnect(iClient); // Needed, will be executed in the main File
+}
+
+
+//- Action System -//
+
+/*
+	//i (index of something) / 2 ^ N = FloatMod(Sqr(i != 0.0), 0) (A php thingy 'll get on that later)
+	
+	float FloatMod(float num, float denom)
+	{
+	    return num - denom * RoundToFloor(num / denom);
+	}
+*/
+
+/*
+* Performens an specified Action
+* Combine the Numbers like you desire
+* 0 - Do nothing
+* 1 - Ban (SB & SB++)
+* 2 - Time Ban (SB & SB++) // TODO: Add Option to set the Time
+* 4 - Server Ban (banned_ip.cfg or banned_user.cfg)
+* 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg) // TODO: Add Option to set the Time
+* 16 - Kick
+* 32 - Crash Client (May not work on any Game)
+* 64 - Report to SB
+* 128 - Report to online Admins
+* // TODO:256 - Tell Admins on Steam about the Violation
+* // TODO:512 - Ask an Steam User for Advice
+* // TODO:1024 - Log to File
+* // TODO:2048 - Tell about the Violation using SourceIRC
+*
+* 
+* @param iClient		Client UID.
+* @param iAction		What todo with the Client.
+* @param iTime			Bantime.
+* @param cUserReason	Kickreason to display to the Client, can be a Translation starting with 'KACR_', leave blank to use cReason. 
+* @param cReason		The Reason for the Action.
+* @param ...			Variable Number of Format Parameters.
+*/
+KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason, const char[] cReason, any ...)
+{
+	// TODO: Add limit to Cvars
+	// TODO: Make able to block specific Actions from outside
+	// TODO: Make re-runnable
+	
+	if(iAction == 0) // 0 - Do nothing
+		return;
 		
-	OnClientDisconnect(iClient); // Bashats! // TODO: Needed?
+	char cReason2[256], cUserReason2[256];
+	VFormat(cReason2, sizeof(cReason2), cReason, 4);
+	
+	if(StrContains(cUserReason, "KACR_")) // Is Translated
+		KACR_Translate(iClient, cUserReason, cUserReason2, sizeof(cUserReason2));
+		
+	else if(strlen(cUserReason) == 0) // Is Blank
+		strcopy(cUserReason2, sizeof(cUserReason2), cReason2);
+		
+	else // Is valid
+		strcopy(cUserReason2, sizeof(cUserReason2), cUserReason);
+		
+	// Here the big Checker Block beginns, i wish i would be better in Math so i could design a Formula for this
+	int iActionCheck = iAction; // We do not want to loose the initial Value
+	loop
+	{
+		if(iActionCheck < 1024)
+			if(iActionCheck < 512)
+				if(iActionCheck < 256)
+					if(iActionCheck < 128)
+						if(iActionCheck < 64)
+							if(iActionCheck < 32)
+								if(iActionCheck < 16)
+									if(iActionCheck < 8)
+										if(iActionCheck < 4)
+											if(iActionCheck < 2) // == 1
+												if(iActionCheck < 1) // == 0, negative Values would be strange
+													break;
+													
+												else // 1 - Ban (SB & SB++)
+												{
+													if (g_bSourceBansPP)
+													{
+														SBPP_BanPlayer(0, iClient, 0, cReason2); // Admin 0 is the Server in SBPP
+														if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+															OnClientDisconnect(iClient); // Needed, will be executed in the main File
+													}
+													
+													else if (g_bSourceBans)
+													{
+														SBBanPlayer(0, iClient, 0, cReason2);
+														if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+															OnClientDisconnect(iClient); // Needed, will be executed in the main File
+													}
+													
+													else
+													{
+														KACR_Log("[Warning] An SourceBans Ban was called but SB isent installed, applying Server Ban instead");
+														if(!BanClient(iClient, 0, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
+															KACR_Log("[Error] Failed to Server Ban Client '%L', after an SB Ban also failed", iClient);
+															
+														else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+															OnClientDisconnect(iClient); // Needed, will be executed in the main Filee
+													}
+													
+													iActionCheck = iActionCheck - 1;
+												}
+												
+											else // 2 - Time Ban (SB & SB++)
+											{
+												if (g_bSourceBansPP)
+												{
+													SBPP_BanPlayer(0, iClient, iTime, cReason2); // Admin 0 is the Server in SBPP, this ID CAN be created or edited manually in the Database to show Name "Server" on the Webpanel
+													if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+														OnClientDisconnect(iClient); // Needed, will be executed in the main File
+												}
+												
+												else if (g_bSourceBans)
+												{
+													SBBanPlayer(0, iClient, iTime, cReason2);
+													if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+														OnClientDisconnect(iClient); // Needed, will be executed in the main File
+												}
+												
+												else
+												{
+													KACR_Log("[Warning] An Sourcebans Time Ban was called but SB isent installed, applying Server Time Ban instead");
+													if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR"))
+														KACR_Log("[Error] Failed to Server Time Ban Client '%L', after an SB Ban also failed", iClient);
+														
+													else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+														OnClientDisconnect(iClient); // Needed, will be executed in the main File
+												}
+												
+												iActionCheck = iActionCheck - 2;
+											}
+											
+										else // 4 - Server Ban (banned_ip.cfg or banned_user.cfg)
+										{
+											if(!BanClient(iClient, 0, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR"))
+												KACR_Log("[Error] Failed to Server Ban Client '%L'", iClient);
+												
+											else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+												OnClientDisconnect(iClient); // Needed, will be executed in the main File
+												
+											iActionCheck = iActionCheck - 4;
+										}
+										
+									else // 8 - Server Time Ban
+									{
+										if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
+											KACR_Log("[Error] Failed to Server Time Ban Client '%L'", iClient);
+											
+										else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+											OnClientDisconnect(iClient); // Needed, will be executed in the main File
+											
+										iActionCheck = iActionCheck - 8;
+									}
+									
+								else // 16 - Kick
+								{
+									if(!KickClient(iClient, "%s", cUserReason2))
+										KACR_Log("[Error] Failed to kick Client '%L'", iClient);
+										
+									else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+										OnClientDisconnect(iClient); // Needed, will be executed in the main File
+										
+									iActionCheck = iActionCheck - 16;
+								}
+								
+							else // 32 - Crash Client
+							{
+								KACR_CrashClient(iClient, cReason2);
+								// OnClientDisconnect(iClient); // Executed in the 'CrashClient_ErrorCheck'
+								
+								iActionCheck = iActionCheck - 32;
+							}
+							
+						else // 64 - Report to SB
+						{
+							if (g_bSourceBansPP)
+								SBPP_ReportPlayer(0, iClient, cReason);
+								
+							else if (g_bSourceBans)
+								SB_ReportPlayer(0, iClient, cReason);
+								
+							else
+								KACR_Log("[Error] Tried to Report an Player to Sourcebans but it isent installed");
+								
+							iActionCheck = iActionCheck - 64;
+						}
+						
+					else // 128 - Report to online Admins
+					{
+						// KACR_PrintToChatAdmins(###cTranslation###); // TODO: Match Reasons to find Translations
+						
+						for (int i = 1; i <= MaxClients; i++)
+							if (g_bIsAdmin[i])
+								PrintToChat(i, "[Kigen-AC_Redux] Reporting Client '%L' for doing '%s'", iClient, cReason2);
+								
+						iActionCheck = iActionCheck - 128;
+					}
+					
+				else // 256 - Tell Admins on Steam about the Violation
+				{
+					/*if(g_bASteambot)
+					{
+						if(ASteambot_IsConnected()) // TODO: No Support for multiply Clients yet due to the 'Ask an Steam User over ASteambot for Advice' thingy which can only work with one person
+							KACR_PrintToSteamAdmin(##cvar##.GetString, "[KACR] Reporting Client '%L' for doing 'cReason'", iClient, cReason);
+							
+						else
+							KACR_Log("[Error] Tried to Use ASteambot but it is not connected to its Backend");
+					}
+					
+					else
+						KACR_Log("[Error] Tried to Use ASteambot but it isent running");*/
+						
+					iActionCheck = iActionCheck - 256;
+				}
+				
+			else // 512 - Ask an Steam User over ASteambot for Advice
+			{
+				if(g_bASteambot)
+				{
+					if(ASteambot_IsConnected())
+					{ // 8.10.19 - 632 Chars, 900 is max so we can actually Send all in one MSG
+						/*KACR_PrintToSteamAdmin(##cvar##.GetString, "[KACR] Reporting Client '%L' for doing '%s'\n
+	[KACR] Asking for Action to take\n
+	[KACR] Options available:\n
+	[KACR] 0 - Dont do anything\n
+	[KACR] 1 - Ban (SB & SB++)\n
+	[KACR] 2 - Time Ban (SB & SB++)\n
+	[KACR] 4 - Server Ban (banned_ip.cfg or banned_user.cfg)\n
+	[KACR] 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg)\n
+	[KACR] 16 - Kick\n
+	[KACR] 32 - Crash Client\n
+	[KACR] 64 - Report to SB\n
+	[KACR] 128 - Report to online Admins\n
+	[KACR] 256 - Tell Admins on Steam about the Violation\n
+	[KACR] 1024 - Log to File\n
+	[KACR] --------------------
+	[KACR] Enter a Number from above to call an Action\n
+	[KACR] You can also add up the Numbers to call multiply Actions"); // TODO: Ask if to display Actions
+						
+						// TODO: Warning, we must make this multithread! Else multiply reports could Result in the Plugin going weird
+						//callback: public void ASteambot_Message(int iMessageType, char[] cMessage, const int iMessageSize){}
+					*/}
+					
+					else
+						KACR_Log("[Error] Tried to Use ASteambot but it is not connected to its Backend");
+				}
+				
+				else
+					KACR_Log("[Error] Tried to Use ASteambot but it isent running");
+					
+				iActionCheck = iActionCheck - 512;
+			}
+			
+		else // 1024 - Log to File
+		{
+			char cClientIP[64];
+			GetClientIP(iClient, cClientIP, sizeof(cClientIP));
+			
+			KACR_Log("Logging Client '%L<%s>' for doing '%s'", iClient, cClientIP, cReason);
+			
+			// Checking all the Numbers to make a Proper Report
+			int iActionLogCheck = iAction;
+			if(iActionLogCheck < 2048)
+				if(iActionLogCheck < 1024)
+					if(iActionLogCheck < 512)
+						if(iActionLogCheck < 256)
+							if(iActionLogCheck < 128)
+								if(iActionLogCheck < 64)
+									if(iActionLogCheck < 32)
+										if(iActionLogCheck < 16)
+											if(iActionLogCheck < 8)
+												if(iActionLogCheck < 4)
+													if(iActionLogCheck < 2)
+														if(iActionLogCheck < 1) // == 0, negative Values would be strange // 0 - Nothin
+															break;
+															
+														else // == 1 // 1 - Ban (SB & SB++)
+														{
+															KACR_Log("Logging Action 1: Banned Client '%L<%s>'", iClient, cClientIP);
+															iActionLogCheck = iActionLogCheck - 1;
+														}
+														
+													else // 2 - Time Ban (SB & SB++)
+													{
+														KACR_Log("Logging Action 2: Time Banned Client '%L<%s>' for '%i' Minutes", iClient, cClientIP, iTime);
+														iActionLogCheck = iActionLogCheck - 2;
+													}
+													
+												else // 4 - Server Ban (banned_ip.cfg or banned_user.cfg)
+												{
+													KACR_Log("Logging Action 4: Server Banned Client '%L<%s>'", iClient, cClientIP);
+													iActionLogCheck = iActionLogCheck - 4;
+												}
+												
+											else // 8 - Server Time Ban
+											{
+												KACR_Log("Logging Action 8: Server Time Banned Client '%L<%s>' for '%i' Minutes", iClient, cClientIP, iTime);
+												iActionLogCheck = iActionLogCheck - 8;
+											}
+											
+										else // 16 - Kick
+										{
+											KACR_Log("Logging Action 16: Kicked Client '%L<%s>'", iClient, cClientIP);
+											iActionLogCheck = iActionLogCheck - 16;
+										}
+										
+									else // 32 - Crash Client
+									{
+										KACR_Log("Logging Action 32: Crashed Client '%L<%s>'", iClient, cClientIP);
+										iActionLogCheck = iActionLogCheck - 32;
+									}
+									
+								else // 64 - Report to SB
+								{
+									KACR_Log("Logging Action 64: Reportet Client '%L<%s>' to SourceBans", iClient, cClientIP);
+									iActionLogCheck = iActionLogCheck - 64;
+								}
+								
+							else // 128 - Report to online Admins
+							{
+								KACR_Log("Logging Action 128: Reportet Client '%L<%s>' to all online Admins", iClient, cClientIP);
+								iActionLogCheck = iActionLogCheck - 128;
+							}
+							
+						else // 256 - Tell Admins on Steam about the Violation
+						{
+							KACR_Log("Logging Action 256: Reportet Client '%L<%s>' to all Steam Admins", iClient, cClientIP);
+							iActionLogCheck = iActionLogCheck - 256;
+						}
+						
+					else // 512 - Ask an Steam User over ASteambot for Advice
+					{
+						KACR_Log("Logging Action 512: Asked on Steam what todo with Client '%L<%s>'", iClient, cClientIP);
+						iActionLogCheck = iActionLogCheck - 512;
+					}
+					
+				else // 1024 - Log to File
+				{
+					// DO ONOZ
+					iActionLogCheck = iActionLogCheck - 1024;
+				}
+				
+			else // 2048 - Tell about the Violation using SourceIRC
+			{
+				KACR_Log("Logging Action 2048: Reportet Client '%L<%s>' to the specified IRC Channels", iClient, cClientIP);
+				iActionLogCheck = iActionLogCheck - 2048;
+				return;
+			}
+			
+			iActionCheck = iActionCheck - 1024;
+		}
+	}
 }
 
-
-//- Global Private Functions -//
-
 /*
-* Logs an Error Message
+* Lets a Client Crash, this Exploit requires Menus and UserMessages so it may work with Source SDK 2013 Games only
+* If the Exploit fails, it will kick the Player instead
 * 
-* @param cText			Message to log.
-* @param ...			Variable number of format parameters.
+* @param iClient	Client you want to Crash.
+* @param cReason	The Crash- or Kickreason.
 */
-KACR_Log(const char[] cText, any...)
+void KACR_CrashClient(int iClient, char[] cReason)
 {
-	char f_sBuffer[256], f_sPath[256];
-	VFormat(f_sBuffer, sizeof(f_sBuffer), cText, 2);
-	BuildPath(Path_SM, f_sPath, sizeof(f_sPath), "logs/KACR.log");
-	LogMessage("%s", f_sBuffer);
-	LogToFileEx(f_sPath, "%s", f_sBuffer);
+	Menu hMenu = new Menu(CrashClient_MenuHandler);
+	hMenu.SetTitle(cReason);
+	AddTargetsToMenu2(hMenu, iClient, COMMAND_FILTER_CONNECTED|COMMAND_FILTER_NO_IMMUNITY); 
+	hMenu.ExitButton = true;
+	hMenu.Display(iClient, 30);
+	
+	// DataPack hData = CreateDataPack();
+	DataPack hData = new DataPack(); // TODO: Works like that?
+	if (!hData.WriteFloat(view_as<float>(iClient)))
+		KACR_Log("[Error] Failed to write Client Data in the crash Client Function, Report this Error to get it fixed");
+		
+	if (!hData.WriteString(cReason))
+		KACR_Log("[Error] Failed to write Ban Reason Data in the crash Client Function, Report this Error to get it fixed");
+		
+	RequestFrame(CrashClient_ErrorCheck, hData); // TODO: Is one Frame enought??
+}
+
+int CrashClient_MenuHandler(Menu hMenu, MenuAction hAction, int iClient, int iItem)
+{
+	if(hAction == MenuAction_Select)
+	{
+		char cInfo[10];
+		hMenu.GetItem(iItem, cInfo, 10);
+		
+		// int userid = StringToInt(info);
+		int iTarget = GetClientOfUserId(StringToInt(cInfo)); 
+		if(Client_IsValid(iTarget, true) && Client_IsIngame(iTarget))
+		{
+			Handle hSayText = StartMessageOne("SayText2", iTarget);
+			
+			if(hSayText != null)
+			{
+				PbSetInt(hSayText, "ent_idx", iTarget);
+				PbSetBool(hSayText, "chat", true);
+				PbSetString(hSayText, "msg_name", "#");
+				EndMessage();
+			}
+		}
+	}
+	
+	else if(hAction == MenuAction_End)
+		CloseHandle(hMenu); // TODO: Replace with 'hMenu.Close()' once we dropped legacy support
+}
+
+CrashClient_ErrorCheck(any hData)
+{
+	// hData.Reset();// ResetPack(hData); // TODO: Is the Focus at the second Entry after writing it??
+	int iClient;
+	char cReason[256];
+	
+	if (!(view_as<float>(iClient) = ReadPackFloat(hData))) // (!(view_as<float>(iClient) = ReadFloat(hData))) // TODO: Replace once we dropped legacy support
+		KACR_Log("[Error] Failed to read Client Data in the crash Client Function, Report this Error to get it fixed");
+		
+	if (!(ReadPackString(hData, cReason, sizeof(cReason)))) // (!hData.ReadString(cReason, sizeof(cReason)) // TODO: Replace once we dropped legacy support
+		KACR_Log("[Error] Failed to read Ban Reason Data in the crash Client Function, Report this Error to get it fixed");
+	
+	if(IsClientConnected(iClient))
+	{
+		if(KickClient(iClient, "%s", cReason))
+			KACR_Log("[Warning] Failed to crash Client '%L', he was kicked instead", iClient);
+			
+		else
+			KACR_Log("[Error] Failed to kick Client '%L', after crashing him before dident worked too! Report this Error to get it fixed", iClient);
+	}
+	
+	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO: Does the 1 Frame Delay will cause problems with our disconnect Functions?
+		OnClientDisconnect(iClient); // Needed, will be executed in the main File
+		
+	CloseHandle(hData); // TODO: Replace with 'hData.Close()' once we dropped legacy support
 }
 
 /*
-* Makes an String Lowercase
+* Checks which Actions are required
+* You will get an Bool Array as Handover, no return
 * 
-* @param cText			String to Convert.
+* @param iAction	Action ID Input.
 */
-stock StringToLower(char[] cText)
+bool KACR_ActionCheck(int iAction) // I wish i would be better in Math so i could design a Formula for this
 {
-	int f_iSize = strlen(cText);
-	for (new i = 0; i < f_iSize; i++)
-		cText[i] = CharToLower(cText[i]);
-} 
+	bool bActions[KACR_Action_Count];
+	loop
+	{
+		if(iAction < 2048)
+			if(iAction < 1024)
+				if(iAction < 512)
+					if(iAction < 256)
+						if(iAction < 128)
+							if(iAction < 64)
+								if(iAction < 32)
+									if(iAction < 16)
+										if(iAction < 8)
+											if(iAction < 4)
+												if(iAction < 2)
+													if(iAction < 1) // == 0, negative Values would be strange // 0 - Nothin
+														break;
+														
+													else // == 1 // 1 - 1 - Ban (SB & SB++)
+													{
+														bActions[KACR_Action_Ban] = true;
+														iAction = iAction - 1;
+													}
+													
+												else // 2 - 2 - Time Ban (SB & SB++)
+												{
+													bActions[KACR_Action_TimeBan] = true;
+													iAction = iAction - 2;
+												}
+												
+											else // 4 - 3 - Server Ban (banned_ip.cfg or banned_user.cfg)
+											{
+												bActions[KACR_Action_ServerBan] = true;
+												iAction = iAction - 4;
+											}
+											
+										else // 8 - 4 - Server Time Ban
+										{
+											bActions[KACR_Action_ServerTimeBan] = true;
+											iAction = iAction - 8;
+										}
+										
+									else // 16 - 5 - Kick
+									{
+										bActions[KACR_Action_Kick] = true;
+										iAction = iAction - 16;
+									}
+									
+								else // 32 - 6 - Crash Client
+								{
+									bActions[KACR_Action_Crash] = true;
+									iAction = iAction - 32;
+								}
+								
+							else // 64 - 7 - Report to SB
+							{
+								bActions[KACR_Action_ReportSB] = true;
+								iAction = iAction - 64;
+							}
+							
+						else // 128 - 8 - Report to online Admins
+						{
+							bActions[KACR_Action_ReportAdmins] = true;
+							iAction = iAction - 128;
+						}
+						
+					else // 256 - 9 - Tell Admins on Steam about the Violation
+					{
+						bActions[KACR_Action_ReportSteamAdmins] = true;
+						iAction = iAction - 256;
+					}
+					
+				else // 512 - 10 - Ask an Steam User over ASteambot for Advice
+				{
+					bActions[KACR_Action_AskSteamAdmin] = true;
+					iAction = iAction - 512;
+				}
+				
+			else // 1024 - 11 - Log to File
+			{
+				bActions[KACR_Action_Log] = true;
+				iAction = iAction - 1024;
+			}
+			
+		else // 2048 - 12 - Tell about the Violation using SourceIRC
+		{
+			bActions[KACR_Action_ReportIRC] = true;
+			iAction = iAction - 2048;
+		}
+	}
+}
