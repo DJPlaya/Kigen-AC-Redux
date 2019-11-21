@@ -53,8 +53,8 @@ We give People push Access who have already done some successful Pull Requests.
 
 ### How Commits should look like
 * Write a Summary of what you did into the First Commit Message Line, and more detailed Information into the next Lines
-* Avoid pushing merge Commits (within the same Branch), they pollute the Histoy. Use "git rebase" to stack Commits. [Here](http://randyfay.com/content/simpler-rebasing-avoiding-unintentional-merge-commits) is a good Tutorial.
-* Use "+", "``*``" and "-" for Key Points in your Commit Details to mark your Code Changes as added(+), changed(``*``) or removed(-).
+* Avoid pushing merge Commits (within the same Branch), they pollute the Histoy. Use `git rebase` to stack Commits. [Here](http://randyfay.com/content/simpler-rebasing-avoiding-unintentional-merge-commits) is a good Tutorial.
+* Use `+`, `*` and `-` for Key Points in your Commit Details to mark your Code Changes as added(`+`), changed(`*`) or removed(`-`).
 This can look like this:</br>
 +Added WIP Update System</br>
 *Renewed Syntax</br>
@@ -67,15 +67,15 @@ This can look like this:</br>
 * Use long, self-explaining Variable/Function Names
 * ALWAYS use `{` `}` Brackets but do avoid them when an new Block only has a single Line
 * Don't use Abbrevations anywhere in Function/Variable Names etc., except they are well-known or have been mentioned a few Lines earlyer in the Code.
-* Use New Lines to Group your Code into logical Parts and do use theese Comments for new Sectors/Groups "//- GROUP -//"
+* Use New Lines to Group your Code into logical Parts and do use theese Comments for new Sectors/Groups `//- GROUP -//`
 * Do not make a Line Break if the Line is too long
 * Use the new Syntax and dont forget to optimize every bit of Code ;)
-* Global Variables must be marked with g_
-* Variable Names must contain the Data Type and each Word must be capitalized like this: ConVar g_hEyetestEnabled ("g_" because it is global and "h" because an ConVar is a type of Handle).
-* All Convars must be Hooked to detect Changes, the Function Name must begin with ConVarChanged_
+* Global Variables must be marked with `g_`, and ConVars with `g_hCVar`
+* Variable Names must contain the Data Type and each Word must be capitalized like this: `ConVar g_hEyetestEnabled` (`g_` because it is global and `h` because an ConVar is a type of Handle).
+* All Convars must be Hooked to detect Changes, the Function Name must begin with `ConVarChanged_`
 * When defining Vars, do not make Bools = False and Handle = Invalid_Handle, thats done automatically nowadays
-* Allways leave one Line of Space before using return, break or similar
-* There must be a Gap after an if/else/case if Code comes after that
+* Allways leave one Line of Space before using `return`, `break` or similar
+* There must be a Gap after an `if`/`else`/`case` if Code comes after that
 
 ### Code Style Example
 ```Sourcepawn
