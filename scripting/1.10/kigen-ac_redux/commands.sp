@@ -84,7 +84,7 @@ Commands_OnPluginStart()
 Commands_OnAllPluginsLoaded()
 {
 	Handle f_hConCommand;
-	char f_sName[64];
+	char cConVar[64];
 	bool f_bIsCommand, f_iFlags;
 	
 	g_hBlockedCmds = new StringMap(); // CreateTrie();
@@ -166,24 +166,24 @@ Commands_OnAllPluginsLoaded()
 	// Leaving this in as a fall back incase game isn't compatible with the command listener.
 	if (GetFeatureStatus(FeatureType_Capability, FEATURECAP_COMMANDLISTENER) != FeatureStatus_Available || !AddCommandListener(Commands_CommandListener))
 	{
-		f_hConCommand = FindFirstConCommand(f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags);
+		f_hConCommand = FindFirstConCommand(cConVar, sizeof(cConVar), f_bIsCommand, f_iFlags);
 		if (f_hConCommand == INVALID_HANDLE)
 			SetFailState("Failed getting first ConCommand");
 			
 		do
 		{
-			if (!f_bIsCommand || StrEqual(f_sName, "sm"))
+			if (!f_bIsCommand || StrEqual(cConVar, "sm"))
 				continue;
 				
-			if (StrContains(f_sName, "es_") != -1 && !StrEqual(f_sName, "es_version"))
-				RegConsoleCmd(f_sName, Commands_ClientCheck);
+			if (StrContains(cConVar, "es_") != -1 && !StrEqual(cConVar, "es_version"))
+				RegConsoleCmd(cConVar, Commands_ClientCheck);
 				
 			else
-				RegConsoleCmd(f_sName, Commands_SpamCheck);
+				RegConsoleCmd(cConVar, Commands_SpamCheck);
 			
 		}
 		
-		while (FindNextConCommand(f_hConCommand, f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags));
+		while (FindNextConCommand(f_hConCommand, cConVar, sizeof(cConVar), f_bIsCommand, f_iFlags));
 		
 		CloseHandle(f_hConCommand);
 	}
@@ -423,7 +423,7 @@ public Action Commands_BlockEntExploit(client, args)
 
 public Action Commands_CommandListener(iClient, const char[] command, argc)
 {
-	if (!iClient || iClient == -1)
+	if (iClient > 0)
 		return Plugin_Continue;
 		
 	if (g_bIsFake[iClient]) // We could have added this in the first Check but the Client index can be -1 and wont match any entry in the array
