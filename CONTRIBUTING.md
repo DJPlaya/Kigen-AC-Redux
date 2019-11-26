@@ -55,9 +55,9 @@ We give People push Access who have already done some successful Pull Requests.
 * Write a Summary of what you did into the First Commit Message Line, and more detailed Information into the next Lines
 * Avoid pushing merge Commits (within the same Branch), they pollute the Histoy. Use `git rebase` to stack Commits. [Here](http://randyfay.com/content/simpler-rebasing-avoiding-unintentional-merge-commits) is a good Tutorial.
 * Use `+`, `*` and `-` for Key Points in your Commit Details to mark your Code Changes as added(`+`), changed(`*`) or removed(`-`).
-This can look like this:</br>
-+Added WIP Update System</br>
-*Renewed Syntax</br>
+This can look like this:  
++Added WIP Update System  
+*Renewed Syntax  
 -Backchecking Function got Removed
 
 ## Consistent Code Style
