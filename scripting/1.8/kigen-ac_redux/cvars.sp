@@ -637,19 +637,23 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		{
 			if(iActuallyUsefull < 8) // Real Clients, no Bots
 			{
-				if(iActuallyUsefull > 2)
+				//if(iActuallyUsefull > 2)
 					// Error, received "Not Found" from '%i' of '%i' Clients('%d%') using '%s', iCvarExistence, iActuallyUsefull, ((iCvarExistence / iActuallyUsefull) * 100, cvarName // TODO Report Back here#27
 					
 				return;
 			}
 			
-			if(CVars_RemoveCVar(cvarName))
+			else if(CVars_RemoveCVar(cvarName))
+			{
 				// Error, received "Not Found" from '%i' of '%i' Clients('%d%') using '%s', iCvarExistence, iActuallyUsefull, ((iCvarExistence / iActuallyUsefull) * 100, cvarName // TODO Report Back here#27
-				
-			//else // Failed to remove
+				KACR_Log("[Error] ConVar '%s' was reported as not existing by '%i' of '%i' Clients('%d%'). Removed that CVar from the Active Checkerlist.", cvarName, iCvarExistence, iActuallyUsefull, ((iCvarExistence / iActuallyUsefull) * 100)); // TODO: add "and reported the Error"
+			}
+			
+			else // Failed to remove
+			{
 				// Error, received "Not Found" from '%i' of '%i' Clients('%d%') using '%s' but removing this ConVar failed!, iCvarExistence, iActuallyUsefull, ((iCvarExistence / iActuallyUsefull) * 100, cvarName // TODO Report Back here#27
-				
-			KACR_Log("[Error] ConVar '%s' was reported as not existing by '%i' of '%i' Clients('%d%'). Removed that CVar from the Active Checkerlist and reported the Error", cvarName, iCvarExistence, iActuallyUsefull, ((iCvarExistence / iActuallyUsefull) * 100));
+				KACR_Log("[Error] ConVar '%s' was reported as not existing by '%i' of '%i' Clients('%d%'). Couldent remove this CVar from the Checkerlist.", cvarName, iCvarExistence, iActuallyUsefull, ((iCvarExistence / iActuallyUsefull) * 100)); // TODO: add "and reported the Error"
+			}
 			
 			return;
 		}
@@ -898,7 +902,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		g_hPeriodicTimer[client] = CreateTimer(GetRandomFloat(0.5, 2.0), CVars_PeriodicTimer, client);
 }
 
-public void CVars_Selfcheck_QueryCallback(QueryCookie hCookie, iClient, ConVarQueryResult hResult, const char[] cCvarName, const char[] cCvarValue, any:iCvarExistence)
+public void CVars_Selfcheck_QueryCallback(QueryCookie hCookie, iClient, ConVarQueryResult hResult, const char[] cCvarName, const char[] cCvarValue, any iCvarExistence)
 {
 	if (hResult != ConVarQuery_NotFound)
 		iCvarExistence++;

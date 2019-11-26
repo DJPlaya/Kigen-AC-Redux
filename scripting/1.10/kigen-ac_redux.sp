@@ -117,7 +117,7 @@ public void OnPluginStart()
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
 	if (!g_hLanguages.GetValue(f_sLang, any:g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
 		g_hLanguages.GetValue("en", any:g_hSLang);
-	
+		
 	g_hClearTimer = CreateTimer(14400.0, KACR_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
 	//- Prevent Speeds -//
