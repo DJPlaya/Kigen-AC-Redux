@@ -128,7 +128,7 @@ public void OnPluginStart()
 	AutoExecConfig_ExecuteFile(); // Execute the Config
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
 	
-	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
+	g_hCVarVersion = CreateConVar("kacr_version", PLUGIN_VERSION, "Kigen Anti Cheat Redux Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
 	
 	SetConVarString(g_hCVarVersion, PLUGIN_VERSION); // TODO: Is this really needed?
 	HookConVarChange(g_hCVarVersion, VersionChange); // TODO: HMMM? Propably related to the old Updater System
