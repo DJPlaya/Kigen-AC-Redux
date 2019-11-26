@@ -423,7 +423,7 @@ public Action Commands_BlockEntExploit(client, args)
 
 public Action Commands_CommandListener(iClient, const char[] command, argc)
 {
-	if (iClient > 0)
+	if (iClient < 0)
 		return Plugin_Continue;
 		
 	if (g_bIsFake[iClient]) // We could have added this in the first Check but the Client index can be -1 and wont match any entry in the array
