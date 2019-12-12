@@ -429,7 +429,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 	if (g_bIsFake[iClient]) // We could have added this in the first Check but the Client index can be -1 and wont match any entry in the array
 		return Plugin_Continue;
 		
-	if (!g_bInGame[iClient])
+	if (!g_bInGame[iClient] && iClient != 0)
 		return Plugin_Stop;
 		
 	if (!g_bCmdEnabled)
