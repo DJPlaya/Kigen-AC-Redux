@@ -77,7 +77,7 @@ public Plugin myinfo =
 	author = "Playa", 
 	description = "An Universal Anti Cheat Solution compactible with most Source Engine Games", 
 	version = PLUGIN_VERSION, 
-	url = "FunForBattle"
+	url = "github.com/DJPlaya/Kigen-AC-Redux"
 };
 
 
