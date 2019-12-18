@@ -41,7 +41,7 @@ Client_OnPluginStart()
 	
 	if (hGame == Engine_CSS || hGame == Engine_CSGO)
 	{
-		g_hCVarClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "0", "This will prevent Clients from leaving the Game and then rejoining to Respawn", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVarClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "1", "This will prevent Clients from leaving the Game and then rejoining to Respawn", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		g_bClientAntiRespawn = GetConVarBool(g_hCVarClientAntiRespawn);
 		
 		g_hClientSpawned = new StringMap();
@@ -59,13 +59,13 @@ Client_OnPluginStart()
 	g_hCVarClientNameProtect = AutoExecConfig_CreateConVar("kacr_client_nameprotect", "1", "This will protect the Server from name Crashes and Hacks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	g_bClientNameProtect = GetConVarBool(g_hCVarClientNameProtect);
 	
-	g_hCVarClientAntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "0", "Seconds to prevent someone from restablishing a Connection. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
+	g_hCVarClientAntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "15", "Seconds to prevent someone from restablishing a Connection. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
 	g_fClientAntiSpamConnect = GetConVarFloat(g_hCVarClientAntiSpamConnect);
 	
 	if (g_bClientEnable)
 	{
 		g_iClientStatus = Status_Register(KACR_CLIENTMOD, KACR_ON);
-		if (hGame == Engine_CSS)
+		if (hGame == Engine_CSS || hGame == Engine_CSGO)
 		{
 			if (g_bClientAntiRespawn)
 				g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_ON);
@@ -84,7 +84,7 @@ Client_OnPluginStart()
 	else
 	{
 		g_iClientStatus = Status_Register(KACR_CLIENTMOD, KACR_OFF);
-		if (hGame == Engine_CSS)
+		if (hGame == Engine_CSS || hGame == Engine_CSGO)
 			g_iClientAntiRespawnStatus = Status_Register(KACR_CLIENTANTIRESPAWN, KACR_DISABLED);
 			
 		g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_DISABLED);
@@ -172,7 +172,7 @@ Client_OnMapEnd()
 	for (int i = 0; i < MAX_CONNECTIONS; i++)
 		strcopy(g_sClientConnections[i], 64, "");
 		
-	if (hGame == Engine_CSS)
+	if (hGame == Engine_CSS || hGame == Engine_CSGO)
 		Client_CleanEvent(INVALID_HANDLE, "", false);
 }
 
@@ -242,7 +242,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 {
 	if (!g_bClientEnable)
 		return true;
-	
+		
 	if (g_fClientAntiSpamConnect > 0.0)
 	{
 		char f_sClientIP[64];
@@ -385,7 +385,7 @@ public void Client_EnableChange(Handle convar, const char[] oldValue, const char
 	if (g_bClientEnable)
 	{
 		Status_Report(g_iClientStatus, KACR_ON);
-		if (hGame == Engine_CSS)
+		if (hGame == Engine_CSS || hGame == Engine_CSGO)
 		{
 			if (g_bClientAntiRespawn)
 				Status_Report(g_iClientAntiRespawnStatus, KACR_ON);
@@ -404,7 +404,7 @@ public void Client_EnableChange(Handle convar, const char[] oldValue, const char
 	else
 	{
 		Status_Report(g_iClientStatus, KACR_OFF);
-		if (hGame == Engine_CSS)
+		if (hGame == Engine_CSS || hGame == Engine_CSGO)
 			Status_Report(g_iClientAntiRespawnStatus, KACR_DISABLED);
 			
 		Status_Report(g_iClientNameProtectStatus, KACR_DISABLED);

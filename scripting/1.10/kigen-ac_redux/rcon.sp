@@ -44,6 +44,9 @@ RCON_OnPluginStart()
 		else
 			g_iRCONStatus = Status_Register(KACR_RCONPREVENT, KACR_OFF);
 	}
+	
+	else
+		g_iRCONStatus = Status_Register(KACR_RCONPREVENT, KACR_OFF);
 }
 
 /*RCON_OnPluginEnd()

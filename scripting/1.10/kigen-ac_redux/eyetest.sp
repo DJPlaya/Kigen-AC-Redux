@@ -41,7 +41,7 @@ Eyetest_OnPluginStart()
 {
 	/*if(hGame != Engine_CSGO && hGame != Engine_CSS && hGame != Engine_Insurgency && hGame != Engine_Left4Dead2 && hGame != Engine_HL2DM)
 	{*/
-	g_hCVarEyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVarEyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "1", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	Eyetest_EnableChange(g_hCVarEyeEnable, "", "");
 	
 	if (g_bEyeEnabled)
@@ -61,7 +61,7 @@ Eyetest_OnPluginStart()
 		g_bAntiWallDisabled = false;
 		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_OFF);
 		
-		g_hCVarAntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "0", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVarAntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		
 		Eyetest_AntiWallChange(g_hCVarAntiWall, "", "");
 		
