@@ -194,9 +194,10 @@ public void Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const c
 		}
 		
 		for (int i = 1; i <= MaxClients; i++)
-			if (Client_IsValid(i, true) && IsPlayerAlive(i) && !g_bHooked[i]) // IsClientInGame(i) && IsPlayerAlive(i) && !IsFakeClient(i) // is IsClientInGame needed? IsPlayerAlive should check that too
-				Eyetest_Hook(i);
-				
+			if (Client_IsValid(i, true))
+				if (IsPlayerAlive(i) && !g_bHooked[i]) // We do not use the Arrays here since its OnPluginStart and the Players may havent been checked TODO: is that correct?
+					Eyetest_Hook(i);
+					
 		Status_Report(g_iAntiWHStatus, KACR_ON);
 	}
 	
