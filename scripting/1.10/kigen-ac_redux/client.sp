@@ -106,7 +106,7 @@ Client_OnPluginStart()
 
 public Action Client_JoinClass(client, args)
 {
-	if (!g_bClientEnable || !g_bClientAntiRespawn || !g_bClientMapStarted || !client || IsFakeClient(client) || GetClientTeam(client) < 2)
+	if (!g_bClientEnable || !g_bClientAntiRespawn || !g_bClientMapStarted || client < 1 || IsFakeClient(client) || GetClientTeam(client) < 2)
 		return Plugin_Continue;
 		
 	char f_sAuthID[64], f_sTemp[64];
@@ -130,7 +130,7 @@ public Action Client_JoinClass(client, args)
 
 public Action Client_Autobuy(client, args)
 {
-	if (!client)
+	if (client < 1)
 		return Plugin_Continue;
 		
 	char f_sAutobuy[256], f_sArg[64];
@@ -195,7 +195,7 @@ public Action Client_PlayerSpawn(Handle event, const char[] name, bool dontBroad
 		
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	char f_sAuthID[64];
-	if (!client || GetClientTeam(client) < 2 || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
+	if (client <= 0 || GetClientTeam(client) < 2 || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
 	g_hClientSpawned.Remove(f_sAuthID);
@@ -210,7 +210,7 @@ public Action Client_PlayerDeath(Handle event, const char[] name, bool dontBroad
 		
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	char f_sAuthID[64];
-	if (!client || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
+	if (client <= 0 || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
 	g_hClientSpawned.SetValue(f_sAuthID, true);

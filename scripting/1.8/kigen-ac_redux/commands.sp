@@ -390,7 +390,7 @@ public Action Commands_FilterSay(client, args)
 
 public Action Commands_BlockEntExploit(client, args)
 {
-	if (!client)
+	if (client < 1)
 		return Plugin_Continue;
 		
 	if (!g_bInGame[client])
@@ -423,17 +423,17 @@ public Action Commands_BlockEntExploit(client, args)
 
 public Action Commands_CommandListener(iClient, const char[] command, argc)
 {
-	if (iClient < 0)
+	if (!g_bCmdEnabled)
+		return Plugin_Continue;
+		
+	if (iClient < 1)
 		return Plugin_Continue;
 		
 	if (g_bIsFake[iClient]) // We could have added this in the first Check but the Client index can be -1 and wont match any entry in the array
 		return Plugin_Continue;
 		
-	if (!g_bInGame[iClient] && iClient != 0)
+	if (!g_bInGame[iClient]) // && iClient != 0)
 		return Plugin_Stop;
-		
-	if (!g_bCmdEnabled)
-		return Plugin_Continue;
 		
 	bool f_bBan;
 	char f_sCmd[64];
@@ -479,7 +479,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 
 public Action Commands_ClientCheck(client, args)
 {
-	if (!client || g_bIsFake[client])
+	if (client < 1 || g_bIsFake[client])
 		return Plugin_Continue;
 		
 	if (!g_bInGame[client])
@@ -520,7 +520,7 @@ public Action Commands_ClientCheck(client, args)
 
 public Action Commands_SpamCheck(client, args)
 {
-	if (!client || g_bIsFake[client])
+	if (client < 1 || g_bIsFake[client])
 		return Plugin_Continue;
 		
 	if (!g_bInGame[client])

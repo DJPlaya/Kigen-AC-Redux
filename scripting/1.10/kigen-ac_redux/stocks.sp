@@ -47,7 +47,7 @@ stock KACR_ReplyToCommand(client, const char[] cTranslation, any...)
 {
 	char f_sBuffer[256], f_sFormat[256];
 	
-	if (!client)
+	if (client < 1)
 		g_hSLang.GetString(cTranslation, f_sFormat, sizeof(f_sFormat));
 		
 	else

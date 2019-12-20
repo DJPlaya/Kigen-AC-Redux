@@ -448,7 +448,7 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 public Action CVars_ReplyTimer(Handle timer, any userid)
 {
 	int client = GetClientOfUserId(userid);
-	if (!client || g_hReplyTimer[client] == INVALID_HANDLE)
+	if (client < 1 || g_hReplyTimer[client] == INVALID_HANDLE)
 		return Plugin_Stop;
 		
 	g_hReplyTimer[client] = INVALID_HANDLE;
