@@ -1,15 +1,14 @@
 # Kigen Anti Cheat Redux
+## Project Status: Maintained, Rolling Release
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.  
 I hope this Plugin will help some Server Owners. Propapbly i will merge this Project some Day into "Cheat Acid".   
-
-Project Status: Maintained, Rolling Release
 #
 Requires:
 - SourceMod 1.8 or Higher (kigen-ac_redux is for 1.10, kigen-ac_redux_legacy for 1.8/1.9)
 
 Optional:
 - Sourcebans++
-- Sourcebans 2.X (V1 is unsupported)
+- Sourcebans 2.X (V1 isent supported)
 
 Official supported Games:
 - Counter-Strike: Global Offensive
