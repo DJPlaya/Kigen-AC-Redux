@@ -1,5 +1,5 @@
 # Kigen Anti Cheat Redux
-## Project Status: Maintained, Rolling Release
+### Project Status: Maintained, Rolling Release
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.  
 I hope this Plugin will help some Server Owners. Propapbly i will merge this Project some Day into "Cheat Acid".   
 #
