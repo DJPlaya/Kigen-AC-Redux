@@ -497,6 +497,6 @@ public Trans_OnPluginStart()
 
 public void Trans_OnPluginEnd()
 {
-	// if(g_hLanguages) // Allways check, else this could Result in Errors // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
-/*	*/	CloseHandle(g_hLanguages); // TODO: Replace with 'g_hLanguages.Close()' once we dropped legacy support
+	if(g_hLanguages) // Allways check, else this could Result in Errors
+		CloseHandle(g_hLanguages);
 }

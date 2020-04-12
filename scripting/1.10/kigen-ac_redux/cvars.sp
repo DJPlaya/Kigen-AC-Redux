@@ -3,7 +3,7 @@
 
 
 // Array Index Documentation
-// Arrays that come from g_hCVars are index like below.
+// Arrays that come from g_hCVar__s are index like below.
 // 1. CVar Name
 // 2. Comparison Type
 // 3. CVar Handle - If this is defined then the engine will ignore the Comparison Type and Values as this should be only for FCVAR_REPLICATED CVars.
@@ -46,9 +46,9 @@
 
 //- Global CVARS Variables -//
 
-Handle g_hCVarCVarsEnabled, g_hCVars;
+Handle g_hCVar__CVarsEnabled, g_hCVar__s;
 Handle g_hCurrentQuery[MAXPLAYERS + 1], g_hReplyTimer[MAXPLAYERS + 1], g_hPeriodicTimer[MAXPLAYERS + 1];
-StringMap g_hCVarIndex;
+StringMap g_hCVar__Index;
 
 char g_sQueryResult[][] =  { "Okay", "Not found", "Not valid", "Protected" };
 
@@ -67,13 +67,13 @@ public void CVars_OnPluginStart()
 	bool f_bIsCommand;
 	int f_iFlags;
 	
-	g_hCVarCVarsEnabled = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bCVarsEnabled = GetConVarBool(g_hCVarCVarsEnabled);
+	g_hCVar__CVarsEnabled = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bCVarsEnabled = GetConVarBool(g_hCVar__CVarsEnabled);
 	
-	HookConVarChange(g_hCVarCVarsEnabled, CVars_EnableChange);
+	HookConVarChange(g_hCVar__CVarsEnabled, CVars_EnableChange);
 	
-	g_hCVars = CreateArray(64);
-	g_hCVarIndex = new StringMap();
+	g_hCVar__s = CreateArray(64);
+	g_hCVar__Index = new StringMap();
 	
 	// High Priority // Note: We kick them out before hand because we don't want to have to ban them.
 	CVars_AddCVar("0penscript", COMP_NONEXIST, ACTION_BAN, "0.0", 0.0, PRIORITY_HIGH);
@@ -106,7 +106,13 @@ public void CVars_OnPluginStart()
 	CVars_AddCVar("cl_clock_correction", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_leveloverview", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_overdraw_test", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
-	CVars_AddCVar("cl_particle_show_bbox", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL); // TODO: Outdated in CSS? cl_particles_show_bbox
+	
+	if (g_hGame != Engine_CSGO)
+		CVars_AddCVar("cl_particle_show_bbox", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
+		
+	else
+		CVars_AddCVar("cl_particles_show_bbox", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL); // TODO: Outdated in CSS? cl_particles_show_bbox
+		
 	CVars_AddCVar("cl_phys_timescale", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("cl_showevents", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	
@@ -170,7 +176,7 @@ public void CVars_OnPluginStart()
 	
 	while (FindNextConCommand(f_hConCommand, f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags));
 	
-	CloseHandle(f_hConCommand); // TODO: Replace with 'f_hConCommand.Close()' once we dropped legacy support
+	CloseHandle(f_hConCommand);
 	
 	// Register Admin Commands
 	RegAdminCmd("kacr_addcvar", CVars_CmdAddCVar, ADMFLAG_ROOT, "Adds a CVar to the Checklist");
@@ -198,14 +204,14 @@ public void CVars_OnClientDisconnect(client)
 	if (f_hTemp != INVALID_HANDLE)
 	{
 		g_hPeriodicTimer[client] = INVALID_HANDLE;
-		CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemp.Close()' once we dropped legacy support
+		CloseHandle(f_hTemp);
 	}
 	
 	f_hTemp = g_hReplyTimer[client];
 	if (f_hTemp != INVALID_HANDLE)
 	{
 		g_hReplyTimer[client] = INVALID_HANDLE;
-		CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemp.Close()' once we dropped legacy support
+		CloseHandle(f_hTemp);
 	}
 }
 
@@ -409,7 +415,7 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 		g_iCurrentIndex[client] = 1;
 	}
 	
-	f_hCVar = GetArrayCell(g_hCVars, f_iIndex);
+	f_hCVar = GetArrayCell(g_hCVar__s, f_iIndex);
 	
 	if (GetArrayCell(f_hCVar, CELL_CHANGED) == INVALID_HANDLE)
 	{
@@ -428,7 +434,7 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 public Action CVars_ReplyTimer(Handle timer, any userid)
 {
 	int client = GetClientOfUserId(userid);
-	if (!client || g_hReplyTimer[client] == INVALID_HANDLE)
+	if (client < 1 || g_hReplyTimer[client] == INVALID_HANDLE)
 		return Plugin_Stop;
 		
 	g_hReplyTimer[client] = INVALID_HANDLE;
@@ -516,7 +522,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	f_hConVar = g_hCurrentQuery[client];
 	
 	// We weren't expecting a reply or convar we queried is no longer valid and we cannot find it.
-	if (f_hConVar == INVALID_HANDLE && !g_hCVarIndex.GetValue(cvarName, f_hConVar))
+	if (f_hConVar == INVALID_HANDLE && !g_hCVar__Index.GetValue(cvarName, f_hConVar))
 	{
 		if (g_hPeriodicTimer[client] == INVALID_HANDLE) // Client doesn't have active query or a timer active for them?  Ballocks!
 			g_hPeriodicTimer[client] = CreateTimer(GetRandomFloat(0.5, 2.0), CVars_PeriodicTimer, client);
@@ -529,7 +535,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	// Make sure this query replied correctly.
 	if (!StrEqual(cvarName, f_sCVarName)) // CVar not expected.
 	{
-		if (!g_hCVarIndex.GetValue(cvarName, f_hConVar)) // CVar doesn't exist in our list.
+		if (!g_hCVar__Index.GetValue(cvarName, f_hConVar)) // CVar doesn't exist in our list.
 		{
 			KACR_Log("Unknown CVar Reply: '%L'<%s> was kicked for a corrupted Return with Convar Name \"%s\" (expecting \"%s\") with Value \"%s\".", client, f_sIP, cvarName, f_sCVarName, cvarValue);
 			KACR_Kick(client, KACR_CLIENTCORRUPT);
@@ -553,7 +559,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		if (f_hTemp != INVALID_HANDLE)
 		{
 			g_hReplyTimer[client] = INVALID_HANDLE;
-			CloseHandle(f_hTemp); // TODO: Replace with 'f_hTemo.Close()' once we dropped legacy support
+			CloseHandle(f_hTemp);
 			g_iRetryAttempts[client] = 0;
 		}
 	}
@@ -852,11 +858,11 @@ public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] n
 	Handle f_hCVarIndex, f_hTimer;
 	char f_sName[64];
 	GetConVarName(convar, f_sName, sizeof(f_sName));
-	if (g_hCVarIndex.GetValue(f_sName, f_hCVarIndex))
+	if (g_hCVar__Index.GetValue(f_sName, f_hCVarIndex))
 	{
 		f_hTimer = GetArrayCell(f_hCVarIndex, CELL_CHANGED);
-		// if (f_hTimer != INVALID_HANDLE) // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
-/*	*/		CloseHandle(f_hTimer); // TODO: Replace with 'f_hTimer.Close()' once we dropped legacy support
+		if (f_hTimer != INVALID_HANDLE)
+			CloseHandle(f_hTimer);
 			
 		f_hTimer = CreateTimer(30.0, CVars_ReplicateCheck, f_hCVarIndex);
 		SetArrayCell(f_hCVarIndex, CELL_CHANGED, f_hTimer);
@@ -900,7 +906,7 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 	else
 		f_hConVar = INVALID_HANDLE;
 		
-	if (g_hCVarIndex.GetValue(f_sName, f_hArray)) // Check if CVar check already exists.
+	if (g_hCVar__Index.GetValue(f_sName, f_hArray)) // Check if CVar check already exists.
 	{
 		SetArrayString(f_hArray, CELL_NAME, f_sName); // Name			0
 		SetArrayCell(f_hArray, CELL_COMPTYPE, f_iComparisonType); // Comparison Type	1
@@ -926,15 +932,15 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 		PushArrayCell(f_hArray, f_iImportance); // Importance		7
 		PushArrayCell(f_hArray, INVALID_HANDLE); // Changed		8
 		
-		if (!g_hCVarIndex.SetValue(f_sName, f_hArray))
+		if (!g_hCVar__Index.SetValue(f_sName, f_hArray))
 		{
-			CloseHandle(f_hArray); // TODO: Replace with 'f_hArray.Close()' once we dropped legacy support
+			CloseHandle(f_hArray);
 			KACR_Log("[Error] Unable to add ConVar to Hashmap Link List '%s'", f_sName);
 			return false;
 		}
 		
-		PushArrayCell(g_hCVars, f_hArray);
-		g_iSize = GetArraySize(g_hCVars);
+		PushArrayCell(g_hCVar__s, f_hArray);
+		g_iSize = GetArraySize(g_hCVar__s);
 		
 		if (f_iImportance != PRIORITY_NORMAL && g_bMapStarted)
 			CVars_CreateNewOrder();
@@ -948,10 +954,10 @@ stock bool CVars_RemoveCVar(char[] f_sName)
 	Handle f_hConVar;
 	int f_iIndex;
 	
-	if (!g_hCVarIndex.GetValue(f_sName, f_hConVar))
+	if (!g_hCVar__Index.GetValue(f_sName, f_hConVar))
 		return false;
 		
-	f_iIndex = FindValueInArray(g_hCVars, f_hConVar);
+	f_iIndex = FindValueInArray(g_hCVar__s, f_hConVar);
 	if (f_iIndex == -1)
 		return false;
 		
@@ -959,10 +965,10 @@ stock bool CVars_RemoveCVar(char[] f_sName)
 	if (g_hCurrentQuery[i] == f_hConVar)
 		g_hCurrentQuery[i] = INVALID_HANDLE;
 		
-	RemoveFromArray(g_hCVars, f_iIndex);
-	g_hCVarIndex.Remove(f_sName);
-	CloseHandle(f_hConVar); // TODO: Replace with 'f_hConVar.Close()' once we dropped legacy support
-	g_iSize = GetArraySize(g_hCVars);
+	RemoveFromArray(g_hCVar__s, f_iIndex);
+	g_hCVar__Index.Remove(f_sName);
+	CloseHandle(f_hConVar);
+	g_iSize = GetArraySize(g_hCVar__s);
 	
 	return true;
 }
@@ -980,7 +986,7 @@ stock CVars_CreateNewOrder()
 	// Get priorities.
 	for (int i = 0; i < g_iSize; i++)
 	{
-		f_hCurrent = GetArrayCell(g_hCVars, i);
+		f_hCurrent = GetArrayCell(g_hCVar__s, i);
 		f_iTemp = GetArrayCell(f_hCurrent, CELL_PRIORITY);
 		if (f_iTemp == PRIORITY_NORMAL)
 			PushArrayCell(f_hPNormal, f_hCurrent);
@@ -1021,14 +1027,14 @@ stock CVars_CreateNewOrder()
 		f_iNormal--;
 	}
 	
-	ClearArray(g_hCVars);
+	ClearArray(g_hCVar__s);
 	
 	for (int i = 0; i < g_iSize; i++)
-		PushArrayCell(g_hCVars, f_hOrder[i]);
+		PushArrayCell(g_hCVar__s, f_hOrder[i]);
 		
-	CloseHandle(f_hPHigh); // TODO: Replace with 'f_hPHigh.Close()' once we dropped legacy support
-	CloseHandle(f_hPMedium); // TODO: Replace with 'f_hPMedium.Close()' once we dropped legacy support
-	CloseHandle(f_hPNormal); // TODO: Replace with 'f_hPNormal.Close()' once we dropped legacy support
+	CloseHandle(f_hPHigh);
+	CloseHandle(f_hPMedium);
+	CloseHandle(f_hPNormal);
 }
 
 stock CVars_ReplicateConVar(Handle f_hConVar)

@@ -9,7 +9,7 @@
 
 //- Global Variables -//
 
-Handle g_hEyeTimer, g_hCVarEyeEnable, g_hCVarAntiWall;
+Handle g_hEyeTimer, g_hCVar__EyeEnable, g_hCVar__AntiWall;
 float g_vClientPos[MAXPLAYERS + 1][3], g_vClientEye[MAXPLAYERS + 1][3];
 int g_iVelOff, g_iBaseVelOff, g_iEyeStatus, g_iAntiWHStatus;
 int g_iWeaponOwner[MAX_ENTITIES];
@@ -24,8 +24,8 @@ public void Eyetest_OnPluginStart()
 {
 	/*if(g_hGame != Engine_CSGO && g_hGame != Engine_CSS && g_hGame != Engine_Insurgency && g_hGame != Engine_Left4Dead2 && g_hGame != Engine_HL2DM)
 	{*/ // TODO: Test on all supported Games
-	g_hCVarEyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	Eyetest_EnableChange(g_hCVarEyeEnable, "", "");
+	g_hCVar__EyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "1", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	Eyetest_EnableChange(g_hCVar__EyeEnable, "", "");
 	
 	if (g_bEyeEnabled)
 		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_ON);
@@ -33,7 +33,7 @@ public void Eyetest_OnPluginStart()
 	else
 		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_OFF);
 		
-	HookConVarChange(g_hCVarEyeEnable, Eyetest_EnableChange);
+	HookConVarChange(g_hCVar__EyeEnable, Eyetest_EnableChange);
 	/*}
 	
 	else
@@ -44,11 +44,11 @@ public void Eyetest_OnPluginStart()
 		g_bAntiWallDisabled = false;
 		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_OFF);
 		
-		g_hCVarAntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "0", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVar__AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 		
-		Eyetest_AntiWallChange(g_hCVarAntiWall, "", "");
+		Eyetest_AntiWallChange(g_hCVar__AntiWall, "", "");
 		
-		HookConVarChange(g_hCVarAntiWall, Eyetest_AntiWallChange);
+		HookConVarChange(g_hCVar__AntiWall, Eyetest_AntiWallChange);
 	}
 	
 	else // More possible Entitys then we set in the Plugin?!
@@ -63,21 +63,21 @@ public void Eyetest_OnPluginStart()
 	HookEvent("player_death", Eyetest_PlayerDeath);
 }
 
-public  void Eyetest_OnPluginEnd()
+public void Eyetest_OnPluginEnd()
 {
 	if (g_bAntiWall)
 		for (int i = 1; i <= MaxClients; i++)
 			if (g_bHooked[i])
 				SDKUnhook(i, SDKHook_SetTransmit, Eyetest_Transmit);
 				
-	// if (g_hEyeTimer != INVALID_HANDLE) // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
-/*	*/	CloseHandle(g_hEyeTimer); // TODO: Replace with 'g_hEyeTimer.Close()' once we dropped legacy support
+	if (g_hEyeTimer != INVALID_HANDLE)
+		CloseHandle(g_hEyeTimer);
 }
 
 
 //- Clients -//
 
-public  void Eyetest_OnClientPutInServer(client)
+public void Eyetest_OnClientPutInServer(client)
 {
 	if (!IsFakeClient(client) && IsPlayerAlive(client))
 		g_bShouldProcess[client] = true;
@@ -151,8 +151,8 @@ public void Eyetest_EnableChange(Handle convar, const char[] oldValue, const cha
 	
 	else if (!g_bEyeEnabled && g_hEyeTimer != INVALID_HANDLE)
 	{
-		CloseHandle(g_hEyeTimer); // TODO: Replace with 'g_hEyeTimer.Close()' once we dropped legacy support
-		// g_hEyeTimer = INVALID_HANDLE;
+		CloseHandle(g_hEyeTimer);
+		// g_hEyeTimer = INVALID_HANDLE; // Not needed?
 		Status_Report(g_iEyeStatus, KACR_OFF);
 	}
 }
@@ -177,9 +177,10 @@ public void Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const c
 		}
 		
 		for (int i = 1; i <= MaxClients; i++)
-			if (Client_IsValid(i, true) && IsPlayerAlive(i) && !g_bHooked[i]) // IsClientInGame(i) && IsPlayerAlive(i) && !IsFakeClient(i) // is IsClientInGame needed? IsPlayerAlive should check that too
-				Eyetest_Hook(i);
-				
+			if (Client_IsValid(i, true))
+				if (IsPlayerAlive(i) && !g_bHooked[i]) // We do not use the Arrays here since its OnPluginStart and the Players may havent been checked TODO: is that correct?
+					Eyetest_Hook(i);
+					
 		Status_Report(g_iAntiWHStatus, KACR_ON);
 	}
 	

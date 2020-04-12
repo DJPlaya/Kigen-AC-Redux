@@ -4,7 +4,7 @@
 
 //- Global Variables -//
 
-Handle g_hg_iSongCountReset, g_hCVarCmdEnable, g_hCVarCmdSpam, g_hCVarCmdLog;
+Handle g_hg_iSongCountReset, g_hCVar__CmdEnable, g_hCVar__CmdSpam, g_hCVar__CmdLog;
 StringMap g_hBlockedCmds, g_hIgnoredCmds;
 
 char g_sCmdLogPath[256];
@@ -19,18 +19,18 @@ int g_iCmdStatus, g_iCmdSpamStatus, g_iCmdSpam = 30;
 
 public void Commands_OnPluginStart()
 {
-	g_hCVarCmdEnable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bCmdEnabled = GetConVarBool(g_hCVarCmdEnable);
+	g_hCVar__CmdEnable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bCmdEnabled = GetConVarBool(g_hCVar__CmdEnable);
 	
-	g_hCVarCmdSpam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
-	g_iCmdSpam = GetConVarInt(g_hCVarCmdSpam);
+	g_hCVar__CmdSpam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
+	g_iCmdSpam = GetConVarInt(g_hCVar__CmdSpam);
 	
-	g_hCVarCmdLog = AutoExecConfig_CreateConVar("kacr_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bLogCmds = GetConVarBool(g_hCVarCmdLog);
+	g_hCVar__CmdLog = AutoExecConfig_CreateConVar("kacr_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bLogCmds = GetConVarBool(g_hCVar__CmdLog);
 	
-	HookConVarChange(g_hCVarCmdEnable, Commands_CmdEnableChange);
-	HookConVarChange(g_hCVarCmdSpam, Commands_CmdSpamChange);
-	HookConVarChange(g_hCVarCmdLog, Commands_CmdLogChange);
+	HookConVarChange(g_hCVar__CmdEnable, Commands_CmdEnableChange);
+	HookConVarChange(g_hCVar__CmdSpam, Commands_CmdSpamChange);
+	HookConVarChange(g_hCVar__CmdLog, Commands_CmdLogChange);
 	
 	// Setup logging Path
 	for (int i = 0; ; i++)
@@ -65,8 +65,8 @@ public void Commands_OnPluginStart()
 
 public void Commands_OnPluginEnd()
 {
-	//if (g_hg_iSongCountReset != INVALID_HANDLE) // TODO: Not needed? Ref > https://forums.alliedmods.net/showthread.php?t=300403
-/*	*/	CloseHandle(g_hg_iSongCountReset); // TODO: Replace with 'g_hg_iSongCountReset.Close()' once we dropped legacy support
+	if (g_hg_iSongCountReset != INVALID_HANDLE)
+		CloseHandle(g_hg_iSongCountReset);
 }
 
 public void Commands_OnAllPluginsLoaded()
@@ -372,7 +372,7 @@ public Action Commands_FilterSay(client, args)
 
 public Action Commands_BlockEntExploit(client, args)
 {
-	if (!client)
+	if (client < 1)
 		return Plugin_Continue;
 		
 	if (!g_bInGame[client])
@@ -405,17 +405,17 @@ public Action Commands_BlockEntExploit(client, args)
 
 public Action Commands_CommandListener(iClient, const char[] command, argc)
 {
-	if (!iClient || iClient == -1)
+	if (!g_bCmdEnabled)
+		return Plugin_Continue;
+		
+	if (iClient < 1)
 		return Plugin_Continue;
 		
 	if (g_bIsFake[iClient]) // We could have added this in the first Check but the Client index can be -1 and wont match any entry in the array
 		return Plugin_Continue;
 		
-	if (!g_bInGame[iClient])
+	if (!g_bInGame[iClient]) // && iClient != 0)
 		return Plugin_Stop;
-		
-	if (!g_bCmdEnabled)
-		return Plugin_Continue;
 		
 	bool f_bBan;
 	char f_sCmd[64];
@@ -461,7 +461,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 
 public Action Commands_ClientCheck(client, args)
 {
-	if (!client || g_bIsFake[client])
+	if (client < 1 || g_bIsFake[client])
 		return Plugin_Continue;
 		
 	if (!g_bInGame[client])
@@ -502,7 +502,7 @@ public Action Commands_ClientCheck(client, args)
 
 public Action Commands_SpamCheck(client, args)
 {
-	if (!client || g_bIsFake[client])
+	if (client < 1 || g_bIsFake[client])
 		return Plugin_Continue;
 		
 	if (!g_bInGame[client])
@@ -593,8 +593,8 @@ public void Commands_CmdEnableChange(Handle convar, const char[] oldValue, const
 	
 	else if (!f_bEnabled)
 	{
-		// if (g_hg_iSongCountReset != INVALID_HANDLE) // TODO: Not needed? > https://forums.alliedmods.net/showthread.php?t=300403
-/*	*/		CloseHandle(g_hg_iSongCountReset);// TODO: Replace with 'g_hg_iSongCountReset.Close()' once we dropped legacy support
+		if (g_hg_iSongCountReset != INVALID_HANDLE)
+			CloseHandle(g_hg_iSongCountReset);
 			
 		g_hg_iSongCountReset = INVALID_HANDLE;
 		g_bCmdEnabled = false;

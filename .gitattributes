@@ -2,3 +2,5 @@
 * text=auto
 * linguist-vendored
 *.inc linguist-vendored=false
+*.sp linguist-language=SourcePawn
+*.inc linguist-language=SourcePawn

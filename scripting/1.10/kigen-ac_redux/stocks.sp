@@ -30,7 +30,7 @@ KACR_ReplyToCommand(const iClient, const char[] cTranslation, any ...)
 {
 	char cBuffer[256], cFormat[256];
 	
-	if (!iClient)
+	if (iClient < 1)
 		g_hSLang.GetString(cTranslation, cFormat, sizeof(cFormat));
 		
 	else
@@ -114,16 +114,17 @@ KACR_PrintToChatAll(const char[] cTranslation, any ...)
 * You should check 'g_bASteambot' and 'ASteambot_IsConnected' before calling this
 * Use \n for splitting Messages with 1,3s Delay between the Parts (usefull to prevent getting blocked from Steam when spamming Stuff)
 * 
-* @param cAdmin		Message to send (max. 900 Chars).
-* @param cText		Message to send (max. 900 Chars).
+* @param cText		Message to send (Max 900 Chars).
 * @param ...		Variable number of format parameters.
 */
-KACR_PrintToSteamAdmin(const cAdmin, const char[] cText, any ...)
+KACR_PrintToSteamAdmins(const char[] cText, any ...)
 {
+	char[] cAdmin = "STEAM_ID_PENDING"; // Targeted Steam Admin AuthId_Steam2.
+	
 	char cBuffer[256], cFormat[256];
 	VFormat(cBuffer, sizeof(cBuffer), cText, 3);
-	Format(cFormat, sizeof(cFormat), "%s/%s", cAdmin, cBuffer);  // TODO: Let the User Configure multiply Steam Users in one Var
-	ASteambot_SendMesssage(AS_SIMPLE, cFormat);
+	Format(cFormat, sizeof(cFormat), "%s/%s", cAdmin, cBuffer); // TODO: Let the User Configure multiply Steam Users in one Var
+	// ASteambot_SendMesssage(AS_SIMPLE, cFormat); // BUG: Native "ASteambot_SendMesssage" was not found
 }
 
 /*
@@ -226,12 +227,11 @@ KACR_Ban(const iClient, iTime, const char[] cTranslation, const char[] cReason, 
 * 32 - Crash Client (May not work on any Game)
 * 64 - Report to SB
 * 128 - Report to online Admins
-* // TODO:256 - Tell Admins on Steam about the Violation
+* 256 - Tell Admins on Steam about the Violation
 * // TODO:512 - Ask an Steam User for Advice
-* // TODO:1024 - Log to File
+* 1024 - Log to File
 * // TODO:2048 - Tell about the Violation using SourceIRC
 *
-* 
 * @param iClient		Client UID.
 * @param iAction		What todo with the Client.
 * @param iTime			Bantime.
@@ -403,17 +403,18 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 					
 				else // 256 - Tell Admins on Steam about the Violation
 				{
-					/*if(g_bASteambot)
+					if(g_bASteambot)
 					{
-						if(ASteambot_IsConnected()) // TODO: No Support for multiply Clients yet due to the 'Ask an Steam User over ASteambot for Advice' thingy which can only work with one person
-							KACR_PrintToSteamAdmin(##cvar##.GetString, "[KACR] Reporting Client '%L' for doing 'cReason'", iClient, cReason);
+						// BUG: Native "ASteambot_SendMesssage" was not found
+						/*if(ASteambot_IsConnected()) // TODO: No Support for multiply Clients yet due to the 'Ask an Steam User over ASteambot for Advice' thingy which can only work with one person
+							KACR_PrintToSteamAdmins("[KACR] Reporting Client '%L' for doing 'cReason'", iClient, cReason);
 							
 						else
-							KACR_Log("[Error] Tried to Use ASteambot but it is not connected to its Backend");
+							KACR_Log("[Error] Tried to Use ASteambot but it is not connected to its Backend");*/
 					}
 					
 					else
-						KACR_Log("[Error] Tried to Use ASteambot but it isent running");*/
+						KACR_Log("[Error] Tried to Use ASteambot but it isent running");
 						
 					iActionCheck = iActionCheck - 256;
 				}
@@ -422,9 +423,10 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			{
 				if(g_bASteambot)
 				{
-					if(ASteambot_IsConnected())
+					// BUG: Native "ASteambot_SendMesssage" was not found
+					/*if(ASteambot_IsConnected())
 					{ // 8.10.19 - 632 Chars, 900 is max so we can actually Send all in one MSG
-						/*KACR_PrintToSteamAdmin(##cvar##.GetString, "[KACR] Reporting Client '%L' for doing '%s'\n
+						KACR_PrintToSteamAdmins("[KACR] Reporting Client '%L' for doing '%s'\n
 	[KACR] Asking for Action to take\n
 	[KACR] Options available:\n
 	[KACR] 0 - Dont do anything\n
@@ -444,10 +446,10 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 						
 						// TODO: Warning, we must make this multithread! Else multiply reports could Result in the Plugin going weird
 						//callback: public void ASteambot_Message(int iMessageType, char[] cMessage, const int iMessageSize){}
-					*/}
+					}
 					
 					else
-						KACR_Log("[Error] Tried to Use ASteambot but it is not connected to its Backend");
+						KACR_Log("[Error] Tried to Use ASteambot but it is not connected to its Backend");*/
 				}
 				
 				else
@@ -564,7 +566,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 * @param iClient	Client you want to Crash.
 * @param cReason	The Crash- or Kickreason.
 */
-void KACR_CrashClient(int iClient, char[] cReason)
+void KACR_CrashClient(const iClient, const char[] cReason)
 {
 	Menu hMenu = new Menu(CrashClient_MenuHandler);
 	hMenu.SetTitle(cReason);
@@ -583,7 +585,7 @@ void KACR_CrashClient(int iClient, char[] cReason)
 	RequestFrame(CrashClient_ErrorCheck, hData); // TODO: Is one Frame enought??
 }
 
-int CrashClient_MenuHandler(Menu hMenu, MenuAction hAction, int iClient, int iItem)
+int CrashClient_MenuHandler(Menu hMenu, MenuAction hAction, const iClient, const iItem)
 {
 	if(hAction == MenuAction_Select)
 	{
