@@ -270,7 +270,7 @@ public Action Eyetest_Equip(client, weapon) // The Player Picked up a Weapon? Le
 
 public Action Eyetest_Drop(client, weapon)
 {
-	if (g_iWeaponOwner[weapon] >= 1) // Is a Player linked to the Entity? Else we do not Care // TODO: Array index out-of-bounds (index -1, limit 4096) - Issue #13
+	if (weapon > 0 && g_iWeaponOwner[weapon] > 0) // Is a Player linked to the Entity? Else we do not Care // Check if the Weapon exists first, it may got deleted in the same Frame, Bugfix for #37
 	{
 		g_iWeaponOwner[weapon] = 0;
 		SDKUnhook(weapon, SDKHook_SetTransmit, Eyetest_WeaponTransmit);
