@@ -13,12 +13,11 @@
 #undef REQUIRE_EXTENSIONS 
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
-#include <adminmenu> // Normally this dosent need to be included, but ive got some strange bug with the 1.10 Compiler
 // #include <socket> // Required for the networking Module
 #include <smlib_kacr> // Copyright (C) SMLIB Contributors // This Include is Licensed under GPLv3, see 'Licenses/License_SMLIB.txt' for Details
 #include <autoexecconfig_kacr> //  Copyright (C) 2013-2017 Impact // This Include is Licensed under GPLv3, see 'Licenses/License_AutoExecConfig.txt' for Details 
 #undef REQUIRE_PLUGIN
-// #include <ASteambot> // Copyright (c) ASteamBot Contributors // This Include is Licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details // BUG: Native "ASteambot_SendMesssage" was not found
+#include <ASteambot> // Copyright (c) ASteamBot Contributors // This Include is Licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details // BUG: Native "ASteambot_SendMesssage" was not found
 #define REQUIRE_PLUGIN
 
 
@@ -32,16 +31,17 @@ native void SBPP_ReportPlayer(int iReporter, int iTarget, const char[] sReason);
 native void SBBanPlayer(client, target, time, char[] reason);
 native void SB_ReportPlayer(int client, int target, const char[] reason);
 
-//native AddTargetsToMenu2(Handle menu, source_client, flags); // TODO: Strange BUG in the 1.10 Compiler
+native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO: Normally this dosent need to be done, but ive got some strange BUG with this #ref 273812
 
 
 //- Defines -//
 
 #define PLUGIN_VERSION "0.1" // TODO: No versioning right now, we are on a Rolling Release Cycle
+#define MAX_ENTITIES 2048 // Maximum networkable Entitys (Edicts), 2048 is hardcoded in the Engine
 
 #define loop for(;;) // Unlimited Loop
 
-#define KACR_Action_Count 13 // 18.11.19 - 12+1 carry Bit
+#define KACR_Action_Count 13 // 18.11.19 - 12+1 carryed
 #define KACR_Action_Ban 1
 #define KACR_Action_TimeBan 2
 #define KACR_Action_ServerBan 3
@@ -70,7 +70,7 @@ bool g_bAuthorized[MAXPLAYERS + 1]; // When I need to check on a client's state.
 bool g_bInGame[MAXPLAYERS + 1]; // system resources as compared to these. - Kigen
 bool g_bIsAdmin[MAXPLAYERS + 1];
 bool g_bIsFake[MAXPLAYERS + 1];
-bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bMapStarted;
+bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bAdminmenu, g_bMapStarted;
 
 
 //- KACR Modules -// Note that the ordering of these Includes is important
@@ -95,7 +95,7 @@ public Plugin myinfo =
 };
 
 
-//- Plugin and Config Functions -//
+//- Plugin, Native Config Functions -//
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
@@ -105,12 +105,20 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 	MarkNativeAsOptional("SBPP_ReportPlayer");
 	MarkNativeAsOptional("SBBanPlayer");
 	MarkNativeAsOptional("SB_ReportPlayer");
+	MarkNativeAsOptional("ASteambot_RegisterModule");
+	MarkNativeAsOptional("ASteambot_RemoveModule");
+	MarkNativeAsOptional("ASteambot_SendMesssage");
+	MarkNativeAsOptional("ASteambot_IsConnected");
+	MarkNativeAsOptional("AddTargetsToMenu2"); // TODO: Normally this dosent need to be done, but ive got some strange BUG with this #ref 273812
 	
 	return APLRes_Success;
 }
 
 public void OnPluginStart()
 {
+	if (GetMaxEntities() > MAX_ENTITIES) // I know this is a bit overkill, still we want to be on the safe Side // AskPluginLoad may be called before Mapstart, so we check this once we do load
+		KACR_Log(true, "[Critical] The Server has more Entitys available then the Plugin can handle, Report this Error to get it fixed")
+		
 	g_hDenyArray = new StringMap();
 	g_hGame = GetEngineVersion(); // Identify the game
 	
@@ -150,8 +158,9 @@ public void OnPluginEnd()
 	Eyetest_OnPluginEnd();
 	Trans_OnPluginEnd();
 	
-	// ASteambot_RemoveModule();
-	
+	if (g_bASteambot)
+		ASteambot_RemoveModule();
+		
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		g_bConnected[iClient] = false;
@@ -175,30 +184,26 @@ public void OnAllPluginsLoaded()
 {
 	char cReason[256], cAuthID[64];
 	
-	if (FindPluginByFile("sbpp_main.smx"))
+	//- Library/Plugin Checks -//
+	
+	if (LibraryExists("sourcebans++")) // FindPluginByFile("sbpp_main.smx")
 		g_bSourceBansPP = true;
 		
-	else if (FindPluginByFile("sourcebans.smx"))
-		g_bSourceBans = true;
-		
-	else // Rare but possible, someone unloaded SB and we would still think its active :O
+	if (LibraryExists("sourcebans")) // FindPluginByFile("sourcebans.smx")
 	{
-		g_bSourceBansPP = false;
-		g_bSourceBans = false;
+		g_bSourceBans = true;
+		if (g_bSourceBansPP && g_bSourceBans)
+			KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
 	}
 	
-	if(g_bSourceBansPP && g_bSourceBans)
-		KACR_Log("[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
-		
 	if (LibraryExists("ASteambot"))
 	{
-		// ASteambot_RegisterModule("KACR"); // BUG: Native "ASteambot_SendMesssage" was not found
+		ASteambot_RegisterModule("KACR");
 		g_bASteambot = true;
 	}
 	
-	else
-		g_bASteambot = false;
-		
+	if (LibraryExists("adminmenu"))
+		g_bAdminmenu = true;
 		
 	//- Module Calls -//
 	Commands_OnAllPluginsLoaded();
@@ -223,18 +228,59 @@ public void OnAllPluginsLoaded()
 	}
 }
 
-public void OnConfigsExecuted() // TODO: Make this Part bigger // This dosent belong into cvars because that is for client vars only
+public void OnConfigsExecuted() // TODO: Make this Part bigger // This dosent belong into cvars because that is for client vars only // TODO: Move sv_cheats to here
 {
 	//- Prevent Speeds -//
-	Handle hVar1 = FindConVar("sv_max_usercmd_future_ticks");
+	Handle hVar1 = FindConVar("sv_max_usercmd_future_ticks"); // Prevent Speedhacks
 	if (hVar1) // != INVALID_HANDLE
 	{
-		if (GetConVarInt(hVar1) != 1) // TODO: Replace with 'hVar1.IntValue != 1' once we dropped legacy Support
+		if (GetConVarInt(hVar1) > 8)// The Value of 1 is outdated, CSS and CSGO do have 8 as default Value - 5.20 // (GetConVarInt(hVar1) != 1) // TODO: Replace with 'hVar1.IntValue != 1' once we dropped legacy Support
 		{
-			KACR_Log("[Warning] 'sv_max_usercmd_future_ticks' was set to '%i' which is a risky Value, we have re-set it to '1'", GetConVarInt(hVar1)); // TODO: Replace with 'hVar1.IntValue' once we dropped legacy Support
-			SetConVarInt(hVar1, 1); // TODO: Replace with 'hVar1.SetInt(...)' once we dropped legacy Support
+			KACR_Log(false, "[Warning] 'sv_max_usercmd_future_ticks' was set to '%i' which is a risky Value, re-setting it to its default '8'", GetConVarInt(hVar1)); // TODO: Replace with 'hVar1.IntValue' once we dropped legacy Support
+			SetConVarInt(hVar1, 8); // TODO: Replace with 'hVar1.SetInt(...)' once we dropped legacy Support
 		}
 	}
+}
+
+public void OnLibraryAdded(const char[] cName)
+{
+	if (StrEqual(cName, "sourcebans++", false)) // FindPluginByFile("sbpp_main.smx")
+	{
+		g_bSourceBansPP = true;
+		if (g_bSourceBansPP && g_bSourceBans)
+			KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
+	}
+	
+	else if (StrEqual(cName, "sourcebans", false)) // FindPluginByFile("sourcebans.smx")
+	{
+		g_bSourceBans = true;
+		if (g_bSourceBansPP && g_bSourceBans)
+			KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
+	}
+	
+	else if (StrEqual(cName, "ASteambot", false) && !g_bASteambot) // Check so we do not register twice
+	{
+		ASteambot_RegisterModule("KACR");
+		g_bASteambot = true;
+	}
+	
+	else if (StrEqual(cName, "adminmenu", false))
+		g_bAdminmenu = true;
+}
+
+public void OnLibraryRemoved(const char[] cName)
+{
+	if (StrEqual(cName, "sourcebans++", false)) // FindPluginByFile("sbpp_main.smx")
+		g_bSourceBansPP = false;
+		
+	else if (StrEqual(cName, "sourcebans", false)) // FindPluginByFile("sourcebans.smx")
+		g_bSourceBans = false;
+		
+	else if (StrEqual(cName, "ASteambot", false))
+		g_bASteambot = false;
+		
+	else if (StrEqual(cName, "adminmenu", false))
+		g_bAdminmenu = false;
 }
 
 
@@ -255,105 +301,119 @@ public void OnMapEnd()
 
 //- Client Functions -//
 
-public bool OnClientConnect(client, char[] rejectmsg, size)
+public bool OnClientConnect(iClient, char[] rejectmsg, size)
 {
-	if (IsFakeClient(client)) // Bots suck.
+	if (IsFakeClient(iClient)) // Bots suck.
 	{
-		g_bIsFake[client] = true;
+		g_bIsFake[iClient] = true;
 		return true;
 	}
 	
-	g_bConnected[client] = true;
-	g_hCLang[client] = g_hSLang;
+	g_bConnected[iClient] = true;
+	g_hCLang[iClient] = g_hSLang;
 	
-	return Client_OnClientConnect(client, rejectmsg, size);
+	return Client_OnClientConnect(iClient, rejectmsg, size);
 }
 
-public void OnClientAuthorized(client, const char[] auth)
+public void OnClientAuthorized(iClient, const char[] cAuth)
 {
-	if (IsFakeClient(client)) // Bots are annoying...
+	if (IsFakeClient(iClient)) // Bots are annoying...
 		return;
 		
 	Handle f_hTemp;
 	char cReason[256];
-	if (g_hDenyArray.GetString(auth, cReason, sizeof(cReason)))
+	if (g_hDenyArray.GetString(cAuth, cReason, sizeof(cReason)))
 	{
-		KickClient(client, "%s", cReason);
-		OnClientDisconnect(client);
+		KickClient(iClient, "%s", cReason);
+		OnClientDisconnect(iClient);
 		return;
 	}
 	
-	g_bAuthorized[client] = true;
+	g_bAuthorized[iClient] = true;
 	
-	if (g_bInGame[client])
-		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
+	if (g_bInGame[iClient])
+		g_hPeriodicTimer[iClient] = CreateTimer(0.1, CVars_PeriodicTimer, iClient);
 		
-	f_hTemp = g_hValidateTimer[client];
-	g_hValidateTimer[client] = INVALID_HANDLE;
+	f_hTemp = g_hValidateTimer[iClient];
+	g_hValidateTimer[iClient] = INVALID_HANDLE;
 	
 	if (f_hTemp != INVALID_HANDLE)
 		CloseHandle(f_hTemp);
 }
 
-public void OnClientPutInServer(client)
+public void OnClientPutInServer(iClient)
 {
-	Eyetest_OnClientPutInServer(client); // Ok, we'll help them bots too.
+	Eyetest_OnClientPutInServer(iClient); // Ok, we'll help them bots too.
 	
-	if (IsFakeClient(client)) // Death to them bots!
+	if (IsFakeClient(iClient)) // Death to them bots!
 		return;
 		
 	char f_sLang[8];
 	
-	g_bInGame[client] = true;
+	g_bInGame[iClient] = true;
 	
-	if (!g_bAuthorized[client]) // Not authorized yet?!?
-		g_hValidateTimer[client] = CreateTimer(10.0, KACR_ValidateTimer, client);
+	if (!g_bAuthorized[iClient]) // Not authorized yet?!?
+		g_hValidateTimer[iClient] = CreateTimer(10.0, KACR_ValidateTimer, iClient);
 		
 	else
-		g_hPeriodicTimer[client] = CreateTimer(0.1, CVars_PeriodicTimer, client);
+		g_hPeriodicTimer[iClient] = CreateTimer(0.1, CVars_PeriodicTimer, iClient);
 		
-	GetLanguageInfo(GetClientLanguage(client), f_sLang, sizeof(f_sLang));
-	if (!g_hLanguages.GetValue(f_sLang, g_hCLang[client]))
-		g_hCLang[client] = g_hSLang;
+	GetLanguageInfo(GetClientLanguage(iClient), f_sLang, sizeof(f_sLang));
+	if (!g_hLanguages.GetValue(f_sLang, g_hCLang[iClient]))
+		g_hCLang[iClient] = g_hSLang;
 }
 
-public void OnClientPostAdminCheck(client)
+public void OnClientPostAdminCheck(iClient)
 {
-	if (IsFakeClient(client)) // Humans for the WIN!
+	if (IsFakeClient(iClient)) // Humans for the WIN!
 		return;
 		
-	if ((GetUserFlagBits(client) & ADMFLAG_GENERIC))
-		g_bIsAdmin[client] = true;
+	if ((GetUserFlagBits(iClient) & ADMFLAG_GENERIC))
+		g_bIsAdmin[iClient] = true; // Generic Admin
 }
 
-public void OnClientDisconnect(client)
+public void OnClientDisconnect(iClient)
 {
 	// if ( IsFake aww, screw it. :P
-	Handle f_hTemp;
+	Handle hTemp;
 	
-	f_hTemp = g_hValidateTimer[client];
-	g_hValidateTimer[client] = INVALID_HANDLE;
-	if (f_hTemp != INVALID_HANDLE)
-		CloseHandle(f_hTemp);
+	g_bConnected[iClient] = false;
+	g_bAuthorized[iClient] = false;
+	g_bInGame[iClient] = false;
+	g_bIsAdmin[iClient] = false;
+	g_bIsFake[iClient] = false;
+	g_hCLang[iClient] = g_hSLang;
+	g_bShouldProcess[iClient] = false;
+	g_bHooked[iClient] = false;
+	
+	//OnClientDisconnect(iClient); // TODO: Test this out #ref 573823
+	for (int iCount = 1; iCount <= MaxClients; iCount++) // TODO: Is this really needed #ref 573823
+		if (g_bConnected[iCount] && (!IsClientConnected(iCount) || IsFakeClient(iCount)))
+			OnClientDisconnect(iCount);
+			
+	hTemp = g_hValidateTimer[iClient];
+	g_hValidateTimer[iClient] = INVALID_HANDLE;
+	if (hTemp != INVALID_HANDLE)
+		CloseHandle(hTemp);
 		
-	CVars_OnClientDisconnect(client);
+	CVars_OnClientDisconnect(iClient);
 }
 
 
 //- Timers -//
 
-public Action KACR_ValidateTimer(Handle timer, any client)
+public Action KACR_ValidateTimer(Handle hTimer, any iClient)
 {
-	g_hValidateTimer[client] = INVALID_HANDLE;
+	g_hValidateTimer[iClient] = INVALID_HANDLE;
 	
-	if (!g_bInGame[client] || g_bAuthorized[client])
+	if (!g_bInGame[iClient] || g_bAuthorized[iClient])
 		return Plugin_Stop;
 		
-	KACR_Kick(client, KACR_FAILEDAUTH); // Failed to auth in-time
+	KACR_Kick(iClient, KACR_FAILEDAUTH); // Failed to auth in-time
 	return Plugin_Stop;
 }
 
-public Action KACR_ClearTimer(Handle timer, any nothing)
+public Action KACR_ClearTimer(Handle hTimer)
 {
 	g_hDenyArray.Clear();
 }

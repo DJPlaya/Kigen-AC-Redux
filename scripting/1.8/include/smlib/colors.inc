@@ -283,18 +283,18 @@ stock Color_TagToCode(const String:tag[], &subject=-1, String:result[10])
 	}
 	else {
 		// Try to handle this string as color name
-		new n = Array_FindString(chatColorTags, sizeof(chatColorTags), tag);
+		int iIndex = Array_FindString(chatColorTags, sizeof(chatColorTags), tag);
 
 		// Check if this tag is invalid
-		if (n == -1) {
+		if (iIndex == -1) {
 			result[0] = '\0';
 			return;
 		}
 
 		// Check if the color is actually supported 'n stuff.
-		Color_GetChatColorInfo(n, subject);
+		Color_GetChatColorInfo(iIndex, subject);
 
-		result[0] = chatColorInfo[n][ChatColorInfo_Code];
+		result[0] = chatColorInfo[iIndex][ChatColorInfo_Code];
 		result[1] = '\0';
 	}
 

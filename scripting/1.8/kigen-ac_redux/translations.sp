@@ -92,7 +92,7 @@ public Trans_OnPluginStart()
 	if (!g_hLanguages.GetValue("en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for English");
-		KACR_Log("[Error] Unable to create Language Hashmap for English");
+		KACR_Log(false, "[Error] Unable to create Language Hashmap for English");
 		
 		return;
 	}
@@ -173,7 +173,7 @@ public Trans_OnPluginStart()
 	if (!g_hLanguages.GetValue("fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for French");
-		KACR_Log("[Error] Unable to create Language Hashmap for French");
+		KACR_Log(false, "[Error] Unable to create Language Hashmap for French");
 		
 		return;
 	}
@@ -253,7 +253,7 @@ public Trans_OnPluginStart()
 	if (!g_hLanguages.GetValue("it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for Italian");
-		KACR_Log("[Error] Unable to create Language Hashmap for Italian");
+		KACR_Log(false, "[Error] Unable to create Language Hashmap for Italian");
 		
 		return;
 	}
@@ -333,7 +333,7 @@ public Trans_OnPluginStart()
 	if (!g_hLanguages.GetValue("de", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for German");
-		KACR_Log("[Error] Unable to create Language Hashmap for German");
+		KACR_Log(false, "[Error] Unable to create Language Hashmap for German");
 		
 		return;
 	}
@@ -414,7 +414,7 @@ public Trans_OnPluginStart()
 	if (!g_hLanguages.GetValue("he", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for Hebrew");
-		KACR_Log("[Error] Unable to create Language Hashmap for Hebrew");
+		KACR_Log(false, "[Error] Unable to create Language Hashmap for Hebrew");
 		
 		return;
 	}

@@ -127,19 +127,43 @@ KACR_PrintToSteamAdmins(const char[] cText, any ...)
 	// ASteambot_SendMesssage(AS_SIMPLE, cFormat); // BUG: Native "ASteambot_SendMesssage" was not found
 }
 
-/*
-* Logs an Error Message
+/*TODO: Change this in a future Version #26
+* Logs an Message to a specific File and can Set the Plugin to failed
 * 
+* @param iType	Which Type of Message to log/which File to log to (0 = Errors and System Messages, 1 = Suspicions, 2 = Detected Violations, 3 = Actions Taken)
+* @param bBreak	Set the Plugins State to failed.
 * @param cText	Message to log.
 * @param ...	Variable number of format parameters.
 */
-KACR_Log(const char[] cText, any ...)
+/*KACR_Log(const iType, const bool bBreak, const char[] cText, any ...)
 {
 	char cBuffer[256], cPath[256];
-	VFormat(cBuffer, sizeof(cBuffer), cText, 2);
+	VFormat(cBuffer, sizeof(cBuffer), cText, 4);
 	BuildPath(Path_SM, cPath, sizeof(cPath), "logs/KACR.log");
-	LogMessage(cBuffer); // Log to SM Log // TODO: Change this in a future Version #26
+	LogMessage(cBuffer); // Log to SM Log
 	LogToFileEx(cPath, "%s", cBuffer); // Log to KACR.log
+	
+	if (bBreak)
+		SetFailState(cBuffer); // Break
+}*/
+
+/*
+* Logs an Error Message
+* 
+* @param bBreak	Set the Plugins State to failed.
+* @param cText	Message to log.
+* @param ...	Variable number of format parameters.
+*/
+KACR_Log(const bool bBreak, const char[] cText, any ...)
+{
+	char cBuffer[256], cPath[256];
+	VFormat(cBuffer, sizeof(cBuffer), cText, 3);
+	BuildPath(Path_SM, cPath, sizeof(cPath), "logs/KACR.log");
+	LogMessage(cBuffer); // Log to SM Log
+	LogToFileEx(cPath, "%s", cBuffer); // Log to KACR.log
+	
+	if (bBreak)
+		SetFailState(cBuffer); // Break
 }
 
 /*
@@ -182,7 +206,7 @@ KACR_Kick(const iClient, const char[] cTranslation, any ...)
 KACR_Ban(const iClient, iTime, const char[] cTranslation, const char[] cReason, any ...)
 {
 	char cBuffer[256], cEReason[256];
-	if (strcmp(cTranslation, "NULL")) // No Translation existing
+	if (StrEqual(cTranslation, "NULL")) // No Translation existing
 		Format(cEReason, sizeof(cEReason), "%s", cReason);
 		
 	else
@@ -198,7 +222,7 @@ KACR_Ban(const iClient, iTime, const char[] cTranslation, const char[] cReason, 
 		
 	else
 		if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cBuffer, cEReason, "KACR"))
-			KACR_Log("[Error] Failed to Server Ban Client '%L'", iClient);
+			KACR_Log(false, "[Error] Failed to Server Ban Client '%L'", iClient);
 			
 	OnClientDisconnect(iClient); // Needed, will be executed in the main File
 }
@@ -295,9 +319,9 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 													
 													else
 													{
-														KACR_Log("[Warning] An SourceBans Ban was called but SB isent installed, applying Server Ban instead");
+														KACR_Log(false, "[Warning] An SourceBans Ban was called but SB isent installed, applying Server Ban instead");
 														if(!BanClient(iClient, 0, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
-															KACR_Log("[Error] Failed to Server Ban Client '%L', after an SB Ban also failed", iClient);
+															KACR_Log(false, "[Error] Failed to Server Ban Client '%L', after an SB Ban also failed", iClient);
 															
 														else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 															OnClientDisconnect(iClient); // Needed, will be executed in the main Filee
@@ -324,9 +348,9 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 												
 												else
 												{
-													KACR_Log("[Warning] An Sourcebans Time Ban was called but SB isent installed, applying Server Time Ban instead");
+													KACR_Log(false, "[Warning] An Sourcebans Time Ban was called but SB isent installed, applying Server Time Ban instead");
 													if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR"))
-														KACR_Log("[Error] Failed to Server Time Ban Client '%L', after an SB Ban also failed", iClient);
+														KACR_Log(false, "[Error] Failed to Server Time Ban Client '%L', after an SB Ban also failed", iClient);
 														
 													else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 														OnClientDisconnect(iClient); // Needed, will be executed in the main File
@@ -338,7 +362,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 										else // 4 - Server Ban (banned_ip.cfg or banned_user.cfg)
 										{
 											if(!BanClient(iClient, 0, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR"))
-												KACR_Log("[Error] Failed to Server Ban Client '%L'", iClient);
+												KACR_Log(false, "[Error] Failed to Server Ban Client '%L'", iClient);
 												
 											else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 												OnClientDisconnect(iClient); // Needed, will be executed in the main File
@@ -349,7 +373,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 									else // 8 - Server Time Ban
 									{
 										if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
-											KACR_Log("[Error] Failed to Server Time Ban Client '%L'", iClient);
+											KACR_Log(false, "[Error] Failed to Server Time Ban Client '%L'", iClient);
 											
 										else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 											OnClientDisconnect(iClient); // Needed, will be executed in the main File
@@ -360,7 +384,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 								else // 16 - Kick
 								{
 									if(!KickClient(iClient, "%s", cUserReason2))
-										KACR_Log("[Error] Failed to kick Client '%L'", iClient);
+										KACR_Log(false, "[Error] Failed to kick Client '%L'", iClient);
 										
 									else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 										OnClientDisconnect(iClient); // Needed, will be executed in the main File
@@ -370,8 +394,16 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 								
 							else // 32 - Crash Client
 							{
-								KACR_CrashClient(iClient, cReason2);
-								// OnClientDisconnect(iClient); // Executed in the 'CrashClient_ErrorCheck'
+								if(g_bAdminmenu) 
+									KACR_CrashClient(iClient, cUserReason2);
+									// OnClientDisconnect(iClient); // Executed in the 'CrashClient_ErrorCheck'
+									
+								else
+								{
+									KACR_Log(false, "[Warning] An Client Crash was requested but Adminmenu isent installed, kicking him instead");
+									if(!KickClient(iClient, "%s", cUserReason2))
+										KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him also failed", iClient);
+								}
 								
 								iActionCheck = iActionCheck - 32;
 							}
@@ -385,7 +417,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 								SB_ReportPlayer(0, iClient, cReason);
 								
 							else
-								KACR_Log("[Error] Tried to Report an Player to Sourcebans but it isent installed");
+								KACR_Log(false, "[Error] Tried to Report an Player to Sourcebans but it isent installed");
 								
 							iActionCheck = iActionCheck - 64;
 						}
@@ -405,16 +437,15 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 				{
 					if(g_bASteambot)
 					{
-						// BUG: Native "ASteambot_SendMesssage" was not found
-						/*if(ASteambot_IsConnected()) // TODO: No Support for multiply Clients yet due to the 'Ask an Steam User over ASteambot for Advice' thingy which can only work with one person
+						if(ASteambot_IsConnected()) // TODO: No Support for multiply Clients yet due to the 'Ask an Steam User over ASteambot for Advice' thingy which can only work with one person
 							KACR_PrintToSteamAdmins("[KACR] Reporting Client '%L' for doing 'cReason'", iClient, cReason);
 							
 						else
-							KACR_Log("[Error] Tried to Use ASteambot but it is not connected to its Backend");*/
+							KACR_Log(false, "[Error] Tried to Use ASteambot but it is not connected to its Backend");
 					}
 					
 					else
-						KACR_Log("[Error] Tried to Use ASteambot but it isent running");
+						KACR_Log(false, "[Error] Tried to Use ASteambot but it isent running");
 						
 					iActionCheck = iActionCheck - 256;
 				}
@@ -449,11 +480,11 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 					}
 					
 					else
-						KACR_Log("[Error] Tried to Use ASteambot but it is not connected to its Backend");*/
+						KACR_Log(false, "[Error] Tried to Use ASteambot but it is not connected to its Backend");*/
 				}
 				
 				else
-					KACR_Log("[Error] Tried to Use ASteambot but it isent running");
+					KACR_Log(false, "[Error] Tried to Use ASteambot but it isent running");
 					
 				iActionCheck = iActionCheck - 512;
 			}
@@ -463,7 +494,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			char cClientIP[64];
 			GetClientIP(iClient, cClientIP, sizeof(cClientIP));
 			
-			KACR_Log("Logging Client '%L<%s>' for doing '%s'", iClient, cClientIP, cReason);
+			KACR_Log(false, "Logging Client '%L<%s>' for doing '%s'", iClient, cClientIP, cReason);
 			
 			// Checking all the Numbers to make a Proper Report
 			int iActionLogCheck = iAction;
@@ -483,61 +514,61 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 															
 														else // == 1 // 1 - Ban (SB & SB++)
 														{
-															KACR_Log("Logging Action 1: Banned Client '%L<%s>'", iClient, cClientIP);
+															KACR_Log(false, "Logging Action 1: Banned Client '%L<%s>'", iClient, cClientIP);
 															iActionLogCheck = iActionLogCheck - 1;
 														}
 														
 													else // 2 - Time Ban (SB & SB++)
 													{
-														KACR_Log("Logging Action 2: Time Banned Client '%L<%s>' for '%i' Minutes", iClient, cClientIP, iTime);
+														KACR_Log(false, "Logging Action 2: Time Banned Client '%L<%s>' for '%i' Minutes", iClient, cClientIP, iTime);
 														iActionLogCheck = iActionLogCheck - 2;
 													}
 													
 												else // 4 - Server Ban (banned_ip.cfg or banned_user.cfg)
 												{
-													KACR_Log("Logging Action 4: Server Banned Client '%L<%s>'", iClient, cClientIP);
+													KACR_Log(false, "Logging Action 4: Server Banned Client '%L<%s>'", iClient, cClientIP);
 													iActionLogCheck = iActionLogCheck - 4;
 												}
 												
 											else // 8 - Server Time Ban
 											{
-												KACR_Log("Logging Action 8: Server Time Banned Client '%L<%s>' for '%i' Minutes", iClient, cClientIP, iTime);
+												KACR_Log(false, "Logging Action 8: Server Time Banned Client '%L<%s>' for '%i' Minutes", iClient, cClientIP, iTime);
 												iActionLogCheck = iActionLogCheck - 8;
 											}
 											
 										else // 16 - Kick
 										{
-											KACR_Log("Logging Action 16: Kicked Client '%L<%s>'", iClient, cClientIP);
+											KACR_Log(false, "Logging Action 16: Kicked Client '%L<%s>'", iClient, cClientIP);
 											iActionLogCheck = iActionLogCheck - 16;
 										}
 										
 									else // 32 - Crash Client
 									{
-										KACR_Log("Logging Action 32: Crashed Client '%L<%s>'", iClient, cClientIP);
+										KACR_Log(false, "Logging Action 32: Crashed Client '%L<%s>'", iClient, cClientIP);
 										iActionLogCheck = iActionLogCheck - 32;
 									}
 									
 								else // 64 - Report to SB
 								{
-									KACR_Log("Logging Action 64: Reportet Client '%L<%s>' to SourceBans", iClient, cClientIP);
+									KACR_Log(false, "Logging Action 64: Reportet Client '%L<%s>' to SourceBans", iClient, cClientIP);
 									iActionLogCheck = iActionLogCheck - 64;
 								}
 								
 							else // 128 - Report to online Admins
 							{
-								KACR_Log("Logging Action 128: Reportet Client '%L<%s>' to all online Admins", iClient, cClientIP);
+								KACR_Log(false, "Logging Action 128: Reportet Client '%L<%s>' to all online Admins", iClient, cClientIP);
 								iActionLogCheck = iActionLogCheck - 128;
 							}
 							
 						else // 256 - Tell Admins on Steam about the Violation
 						{
-							KACR_Log("Logging Action 256: Reportet Client '%L<%s>' to all Steam Admins", iClient, cClientIP);
+							KACR_Log(false, "Logging Action 256: Reportet Client '%L<%s>' to all Steam Admins", iClient, cClientIP);
 							iActionLogCheck = iActionLogCheck - 256;
 						}
 						
 					else // 512 - Ask an Steam User over ASteambot for Advice
 					{
-						KACR_Log("Logging Action 512: Asked on Steam what todo with Client '%L<%s>'", iClient, cClientIP);
+						KACR_Log(false, "Logging Action 512: Asked on Steam what todo with Client '%L<%s>'", iClient, cClientIP);
 						iActionLogCheck = iActionLogCheck - 512;
 					}
 					
@@ -549,7 +580,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 				
 			else // 2048 - Tell about the Violation using SourceIRC
 			{
-				KACR_Log("Logging Action 2048: Reportet Client '%L<%s>' to the specified IRC Channels", iClient, cClientIP);
+				KACR_Log(false, "Logging Action 2048: Reportet Client '%L<%s>' to the specified IRC Channels", iClient, cClientIP);
 				iActionLogCheck = iActionLogCheck - 2048;
 				return;
 			}
@@ -563,29 +594,29 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 * Lets a Client Crash, this Exploit requires Menus and UserMessages so it may work with Source SDK 2013 Games only
 * If the Exploit fails, it will kick the Player instead
 * 
-* @param iClient	Client you want to Crash.
-* @param cReason	The Crash- or Kickreason.
+* @param iClient	The Client you want to Crash.
+* @param cReason	The Crash- or Kickreason shown to the Client.
 */
 void KACR_CrashClient(const iClient, const char[] cReason)
 {
 	Menu hMenu = new Menu(CrashClient_MenuHandler);
 	hMenu.SetTitle(cReason);
-	AddTargetsToMenu2(hMenu, iClient, COMMAND_FILTER_CONNECTED|COMMAND_FILTER_NO_IMMUNITY); 
+	AddTargetsToMenu2(hMenu, iClient, COMMAND_FILTER_CONNECTED | COMMAND_FILTER_NO_IMMUNITY); 
 	hMenu.ExitButton = true;
 	hMenu.Display(iClient, 30);
 	
 	// DataPack hData = CreateDataPack();
 	DataPack hData = new DataPack(); // TODO: Works like that?
 	if (!hData.WriteFloat(view_as<float>(iClient)))
-		KACR_Log("[Error] Failed to write Client Data in the crash Client Function, Report this Error to get it fixed");
+		KACR_Log(false, "[Error] Failed to write Client Data in the crash Client Function, Report this Error to get it fixed");
 		
 	if (!hData.WriteString(cReason))
-		KACR_Log("[Error] Failed to write Ban Reason Data in the crash Client Function, Report this Error to get it fixed");
+		KACR_Log(false, "[Error] Failed to write Ban Reason Data in the crash Client Function, Report this Error to get it fixed");
 		
 	RequestFrame(CrashClient_ErrorCheck, hData); // TODO: Is one Frame enought??
 }
 
-int CrashClient_MenuHandler(Menu hMenu, MenuAction hAction, const iClient, const iItem)
+int CrashClient_MenuHandler(Menu hMenu, MenuAction hAction, const iClient, const iItem) // BUG: iClient is displayed as unused, and it is like that, but i cant remove it and supressing the Warning... Nah
 {
 	if(hAction == MenuAction_Select)
 	{
@@ -619,18 +650,18 @@ CrashClient_ErrorCheck(any hData)
 	char cReason[256];
 	
 	if (!(view_as<float>(iClient) = ReadPackFloat(hData))) // (!(view_as<float>(iClient) = ReadFloat(hData))) // TODO: Replace once we dropped legacy support
-		KACR_Log("[Error] Failed to read Client Data in the crash Client Function, Report this Error to get it fixed");
+		KACR_Log(false, "[Error] Failed to read Client Data in the crash Client Function, Report this Error to get it fixed");
 		
 	if (!(ReadPackString(hData, cReason, sizeof(cReason)))) // (!hData.ReadString(cReason, sizeof(cReason)) // TODO: Replace once we dropped legacy support
-		KACR_Log("[Error] Failed to read Ban Reason Data in the crash Client Function, Report this Error to get it fixed");
-	
+		KACR_Log(false, "[Error] Failed to read Ban Reason Data in the crash Client Function, Report this Error to get it fixed");
+		
 	if(IsClientConnected(iClient))
 	{
 		if(KickClient(iClient, "%s", cReason))
-			KACR_Log("[Warning] Failed to crash Client '%L', he was kicked instead", iClient);
+			KACR_Log(false, "[Warning] Failed to crash Client '%L', he was kicked instead", iClient);
 			
 		else
-			KACR_Log("[Error] Failed to kick Client '%L', after crashing him before dident worked too! Report this Error to get it fixed", iClient);
+			KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him before dident worked too! Report this Error to get it fixed", iClient);
 	}
 	
 	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO: Does the 1 Frame Delay will cause problems with our disconnect Functions?

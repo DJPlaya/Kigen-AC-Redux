@@ -4,7 +4,6 @@
 
 #define POINT_ALMOST_VISIBLE 0.75
 #define POINT_MID_VISIBLE 0.6
-#define MAX_ENTITIES 2048 // 2048 is hardcoded in the Engine
 
 
 //- Global Variables -//
@@ -38,26 +37,14 @@ public void Eyetest_OnPluginStart()
 	
 	else
 		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_DISABLED);*/
+		
+	g_bAntiWallDisabled = false;
+	g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_OFF);
+	g_hCVar__AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
 	
-	if (GetMaxEntities() <= MAX_ENTITIES)
-	{
-		g_bAntiWallDisabled = false;
-		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_OFF);
-		
-		g_hCVar__AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-		
-		Eyetest_AntiWallChange(g_hCVar__AntiWall, "", "");
-		
-		HookConVarChange(g_hCVar__AntiWall, Eyetest_AntiWallChange);
-	}
+	Eyetest_AntiWallChange(g_hCVar__AntiWall, "", "");
 	
-	else // More possible Entitys then we set in the Plugin?!
-	{
-		g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_DISABLED);
-		
-		KACR_Log("[Error] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
-		PrintToServer("[Error][Kigen-AC_Redux] The current Maximum of Entitys is set to %i, but the Server reported %i", MAX_ENTITIES, GetMaxEntities())
-	}
+	HookConVarChange(g_hCVar__AntiWall, Eyetest_AntiWallChange);
 	
 	HookEvent("player_spawn", Eyetest_PlayerSpawn);
 	HookEvent("player_death", Eyetest_PlayerDeath);
@@ -127,7 +114,7 @@ public Action Eyetest_Timer(Handle timer, any we)
 			if (f_fX > 90.0 || f_fX < -90.0 || f_fZ > 90.0 || f_fZ < -90.0)
 			{
 				GetClientIP(iClient, f_sIP, sizeof(f_sIP));
-				KACR_Log("'%L'<%s> was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", iClient, f_sIP, f_fX, f_vAngles[1], f_fZ);
+				KACR_Log(false, "'%L'<%s> was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", iClient, f_sIP, f_fX, f_vAngles[1], f_fZ);
 				KACR_Ban(iClient, 0, KACR_BANNED, "KACR: Eye Angles Violation");
 			}
 		}
@@ -171,14 +158,14 @@ public void Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const c
 	{
 		if (!LibraryExists("sdkhooks"))
 		{
-			KACR_Log("[Error] SDKHooks is not running, cannot enable Anti-Wall");
+			KACR_Log(false, "[Error] SDKHooks is not running, cannot enable Anti-Wall");
 			SetConVarInt(convar, 0);
 			return;
 		}
 		
 		for (int i = 1; i <= MaxClients; i++)
 			if (Client_IsValid(i, true))
-				if (IsPlayerAlive(i) && !g_bHooked[i]) // We do not use the Arrays here since its OnPluginStart and the Players may havent been checked TODO: is that correct?
+				if (IsPlayerAlive(i) && !g_bHooked[i]) // We do not use the Arrays here since its OnPluginStart and the Players may havent been checked// TODO: is that correct?
 					Eyetest_Hook(i);
 					
 		Status_Report(g_iAntiWHStatus, KACR_ON);
@@ -196,33 +183,33 @@ public void Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const c
 	g_bAntiWall = f_bEnabled;
 }
 
-public Action Eyetest_PlayerSpawn(Handle event, const char[] name, bool dontBroadcast)
+public Action Eyetest_PlayerSpawn(Handle hEvent, const char[] cName, bool bDontBroadcast)
 {
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (client && GetClientTeam(client) > 1)
+	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	if (iClient && GetClientTeam(iClient) > 1)
 	{
-		if (!IsFakeClient(client))
-			g_bShouldProcess[client] = true;
+		if (!IsFakeClient(iClient))
+			g_bShouldProcess[iClient] = true;
 			
-		if (g_bAntiWall && !g_bHooked[client])
-			Eyetest_Hook(client);
+		if (g_bAntiWall && !g_bHooked[iClient])
+			Eyetest_Hook(iClient);
 	}
 }
 
-public Action Eyetest_PlayerDeath(Handle event, const char[] name, bool dontBroadcast)
+public Action Eyetest_PlayerDeath(Handle hEvent, const char[] cName, bool bDontBroadcast)
 {
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (client)
+	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid"));
+	if (iClient)
 	{
-		g_bShouldProcess[client] = false;
-		if (g_bAntiWall && g_bHooked[client])
-			Eyetest_Unhook(client);
+		g_bShouldProcess[iClient] = false;
+		if (g_bAntiWall && g_bHooked[iClient])
+			Eyetest_Unhook(iClient);
 	}
 }
 
 // Weapon stuff
 
-public void OnEntityCreated(entity, const char[] classname)
+public void OnEntityCreated(entity, const char[] cClassname)
 {
 	if (!g_bAntiWallDisabled && entity > MaxClients && entity < MAX_ENTITIES)
 		g_iWeaponOwner[entity] = 0;
@@ -234,9 +221,9 @@ public void OnEntityDestroyed(entity)
 		g_iWeaponOwner[entity] = 0;
 }
 
-public Action Eyetest_WeaponTransmit(entity, client)
+public Action Eyetest_WeaponTransmit(entity, iClient)
 {
-	if (!g_bAntiWall || client < 1 || client > MaxClients || g_bIsVisible[g_iWeaponOwner[entity]][client])
+	if (!g_bAntiWall || iClient < 1 || iClient > MaxClients || g_bIsVisible[g_iWeaponOwner[entity]][iClient])
 		return Plugin_Continue;
 		
 	return Plugin_Stop;
@@ -277,8 +264,25 @@ public void OnGameFrame()
 			GetEntDataVector(i, g_iVelOff, f_vVelocity);
 			if (GetEntityFlags(i) & FL_BASEVELOCITY)
 			{
-				GetEntDataVector(i, g_iBaseVelOff, f_vTempVec);
-				AddVectors(f_vVelocity, f_vTempVec, f_vVelocity);
+				//## TODO
+				if (!Entity_IsValid(i))
+				{
+					KACR_Log(false, "Entity '%i' networkable: %b", i, IsEntNetworkable(i));
+					KACR_Log(false, "Entity '%i' valid edict: %b", i, IsValidEdict(i));
+					KACR_Log(false, "Entity '%i' player alive: %b", i, IsPlayerAlive(i));
+					KACR_Log(false, "Entity '%i' fake client: %b", i, IsFakeClient(i));
+					
+					KACR_Log(false, "Entity '%i' array connected: %b", i, g_bConnected[i]);
+					KACR_Log(false, "Entity '%i' array authorized: %b", i, g_bAuthorized[i]);
+					KACR_Log(false, "Entity '%i' array ingame: %b", i, g_bInGame[i]);
+				}
+				//##
+				
+				else
+				{
+					GetEntDataVector(i, g_iBaseVelOff, f_vTempVec);
+					AddVectors(f_vVelocity, f_vTempVec, f_vVelocity);
+				}
 			}
 			
 			ScaleVector(f_vVelocity, f_fTickTime);
@@ -293,7 +297,7 @@ public void OnGameFrame()
 
 // public Eyetest_Prethink(client)
 // {
-// TODO:Test for Bhop hacks here.
+// TODO:Test for Bhop hacks here #5
 // }
 
 public Action Eyetest_Transmit(entity, client)

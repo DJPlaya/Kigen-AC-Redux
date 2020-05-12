@@ -62,7 +62,7 @@ int Update_Validate()
 	Format(cBuffer3, PLATFORM_MAX_PATH, "addons/sourcemod/plugins/%s", cBuffer2);
 	System2_GetFileCRC32(cBuffer3, cBuffer2, PLATFORM_MAX_PATH);
 	
-	if(strcmp(cBuffer1, cBuffer2)) // Identical
+	if(StrEqual(cBuffer1, cBuffer2)) // Identical
 		return true;
 		
 	else // Not

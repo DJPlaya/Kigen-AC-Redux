@@ -233,7 +233,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 				KACR_ActionCheck(iResult); // TODO: Is this a correct Handover?
 				if(bActions[KACR_Action_Crash] || bActions[KACR_Action_AskSteamAdmin]) // Not Supported
 				{
-					KACR_Log("[Warning] 'kacr_client_antispamconnect_action' cannot be used with Action 32 or 512, running without them");
+					KACR_Log(false, "[Warning] 'kacr_client_antispamconnect_action' cannot be used with Action 32 or 512, running without them");
 					if(bActions[KACR_Action_Crash])
 						iResult = iResult - 32;
 						
@@ -272,7 +272,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 		
 		if(bActions[KACR_Action_Crash] || bActions[KACR_Action_AskSteamAdmin]) // Not Supported
 		{
-			KACR_Log("[Warning] 'kacr_client_nameprotect_action' cannot be used with Action 32 or 512, running without them");
+			KACR_Log(false, "[Warning] 'kacr_client_nameprotect_action' cannot be used with Action 32 or 512, running without them");
 			if(bActions[KACR_Action_Crash])
 				iResult = iResult - 32;
 				
@@ -368,7 +368,7 @@ public void OnClientSettingsChanged(iClient)
 		char f_sIP[64];
 		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 		KACR_Kick(iClient, KACR_CHANGENAME);
-		KACR_Log("'%L'<%s> was kicked for having a blank Name (unconnected)", iClient, f_sIP);
+		KACR_Log(false, "'%L'<%s> was kicked for having a blank Name (unconnected)", iClient, f_sIP);
 		return;
 	}
 	

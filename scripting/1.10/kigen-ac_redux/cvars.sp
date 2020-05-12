@@ -156,11 +156,8 @@ public void CVars_OnPluginStart()
 	
 	f_hConCommand = FindFirstConCommand(f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags);
 	if (f_hConCommand == INVALID_HANDLE)
-	{
-		KACR_Log("[Error] Failed getting first ConVar");
-		SetFailState("Failed getting first ConVar");
-	}
-	
+		KACR_Log(true, "[Critical] Failed getting first ConVar");
+		
 	do
 	{
 		if (!f_bIsCommand && (f_iFlags & FCVAR_REPLICATED))
@@ -235,7 +232,7 @@ public Action CVars_CmdStatus(iCmdCaller, args)
 		{
 			if (g_hPeriodicTimer[iClients] == INVALID_HANDLE)
 			{
-				KACR_Log("[Warning] '%L'<%s> doesn't have a periodic Timer running and no active Queries", iClients, f_sIP);
+				KACR_Log(false, "[Warning] '%L'<%s> doesn't have a periodic Timer running and no active Queries", iClients, f_sIP);
 				ReplyToCommand(iCmdCaller, "[Warning][Kigen-AC_Redux] '%L'<%s> dosen't have a periodic Timer running nor active Queries", iClients, f_sIP);
 				g_hPeriodicTimer[iClients] = CreateTimer(0.1, CVars_PeriodicTimer, iClients);
 				continue;
@@ -333,7 +330,7 @@ public Action CVars_CmdAddCVar(client, args)
 		if (client)
 		{
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			KACR_Log("'%L'<%s> added Convar %s to the Check List", client, f_sIP, f_sCVarName);
+			KACR_Log(false, "'%L'<%s> added Convar %s to the Check List", client, f_sIP, f_sCVarName);
 		}
 		
 		KACR_ReplyToCommand(client, KACR_ADDCVARSUCCESS, f_sCVarName);
@@ -363,11 +360,11 @@ public Action CVars_CmdRemCVar(iClient, args)
 		{
 			char f_sIP[64];
 			GetClientIP(iClient, f_sIP, sizeof(f_sIP));
-			KACR_Log("'%L'<%s> removed Convar '%s' from the Check List.", iClient, f_sIP, f_sCVarName);
+			KACR_Log(false, "'%L'<%s> removed Convar '%s' from the Check List.", iClient, f_sIP, f_sCVarName);
 		}
 		
 		else
-			KACR_Log("The Console removed Convar %s from the Check List.", f_sCVarName);
+			KACR_Log(false, "The Console removed Convar %s from the Check List.", f_sCVarName);
 			
 		KACR_ReplyToCommand(iClient, KACR_REMCVARSUCCESS, f_sCVarName);
 	}
@@ -537,7 +534,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	{
 		if (!g_hCVar__Index.GetValue(cvarName, f_hConVar)) // CVar doesn't exist in our list.
 		{
-			KACR_Log("Unknown CVar Reply: '%L'<%s> was kicked for a corrupted Return with Convar Name \"%s\" (expecting \"%s\") with Value \"%s\".", client, f_sIP, cvarName, f_sCVarName, cvarValue);
+			KACR_Log(false, "Unknown CVar Reply: '%L'<%s> was kicked for a corrupted Return with Convar Name \"%s\" (expecting \"%s\") with Value \"%s\".", client, f_sIP, cvarName, f_sCVarName, cvarValue);
 			KACR_Kick(client, KACR_CLIENTCORRUPT);
 			return;
 		}
@@ -588,14 +585,14 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				
 				case ACTION_KICK:
 				{
-					KACR_Log("Plugin CVar return: '%L'<%s> was kicked for returning with Plugin ConVar \"%s\" (Value \"%s\", return %s)", client, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
+					KACR_Log(false, "Plugin CVar return: '%L'<%s> was kicked for returning with Plugin ConVar \"%s\" (Value \"%s\", return %s)", client, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
 					KACR_Kick(client, KACR_REMOVEPLUGINS);
 					return;
 				}
 				
 				case ACTION_BAN:
 				{
-					KACR_Log("Bad CVar return: '%L'<%s> has ConVar \"%s\" (Value \"%s\", return %s) when it shouldn't exist.", client, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
+					KACR_Log(false, "Bad CVar return: '%L'<%s> has ConVar \"%s\" (Value \"%s\", return %s) when it shouldn't exist.", client, f_sIP, cvarName, cvarValue, g_sQueryResult[result]);
 					KACR_Ban(client, 0, KACR_BANNED, "KACR: ConVar %s Violation", cvarName);
 					
 					return;
@@ -611,7 +608,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	
 	if (result != ConVarQuery_Okay) // ConVar should exist. // TODO: Add an CVar to decide
 	{
-		KACR_Log("Bad CVar Query Result: '%L'<%s> returned Query Result \"%s\" (expected Okay) on ConVar \"%s\" (Value \"%s\").", client, f_sIP, g_sQueryResult[result], cvarName, cvarValue);
+		KACR_Log(false, "Bad CVar Query Result: '%L'<%s> returned Query Result \"%s\" (expected Okay) on ConVar \"%s\" (Value \"%s\").", client, f_sIP, g_sQueryResult[result], cvarName, cvarValue);
 		KickClient(client, "KACR: '%s' Violation (bad Query Result).", cvarName); // TODO: Add Translation
 		// KACR_Ban(client, 0, KACR_BANNED, "KACR: '%s' Violation (bad Query Result).", cvarName);
 		
@@ -641,7 +638,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		for (int i = 0; i < f_iSize; i++)
 			if (!IsCharNumeric(cvarValue[i]) && cvarValue[i] != '.')
 			{
-				KACR_Log("Corrupted CVar Response: '%L'<%s> was kicked for returning a corrupted Value on '%s' (%s), Value set at \"%s\" (expected \"%s\").", client, f_sIP, f_sCVarName, cvarName, cvarValue, f_sValue);
+				KACR_Log(false, "Corrupted CVar Response: '%L'<%s> was kicked for returning a corrupted Value on '%s' (%s), Value set at \"%s\" (expected \"%s\").", client, f_sIP, f_sCVarName, cvarName, cvarValue, f_sValue);
 				KACR_Kick(client, KACR_CLIENTCORRUPT);
 				return;
 			}
@@ -673,14 +670,14 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_KICK:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be \"%s\"", client, f_sIP, cvarName, cvarValue, f_sValue);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be \"%s\"", client, f_sIP, cvarName, cvarValue, f_sValue);
 						KACR_Kick(client, KACR_SHOULDEQUAL, cvarName, f_sValue, cvarValue);
 						return;
 					}
 					
 					case ACTION_BAN:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should equal", client, f_sIP, cvarName, cvarValue, f_sValue);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should equal", client, f_sIP, cvarName, cvarValue, f_sValue);
 						KACR_Ban(client, 0, KACR_BANNED, "KACR: ConVar %s Violation", cvarName);
 						
 						return;
@@ -712,14 +709,14 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_KICK:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be greater than or equal to \"%s\"", client, f_sIP, cvarName, cvarValue, f_sValue);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be greater than or equal to \"%s\"", client, f_sIP, cvarName, cvarValue, f_sValue);
 						KACR_Kick(client, KACR_SHOULDGREATER, cvarName, f_sValue, cvarValue);
 						return;
 					}
 					
 					case ACTION_BAN:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should greater than or equal to", client, f_sIP, cvarName, cvarValue, f_sValue);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should greater than or equal to", client, f_sIP, cvarName, cvarValue, f_sValue);
 						KACR_Ban(client, 0, KACR_BANNED, "KACR: ConVar %s Violation", cvarName);
 						
 						return;
@@ -751,14 +748,14 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_KICK:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be less than or equal to \"%s\"", client, f_sIP, cvarName, cvarValue, f_sValue);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be less than or equal to \"%s\"", client, f_sIP, cvarName, cvarValue, f_sValue);
 						KACR_Kick(client, KACR_SHOULDLESS, cvarName, f_sValue, cvarValue);
 						return;
 					}
 					
 					case ACTION_BAN:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> has Convar \"%s\" set to Value \"%s\" (should be \"%s\") when it should be less than or equal to", client, f_sIP, cvarName, cvarValue, f_sValue);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> has Convar \"%s\" set to Value \"%s\" (should be \"%s\") when it should be less than or equal to", client, f_sIP, cvarName, cvarValue, f_sValue);
 						KACR_Ban(client, 0, KACR_BANNED, "KACR: ConVar '%s' Violation", cvarName);
 						
 						return;
@@ -790,14 +787,14 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_KICK:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be between \"%s\" and \"%f\"", client, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be between \"%s\" and \"%f\"", client, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
 						KACR_Kick(client, KACR_SHOULDBOUND, cvarName, f_sValue, f_fValue2, cvarValue);
 						return;
 					}
 					
 					case ACTION_BAN:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> has ConVar \"%s\" set to Value \"%s\" when it should be between \"%s\" and \"%f\"", client, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> has ConVar \"%s\" set to Value \"%s\" when it should be between \"%s\" and \"%f\"", client, f_sIP, cvarName, cvarValue, f_sValue, f_fValue2);
 						KACR_Ban(client, 0, KACR_BANNED, "KACR: ConVar '%s' Violation", cvarName);
 						
 						return;
@@ -829,14 +826,14 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_KICK:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be \"%s\"", client, f_sIP, cvarName, cvarValue, f_sValue);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> was kicked for returning with ConVar \"%s\" set to Value \"%s\" when it should be \"%s\"", client, f_sIP, cvarName, cvarValue, f_sValue);
 						KACR_Kick(client, KACR_SHOULDEQUAL, cvarName, f_sValue, cvarValue);
 						return;
 					}
 					
 					case ACTION_BAN:
 					{
-						KACR_Log("Bad CVar Response: '%L'<%s> has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should equal", client, f_sIP, cvarName, cvarValue, f_sValue);
+						KACR_Log(false, "Bad CVar Response: '%L'<%s> has ConVar \"%s\" set to Value \"%s\" (should be \"%s\") when it should equal", client, f_sIP, cvarName, cvarValue, f_sValue);
 						KACR_Ban(client, 0, KACR_BANNED, "KACR: ConVar '%s' Violation", cvarName);
 						
 						return;
@@ -935,7 +932,7 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 		if (!g_hCVar__Index.SetValue(f_sName, f_hArray))
 		{
 			CloseHandle(f_hArray);
-			KACR_Log("[Error] Unable to add ConVar to Hashmap Link List '%s'", f_sName);
+			KACR_Log(false, "[Error] Unable to add ConVar to Hashmap Link List '%s'", f_sName);
 			return false;
 		}
 		
@@ -1050,7 +1047,7 @@ stock CVars_ReplicateConVar(Handle f_hConVar)
 				OnClientDisconnect(i);
 				
 			else if (!SendConVarValue(i, f_hConVar, f_sValue))
-				continue; // KACR_Log("'%L' failed to accept replication of '%s' (Value: %s)", i, f_sCVarName, f_sValue); - This happens if the netchan isn't created yet, cvars will replicate once it is created.
+				continue; // KACR_Log(false, "'%L' failed to accept replication of '%s' (Value: %s)", i, f_sCVarName, f_sValue); - This happens if the netchan isn't created yet, cvars will replicate once it is created.
 		}
 	}
 }

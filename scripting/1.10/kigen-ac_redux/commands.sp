@@ -156,7 +156,7 @@ public void Commands_OnAllPluginsLoaded()
 	{
 		f_hConCommand = FindFirstConCommand(f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags);
 		if (f_hConCommand == INVALID_HANDLE)
-			SetFailState("Failed getting first ConCommand");
+			KACR_Log(true, "[Critical] Failed getting first ConCommand");
 			
 		do
 		{
@@ -197,11 +197,11 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 	f_iLength += strlen(f_sTemp);
 	if (f_iLength > 235)
 	{
-		KACR_Log("Bad Disconnect Reason, Length '%d', \"%s\"", f_iLength, f_sReason);
+		KACR_Log(false, "Bad Disconnect Reason, Length '%d', \"%s\"", f_iLength, f_sReason);
 		if (client)
 		{
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			KACR_Log("'%L'<%s> submitted a bad Disconnect Reason and was banned", client, f_sIP);
+			KACR_Log(false, "'%L'<%s> submitted a bad Disconnect Reason and was banned", client, f_sIP);
 			KACR_Ban(client, 0, KACR_BANNED, "KACR: Disconnect Exploit");
 		}
 		
@@ -217,11 +217,11 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 		{
 			if (f_sReason[ig_iSongCount] != '\n')
 			{
-				KACR_Log("Bad Disconnect Reason, \"%s\", Lenght = %d", f_sReason, f_iLength);
+				KACR_Log(false, "Bad Disconnect Reason, \"%s\", Lenght = %d", f_sReason, f_iLength);
 				if (client)
 				{
 					GetClientIP(client, f_sIP, sizeof(f_sIP));
-					KACR_Log("'%L'<%s> submitted a bad Disconnect. Possible Corruption or Attack", client, f_sIP);
+					KACR_Log(false, "'%L'<%s> submitted a bad Disconnect. Possible Corruption or Attack", client, f_sIP);
 				}
 				
 				SetEventString(event, "reason", "Bad Disconnect Message");
@@ -339,7 +339,7 @@ public Action Commands_BlockExploit(client, args)
 			char f_sIP[64], f_sCmdString[256];
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KACR_Log("'%L'<%s> was banned for Command Usage Violation of Command: sm_menu %s", client, f_sIP, f_sCmdString);
+			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: sm_menu %s", client, f_sIP, f_sCmdString);
 			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Exploit Violation");
 			return Plugin_Stop;
 		}
@@ -429,7 +429,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 		char f_sIP[64], f_sCmdString[128];
 		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		KACR_Log("'%L'<%s> was kicked for Command Spamming: %s %s", iClient, f_sIP, command, f_sCmdString);
+		KACR_Log(false, "'%L'<%s> was kicked for Command Spamming: %s %s", iClient, f_sIP, command, f_sCmdString);
 		KACR_Kick(iClient, KACR_KCMDSPAM);
 		return Plugin_Stop;
 	}
@@ -441,7 +441,7 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 			char f_sIP[64], f_sCmdString[256];
 			GetClientIP(iClient, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KACR_Log("'%L'<%s> was banned for Command Usage Violation of Command: %s %s", iClient, f_sIP, command, f_sCmdString);
+			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", iClient, f_sIP, command, f_sCmdString);
 			KACR_Ban(iClient, 0, KACR_CBANNED, "KACR: Command %s Violation", command);
 		}
 		
@@ -482,7 +482,7 @@ public Action Commands_ClientCheck(client, args)
 			char f_sIP[64], f_sCmdString[256];
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KACR_Log("'%L'<%s> was banned for Command Usage Violation of Command: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
+			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
 			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Command %s Violation", f_sCmd);
 		}
 		
@@ -521,7 +521,7 @@ public Action Commands_SpamCheck(client, args)
 		char f_sIP[64], f_sCmdString[128];
 		GetClientIP(client, f_sIP, sizeof(f_sIP));
 		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		KACR_Log("'%L'<%s> was kicked for Command Spamming: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
+		KACR_Log(false, "'%L'<%s> was kicked for Command Spamming: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
 		KACR_Kick(client, KACR_KCMDSPAM);
 		return Plugin_Stop;
 	}
@@ -533,7 +533,7 @@ public Action Commands_SpamCheck(client, args)
 			char f_sIP[64], f_sCmdString[256];
 			GetClientIP(client, f_sIP, sizeof(f_sIP));
 			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KACR_Log("'%L'<%s> was banned for Command Usage Violation of Command: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
+			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
 			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Command '%s' Violation", f_sCmd);
 		}
 		

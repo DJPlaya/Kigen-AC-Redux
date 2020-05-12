@@ -27,7 +27,9 @@ enum AS_MessageType
     AS_SCAN_INVENTORY_IMG,
     AS_EXECUTE_CMD,
     AS_DISCONNECT,
-    AS_SG_ANNOUCEMENT
+    AS_SG_ANNOUCEMENT,
+    AS_STEAM_ID,
+    AS_TRADEOFFER_INFORMATION
 };
 
 /** 
@@ -35,42 +37,42 @@ enum AS_MessageType
  * 
  * @return          A client id.
  */ 
-native int ASteambot_FindClientBySteam64(const char[] steamid64)
+native int ASteambot_FindClientBySteam64(const char[] steamid64);
 
 /** 
  * Register the plugin, required to receive and send messages.
  * 
  * @return          Nothing.
  */ 
-native void ASteambot_RegisterModule(const char[] moduleName)
+native void ASteambot_RegisterModule(const char[] moduleName);
 
 /** 
  * Remove the module from ASteambot_Core, the plugin won't be able to receive and send messages anymore.
  * 
  * @return          Nothing.
  */ 
-native void ASteambot_RemoveModule()
+native void ASteambot_RemoveModule();
 
 /** 
  * Get the connection state to ASteambot
  * 
  * @return          true if connected and can receive/send messages, false otherwise. 
  */ 
-native bool ASteambot_IsConnected() 
+native bool ASteambot_IsConnected();
 
 /** 
  * Send a message to ASteambot (Maximum char 900). 
  * 
  * @return          Nothing.
  */ 
-native void ASteambot_SendMesssage(AS_MessageType MessageType, const char[] message) 
+native void ASteambot_SendMessage(AS_MessageType MessageType, const char[] message);
 
 /** 
  * Send a message to ASteambot (Maximum char 900). 
  * 
  * @return          Nothing.
  */ 
-native void ASteambot_CreateTradeOffer(int client, Handle ArrayAssetID, Handle ArrayMyAssetID = null, float fakeValue = -1.0) 
+native void ASteambot_CreateTradeOffer(int client, Handle ArrayAssetID, Handle ArrayMyAssetID = null, float fakeValue = -1.0); 
 
 /** 
  * Fire when ever you get a message from ASteambot.
