@@ -2,14 +2,14 @@
 // This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
 
-#define MAX_CONNECTIONS 128 // Sourcemod says their max is 65, but Source's max is up to 128
+#define MAX_CONNECTIONS 128 // Sourcemod says their official max is 65, but Source's max is up to 128
 
-Handle g_hCVar_ClientEnable, g_hCVar_ClientAntiRespawn, g_hCVar_ClientNameProtectAction, g_hCVar_ClientAntiSpamConnect, g_hCVar_ClientAntiSpamConnectAction;
+Handle g_hCVar_Client_Enable, g_hCVar_ClientAntiRespawn, g_hCVar_Client_NameProtect_Action, g_hCVar_Client_AntiSpamConnect, g_hCVar_Client_AntiSpamConnect_Action;
 bool g_bClientEnable, g_bClientAntiRespawn;
 int g_iClientNameProtect, g_iClientAntiSpamConnect, g_iClientAntiSpamConnectAction; 
 
 StringMap g_hClientSpawned;
-char g_sClientConnections[MAX_CONNECTIONS][64];
+char g_cClientConnections[MAX_CONNECTIONS][64];
 int g_iClientClass[MAXPLAYERS + 1] =  { -1, ... };
 int g_iClientStatus, g_iClientAntiRespawnStatus, g_iClientNameProtectStatus;
 bool g_bClientMapStarted;
@@ -19,8 +19,8 @@ bool g_bClientMapStarted;
 
 public void Client_OnPluginStart()
 {
-	g_hCVar_ClientEnable = AutoExecConfig_CreateConVar("kacr_client_enable", "1", "Enable the Client Protection Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bClientEnable = GetConVarBool(g_hCVar_ClientEnable);
+	g_hCVar_Client_Enable = AutoExecConfig_CreateConVar("kacr_client_enable", "1", "Enable the Client Protection Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bClientEnable = GetConVarBool(g_hCVar_Client_Enable);
 	
 	if (g_hGame == Engine_CSS || g_hGame == Engine_CSGO)
 	{
@@ -29,7 +29,7 @@ public void Client_OnPluginStart()
 		
 		g_hClientSpawned = new StringMap();
 		
-		HookConVarChange(g_hCVar_ClientAntiRespawn, Client_AntiRespawnChange);
+		HookConVarChange(g_hCVar_ClientAntiRespawn, ConVarChanged_Client_AntiRespawn);
 		
 		HookEvent("player_spawn", Client_PlayerSpawn);
 		HookEvent("player_death", Client_PlayerDeath);
@@ -39,13 +39,13 @@ public void Client_OnPluginStart()
 		RegConsoleCmd("joinclass", Client_JoinClass);
 	}
 	
-	g_hCVar_ClientNameProtectAction = AutoExecConfig_CreateConVar("kacr_client_nameprotect_action", "1040", "Action(s) to take when someone has an invalid Name, Time Bans will be 1 min. Protects the Server from Crashes and Hacks (0 = Disabled)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
-	g_iClientNameProtect = GetConVarInt(g_hCVar_ClientNameProtectAction);
+	g_hCVar_Client_NameProtect_Action = AutoExecConfig_CreateConVar("kacr_client_nameprotect_action", "1040", "Action(s) to take when someone has an invalid Name, Time Bans will be 1 min. Protects the Server from Crashes and Hacks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+	g_iClientNameProtect = GetConVarInt(g_hCVar_Client_NameProtect_Action);
 	//
-	g_hCVar_ClientAntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "15", "Seconds to prevent Someone from reestablishing a Connection. This will also set the Time for the Action, Value will be Round down to whole Minutes (0 = Disabled)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
-	g_iClientAntiSpamConnect = GetConVarInt(g_hCVar_ClientAntiSpamConnect);
-	g_hCVar_ClientAntiSpamConnectAction = AutoExecConfig_CreateConVar("kacr_client_antispamconnect_action", "1032", "Action(s) to take when someone does Spam Connect, Time Bans will be 1 min", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
-	g_iClientAntiSpamConnectAction = GetConVarInt(g_hCVar_ClientAntiSpamConnectAction);
+	g_hCVar_Client_AntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "15", "Seconds to prevent Someone from reestablishing a Connection. This will also set the Time for 'kacr_client_antispamconnect_action', Round down to whole Minutes (0 = Disabled)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
+	g_iClientAntiSpamConnect = GetConVarInt(g_hCVar_Client_AntiSpamConnect);
+	g_hCVar_Client_AntiSpamConnect_Action = AutoExecConfig_CreateConVar("kacr_client_antispamconnect_action", "1032", "Action(s) to take when someone does Spam Connect, Bantimes will be set with 'kacr_client_antispamconnect'", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+	g_iClientAntiSpamConnectAction = GetConVarInt(g_hCVar_Client_AntiSpamConnect_Action);
 	
 	if (g_bClientEnable)
 	{
@@ -75,10 +75,10 @@ public void Client_OnPluginStart()
 		g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_DISABLED);
 	}
 	
-	HookConVarChange(g_hCVar_ClientEnable, Client_EnableChange);
-	HookConVarChange(g_hCVar_ClientNameProtectAction, Client_NameProtectActionChange);
-	HookConVarChange(g_hCVar_ClientAntiSpamConnect, Client_AntiSpamConnectChange);
-	HookConVarChange(g_hCVar_ClientAntiSpamConnectAction, Client_AntiSpamConnectActionChange);
+	HookConVarChange(g_hCVar_Client_Enable, ConVarChanged_Client_Enable);
+	HookConVarChange(g_hCVar_Client_NameProtect_Action, ConVarChanged_Client_NameProtectAction);
+	HookConVarChange(g_hCVar_Client_AntiSpamConnect, ConVarChanged_Client_AntiSpamConnect);
+	HookConVarChange(g_hCVar_Client_AntiSpamConnect_Action, ConVarChanged_Client_AntiSpamConnectAction);
 	
 	RegConsoleCmd("autobuy", Client_Autobuy);
 }
@@ -145,7 +145,7 @@ public void Client_OnMapEnd()
 	g_bClientMapStarted = false;
 	
 	for (int i = 0; i < MAX_CONNECTIONS; i++)
-		strcopy(g_sClientConnections[i], 64, "");
+		strcopy(g_cClientConnections[i], 64, "");
 		
 	if (g_hGame == Engine_CSS || g_hGame == Engine_CSGO)
 		Client_CleanEvent(INVALID_HANDLE, "", false);
@@ -156,7 +156,7 @@ public void Client_OnMapEnd()
 
 public Action Client_AntiSpamConnectTimer(Handle timer, any i)
 {
-	strcopy(g_sClientConnections[i], 64, "");
+	strcopy(g_cClientConnections[i], 64, "");
 	
 	return Plugin_Stop;
 }
@@ -226,25 +226,25 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 	{
 		for (int i = 0; i < MAX_CONNECTIONS; i++)
 		{
-			if (StrEqual(g_sClientConnections[i], f_sClientIP))
+			if (StrEqual(g_cClientConnections[i], f_sClientIP))
 			{
 				int iResult = g_iClientAntiSpamConnectAction;
 				bool bActions[KACR_Action_Count]; // TODO: Is this a correct Handover?
 				KACR_ActionCheck(iResult); // TODO: Is this a correct Handover?
-				if(bActions[KACR_Action_Crash] || bActions[KACR_Action_AskSteamAdmin]) // Not Supported
+				if(bActions[KACR_ActionID_Crash] || bActions[KACR_ActionID_AskSteamAdmin]) // Not Supported
 				{
 					KACR_Log(false, "[Warning] 'kacr_client_antispamconnect_action' cannot be used with Action 32 or 512, running without them");
-					if(bActions[KACR_Action_Crash])
-						iResult = iResult - 32;
+					if(bActions[KACR_ActionID_Crash])
+						iResult -= KACR_Action_Crash;
 						
-					if(bActions[KACR_Action_AskSteamAdmin])
-						iResult = iResult  - 512;
+					if(bActions[KACR_ActionID_AskSteamAdmin])
+						iResult -= KACR_Action_AskSteamAdmin;
 				}
 				
-				if(bActions[KACR_Action_Kick]) // We do refuse the Client, so we cannot kick him or somethin
-					iResult = iResult  - 16;
+				if(bActions[KACR_ActionID_Kick]) // We do refuse the Client, so we cannot kick him or somethin
+					iResult -= KACR_Action_Kick;
 					
-				if(bActions[KACR_Action_TimeBan] || bActions[KACR_Action_ServerBan] || bActions[KACR_Action_ServerTimeBan] || bActions[KACR_Action_ServerTimeBan] || bActions[KACR_Action_Kick]) // All of theese do also kick the Client so its equvivalent to refusing him
+				if(bActions[KACR_ActionID_TimeBan] || bActions[KACR_ActionID_ServerBan] || bActions[KACR_ActionID_ServerTimeBan] || bActions[KACR_ActionID_ServerTimeBan] || bActions[KACR_ActionID_Kick]) // All of theese do also kick the Client so its equvivalent to refusing him
 				{
 					KACR_Action(iClient, iResult, RoundToFloor(view_as<float>(g_iClientAntiSpamConnect) / 60), "Please wait a bit before retrying to connect", "[KACR] '%L' did Spam the Server with Connects", iClient); // We retrive the Time in Seconds, so we need to convert them to Minutes and make sure that its still a Integer
 					return false;
@@ -254,9 +254,9 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 		
 		for (int i = 0; i < MAX_CONNECTIONS; i++)
 		{
-			if (g_sClientConnections[i][0] == '\0')
+			if (g_cClientConnections[i][0] == '\0')
 			{
-				strcopy(g_sClientConnections[i], 64, f_sClientIP);
+				strcopy(g_cClientConnections[i], 64, f_sClientIP);
 				CreateTimer(view_as<float>(g_iClientAntiSpamConnect), Client_AntiSpamConnectTimer, i);
 				
 				break;
@@ -270,20 +270,22 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 		bool bActions[KACR_Action_Count]; // TODO: Is this a correct Handover?
 		KACR_ActionCheck(iResult); // TODO: Is this a correct Handover?
 		
-		if(bActions[KACR_Action_Crash] || bActions[KACR_Action_AskSteamAdmin]) // Not Supported
+		if (bActions[KACR_ActionID_Crash]) // Not Supported
 		{
-			KACR_Log(false, "[Warning] 'kacr_client_nameprotect_action' cannot be used with Action 32 or 512, running without them");
-			if(bActions[KACR_Action_Crash])
-				iResult = iResult - 32;
-				
-			if(bActions[KACR_Action_AskSteamAdmin])
-				iResult = iResult  - 512;
+			KACR_Log(false, "[Warning] 'kacr_client_nameprotect_action' cannot be used with Action 32 (Crash Client), running without them");
+			iResult -= 32;
 		}
 		
-		if(bActions[KACR_Action_Kick]) // We do refuse the Client, so we cannot kick him or somethin
+		if (bActions[KACR_ActionID_AskSteamAdmin]) // Not Supported
+		{
+			KACR_Log(false, "[Warning] 'kacr_client_nameprotect_action' cannot be used with Action 512 (AskSteamAdmin), running without them");
+			iResult = iResult  - 512;
+		}
+		
+		if (bActions[KACR_ActionID_Kick]) // We do refuse the Client, so we cannot kick him or somethin
 			iResult = iResult  - 16;
 			
-		if(bActions[KACR_Action_TimeBan] || bActions[KACR_Action_ServerBan] || bActions[KACR_Action_ServerTimeBan] || bActions[KACR_Action_ServerTimeBan] || bActions[KACR_Action_Kick]) // All of theese do also kick the Client so its equvivalent to refusing him
+		if (bActions[KACR_ActionID_TimeBan] || bActions[KACR_ActionID_ServerBan] || bActions[KACR_ActionID_ServerTimeBan] || bActions[KACR_ActionID_ServerTimeBan] || bActions[KACR_ActionID_Kick]) // All of theese do also kick the Client so its equvivalent to refusing him
 		{
 			char f_sName[64], f_cChar;
 			int f_iSize;
@@ -409,7 +411,7 @@ public void OnClientSettingsChanged(iClient)
 	}
 }
 
-public void Client_EnableChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_Enable(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
 	g_bClientEnable = GetConVarBool(hConVar);
 	if (g_bClientEnable)
@@ -441,7 +443,7 @@ public void Client_EnableChange(Handle hConVar, const char[] cOldValue, const ch
 	}
 }
 
-public void Client_AntiRespawnChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_AntiRespawn(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
 	g_bClientAntiRespawn = GetConVarBool(hConVar);
 	if (g_bClientEnable)
@@ -455,7 +457,7 @@ public void Client_AntiRespawnChange(Handle hConVar, const char[] cOldValue, con
 }
 
 
-public void Client_NameProtectActionChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_NameProtectAction(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
 	g_iClientNameProtect = GetConVarInt(hConVar);
 	if (g_bClientEnable)
@@ -468,12 +470,12 @@ public void Client_NameProtectActionChange(Handle hConVar, const char[] cOldValu
 	}
 }
 
-public void Client_AntiSpamConnectChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_AntiSpamConnect(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
 	g_iClientAntiSpamConnect = GetConVarInt(hConVar);
 }
 
-public void Client_AntiSpamConnectActionChange(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_AntiSpamConnectAction(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
 	g_iClientAntiSpamConnectAction = GetConVarInt(hConVar);
 }

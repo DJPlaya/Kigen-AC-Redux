@@ -1,3 +1,5 @@
 -kacr_client_nameprotect
 +kacr_client_nameprotect_action
 +kacr_client_antispamconnect_action
++kacr_pausereports
++kacr_eyes_action

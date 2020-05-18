@@ -3,7 +3,7 @@
 
 
 // Array Index Documentation
-// Arrays that come from g_hCVar__s are index like below.
+// Arrays that come from g_hCVar_s are index like below.
 // 1. CVar Name
 // 2. Comparison Type
 // 3. CVar Handle - If this is defined then the engine will ignore the Comparison Type and Values as this should be only for FCVAR_REPLICATED CVars.
@@ -46,9 +46,9 @@
 
 //- Global CVARS Variables -//
 
-Handle g_hCVar__CVarsEnabled, g_hCVar__s;
+Handle g_hCVar_CVars_Enable, g_hCVar_s;
 Handle g_hCurrentQuery[MAXPLAYERS + 1], g_hReplyTimer[MAXPLAYERS + 1], g_hPeriodicTimer[MAXPLAYERS + 1];
-StringMap g_hCVar__Index;
+StringMap g_hCVar_Index;
 
 char g_sQueryResult[][] =  { "Okay", "Not found", "Not valid", "Protected" };
 
@@ -67,13 +67,13 @@ public void CVars_OnPluginStart()
 	bool f_bIsCommand;
 	int f_iFlags;
 	
-	g_hCVar__CVarsEnabled = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bCVarsEnabled = GetConVarBool(g_hCVar__CVarsEnabled);
+	g_hCVar_CVars_Enable = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bCVarsEnabled = GetConVarBool(g_hCVar_CVars_Enable);
 	
-	HookConVarChange(g_hCVar__CVarsEnabled, CVars_EnableChange);
+	HookConVarChange(g_hCVar_CVars_Enable, ConVarChanged_CVars_Enable);
 	
-	g_hCVar__s = CreateArray(64);
-	g_hCVar__Index = new StringMap();
+	g_hCVar_s = CreateArray(64);
+	g_hCVar_Index = new StringMap();
 	
 	// High Priority // Note: We kick them out before hand because we don't want to have to ban them.
 	CVars_AddCVar("0penscript", COMP_NONEXIST, ACTION_BAN, "0.0", 0.0, PRIORITY_HIGH);
@@ -412,7 +412,7 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 		g_iCurrentIndex[client] = 1;
 	}
 	
-	f_hCVar = GetArrayCell(g_hCVar__s, f_iIndex);
+	f_hCVar = GetArrayCell(g_hCVar_s, f_iIndex);
 	
 	if (GetArrayCell(f_hCVar, CELL_CHANGED) == INVALID_HANDLE)
 	{
@@ -519,7 +519,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	f_hConVar = g_hCurrentQuery[client];
 	
 	// We weren't expecting a reply or convar we queried is no longer valid and we cannot find it.
-	if (f_hConVar == INVALID_HANDLE && !g_hCVar__Index.GetValue(cvarName, f_hConVar))
+	if (f_hConVar == INVALID_HANDLE && !g_hCVar_Index.GetValue(cvarName, f_hConVar))
 	{
 		if (g_hPeriodicTimer[client] == INVALID_HANDLE) // Client doesn't have active query or a timer active for them?  Ballocks!
 			g_hPeriodicTimer[client] = CreateTimer(GetRandomFloat(0.5, 2.0), CVars_PeriodicTimer, client);
@@ -532,7 +532,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 	// Make sure this query replied correctly.
 	if (!StrEqual(cvarName, f_sCVarName)) // CVar not expected.
 	{
-		if (!g_hCVar__Index.GetValue(cvarName, f_hConVar)) // CVar doesn't exist in our list.
+		if (!g_hCVar_Index.GetValue(cvarName, f_hConVar)) // CVar doesn't exist in our list.
 		{
 			KACR_Log(false, "Unknown CVar Reply: '%L'<%s> was kicked for a corrupted Return with Convar Name \"%s\" (expecting \"%s\") with Value \"%s\".", client, f_sIP, cvarName, f_sCVarName, cvarValue);
 			KACR_Kick(client, KACR_CLIENTCORRUPT);
@@ -855,7 +855,7 @@ public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] n
 	Handle f_hCVarIndex, f_hTimer;
 	char f_sName[64];
 	GetConVarName(convar, f_sName, sizeof(f_sName));
-	if (g_hCVar__Index.GetValue(f_sName, f_hCVarIndex))
+	if (g_hCVar_Index.GetValue(f_sName, f_hCVarIndex))
 	{
 		f_hTimer = GetArrayCell(f_hCVarIndex, CELL_CHANGED);
 		if (f_hTimer != INVALID_HANDLE)
@@ -868,7 +868,7 @@ public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] n
 	RequestFrame(CVars_ReplicateTimer, convar); // CreateTimer(0.1, CVars_ReplicateTimer, convar); // The delay is so that nothing interferes with the replication
 }
 
-public void CVars_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_CVars_Enable(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bCVarsEnabled = GetConVarBool(convar);
 	if (g_bCVarsEnabled)
@@ -903,7 +903,7 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 	else
 		f_hConVar = INVALID_HANDLE;
 		
-	if (g_hCVar__Index.GetValue(f_sName, f_hArray)) // Check if CVar check already exists.
+	if (g_hCVar_Index.GetValue(f_sName, f_hArray)) // Check if CVar check already exists.
 	{
 		SetArrayString(f_hArray, CELL_NAME, f_sName); // Name			0
 		SetArrayCell(f_hArray, CELL_COMPTYPE, f_iComparisonType); // Comparison Type	1
@@ -929,15 +929,15 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, f_iAction, const char[] f_
 		PushArrayCell(f_hArray, f_iImportance); // Importance		7
 		PushArrayCell(f_hArray, INVALID_HANDLE); // Changed		8
 		
-		if (!g_hCVar__Index.SetValue(f_sName, f_hArray))
+		if (!g_hCVar_Index.SetValue(f_sName, f_hArray))
 		{
 			CloseHandle(f_hArray);
 			KACR_Log(false, "[Error] Unable to add ConVar to Hashmap Link List '%s'", f_sName);
 			return false;
 		}
 		
-		PushArrayCell(g_hCVar__s, f_hArray);
-		g_iSize = GetArraySize(g_hCVar__s);
+		PushArrayCell(g_hCVar_s, f_hArray);
+		g_iSize = GetArraySize(g_hCVar_s);
 		
 		if (f_iImportance != PRIORITY_NORMAL && g_bMapStarted)
 			CVars_CreateNewOrder();
@@ -951,10 +951,10 @@ stock bool CVars_RemoveCVar(char[] f_sName)
 	Handle f_hConVar;
 	int f_iIndex;
 	
-	if (!g_hCVar__Index.GetValue(f_sName, f_hConVar))
+	if (!g_hCVar_Index.GetValue(f_sName, f_hConVar))
 		return false;
 		
-	f_iIndex = FindValueInArray(g_hCVar__s, f_hConVar);
+	f_iIndex = FindValueInArray(g_hCVar_s, f_hConVar);
 	if (f_iIndex == -1)
 		return false;
 		
@@ -962,10 +962,10 @@ stock bool CVars_RemoveCVar(char[] f_sName)
 	if (g_hCurrentQuery[i] == f_hConVar)
 		g_hCurrentQuery[i] = INVALID_HANDLE;
 		
-	RemoveFromArray(g_hCVar__s, f_iIndex);
-	g_hCVar__Index.Remove(f_sName);
+	RemoveFromArray(g_hCVar_s, f_iIndex);
+	g_hCVar_Index.Remove(f_sName);
 	CloseHandle(f_hConVar);
-	g_iSize = GetArraySize(g_hCVar__s);
+	g_iSize = GetArraySize(g_hCVar_s);
 	
 	return true;
 }
@@ -983,7 +983,7 @@ stock CVars_CreateNewOrder()
 	// Get priorities.
 	for (int i = 0; i < g_iSize; i++)
 	{
-		f_hCurrent = GetArrayCell(g_hCVar__s, i);
+		f_hCurrent = GetArrayCell(g_hCVar_s, i);
 		f_iTemp = GetArrayCell(f_hCurrent, CELL_PRIORITY);
 		if (f_iTemp == PRIORITY_NORMAL)
 			PushArrayCell(f_hPNormal, f_hCurrent);
@@ -1024,10 +1024,10 @@ stock CVars_CreateNewOrder()
 		f_iNormal--;
 	}
 	
-	ClearArray(g_hCVar__s);
+	ClearArray(g_hCVar_s);
 	
 	for (int i = 0; i < g_iSize; i++)
-		PushArrayCell(g_hCVar__s, f_hOrder[i]);
+		PushArrayCell(g_hCVar_s, f_hOrder[i]);
 		
 	CloseHandle(f_hPHigh);
 	CloseHandle(f_hPMedium);

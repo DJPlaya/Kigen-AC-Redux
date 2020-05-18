@@ -4,12 +4,12 @@
 
 //- Global Variables -//
 
-Handle g_hg_iSongCountReset, g_hCVar__CmdEnable, g_hCVar__CmdSpam, g_hCVar__CmdLog;
+Handle g_hg_iSongCountReset, g_hCVar_Cmds_Enable, g_hCVar_Cmds_Spam, g_hCVar_Cmds_Log;
 StringMap g_hBlockedCmds, g_hIgnoredCmds;
 
 char g_sCmdLogPath[256];
 
-bool g_bCmdEnabled = true, g_bLogCmds;
+bool g_bCmds_Enabled = true, g_bLogCmds;
 
 int g_iCmdg_iSongCount[MAXPLAYERS + 1] =  { 0, ... };
 int g_iCmdStatus, g_iCmdSpamStatus, g_iCmdSpam = 30;
@@ -19,18 +19,18 @@ int g_iCmdStatus, g_iCmdSpamStatus, g_iCmdSpam = 30;
 
 public void Commands_OnPluginStart()
 {
-	g_hCVar__CmdEnable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bCmdEnabled = GetConVarBool(g_hCVar__CmdEnable);
+	g_hCVar_Cmds_Enable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bCmds_Enabled = GetConVarBool(g_hCVar_Cmds_Enable);
 	
-	g_hCVar__CmdSpam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
-	g_iCmdSpam = GetConVarInt(g_hCVar__CmdSpam);
+	g_hCVar_Cmds_Spam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
+	g_iCmdSpam = GetConVarInt(g_hCVar_Cmds_Spam);
 	
-	g_hCVar__CmdLog = AutoExecConfig_CreateConVar("kacr_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bLogCmds = GetConVarBool(g_hCVar__CmdLog);
+	g_hCVar_Cmds_Log = AutoExecConfig_CreateConVar("kacr_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bLogCmds = GetConVarBool(g_hCVar_Cmds_Log);
 	
-	HookConVarChange(g_hCVar__CmdEnable, Commands_CmdEnableChange);
-	HookConVarChange(g_hCVar__CmdSpam, Commands_CmdSpamChange);
-	HookConVarChange(g_hCVar__CmdLog, Commands_CmdLogChange);
+	HookConVarChange(g_hCVar_Cmds_Enable, ConVarChanged_Cmds_Enable);
+	HookConVarChange(g_hCVar_Cmds_Spam, ConVarChanged_Cmds_Spam);
+	HookConVarChange(g_hCVar_Cmds_Log, ConVarChanged_Cmds_Log);
 	
 	// Setup logging Path
 	for (int i = 0; ; i++)
@@ -40,7 +40,7 @@ public void Commands_OnPluginStart()
 			break;
 	}
 	
-	if (g_bCmdEnabled)
+	if (g_bCmds_Enabled)
 	{
 		g_iCmdStatus = Status_Register(KACR_CMDMOD, KACR_ON);
 		if (!g_iCmdSpam)
@@ -145,7 +145,7 @@ public void Commands_OnAllPluginsLoaded()
 	g_hIgnoredCmds.SetValue("buyammo2", true);
 	g_hIgnoredCmds.SetValue("use", true);
 	
-	if (g_bCmdEnabled)
+	if (g_bCmds_Enabled)
 		g_hg_iSongCountReset = CreateTimer(1.0, Commands_g_iSongCountReset, _, TIMER_REPEAT);
 		
 	else
@@ -350,7 +350,7 @@ public Action Commands_BlockExploit(client, args)
 
 public Action Commands_FilterSay(client, args)
 {
-	if (!g_bCmdEnabled)
+	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
 		
 	char f_sMsg[256], f_iLen, f_cChar;
@@ -378,7 +378,7 @@ public Action Commands_BlockEntExploit(client, args)
 	if (!g_bInGame[client])
 		return Plugin_Stop;
 		
-	if (!g_bCmdEnabled)
+	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
 		
 	char f_sCmd[512];
@@ -405,7 +405,7 @@ public Action Commands_BlockEntExploit(client, args)
 
 public Action Commands_CommandListener(iClient, const char[] command, argc)
 {
-	if (!g_bCmdEnabled)
+	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
 		
 	if (iClient < 1)
@@ -467,7 +467,7 @@ public Action Commands_ClientCheck(client, args)
 	if (!g_bInGame[client])
 		return Plugin_Stop;
 		
-	if (!g_bCmdEnabled)
+	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
 		
 	char f_sCmd[64];
@@ -508,7 +508,7 @@ public Action Commands_SpamCheck(client, args)
 	if (!g_bInGame[client])
 		return Plugin_Stop;
 		
-	if (!g_bCmdEnabled)
+	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
 		
 	bool f_bBan;
@@ -555,7 +555,7 @@ public Action Commands_SpamCheck(client, args)
 
 public Action Commands_g_iSongCountReset(Handle timer, any args)
 {
-	if (!g_bCmdEnabled)
+	if (!g_bCmds_Enabled)
 	{
 		g_hg_iSongCountReset = INVALID_HANDLE;
 		return Plugin_Stop;
@@ -570,10 +570,10 @@ public Action Commands_g_iSongCountReset(Handle timer, any args)
 
 //- Hooks -//
 
-public void Commands_CmdEnableChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Cmds_Enable(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	bool f_bEnabled = GetConVarBool(convar);
-	if (f_bEnabled == g_bCmdEnabled)
+	if (f_bEnabled == g_bCmds_Enabled)
 		return;
 		
 	if (f_bEnabled)
@@ -581,7 +581,7 @@ public void Commands_CmdEnableChange(Handle convar, const char[] oldValue, const
 		if (g_hg_iSongCountReset == INVALID_HANDLE)
 			g_hg_iSongCountReset = CreateTimer(1.0, Commands_g_iSongCountReset, _, TIMER_REPEAT);
 			
-		g_bCmdEnabled = true;
+		g_bCmds_Enabled = true;
 		g_iCmdStatus = Status_Register(KACR_CMDMOD, KACR_ON);
 		
 		if (!g_iCmdSpam)
@@ -597,17 +597,17 @@ public void Commands_CmdEnableChange(Handle convar, const char[] oldValue, const
 			CloseHandle(g_hg_iSongCountReset);
 			
 		g_hg_iSongCountReset = INVALID_HANDLE;
-		g_bCmdEnabled = false;
+		g_bCmds_Enabled = false;
 		Status_Report(g_iCmdStatus, KACR_OFF);
 		Status_Report(g_iCmdSpamStatus, KACR_DISABLED);
 	}
 }
 
-public void Commands_CmdSpamChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Cmds_Spam(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_iCmdSpam = GetConVarInt(convar);
 	
-	if (!g_bCmdEnabled)
+	if (!g_bCmds_Enabled)
 		Status_Report(g_iCmdSpamStatus, KACR_DISABLED);
 		
 	else if (!g_iCmdSpam)
@@ -617,7 +617,7 @@ public void Commands_CmdSpamChange(Handle convar, const char[] oldValue, const c
 		Status_Report(g_iCmdSpamStatus, KACR_ON);
 }
 
-public void Commands_CmdLogChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Cmds_Log(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bLogCmds = GetConVarBool(convar);
 }

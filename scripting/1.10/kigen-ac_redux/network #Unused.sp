@@ -8,7 +8,7 @@
 
 //- Global Variables -//
 
-Handle g_hCVar__NetEnabled, g_hCVar__NetUseBanlist, g_hCVar__NetUseUpdate, g_hUpdateFile, g_hSocket, g_hTimer, g_hVTimer;
+Handle g_hCVar_NetEnabled, g_hCVar_NetUseBanlist, g_hCVar_NetUseUpdate, g_hUpdateFile, g_hSocket, g_hTimer, g_hVTimer;
 bool g_bCVarNetEnabled = true, g_bCVarNetUseBanlist = true, g_bCVarNetUseUpdate = true;
 bool g_bVCheckDone, InUpdate;
 bool g_bChecked[MAXPLAYERS + 1];
@@ -22,18 +22,18 @@ char UpdatePath[256];
 
 Network_OnPluginStart()
 {
-	g_hCVar__NetEnabled = AutoExecConfig_CreateConVar("kacr_net_enable", "1", "Enable the Network module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bCVarNetEnabled = GetConVarBool(g_hCVar__NetEnabled);
+	g_hCVar_NetEnabled = AutoExecConfig_CreateConVar("kacr_net_enable", "1", "Enable the Network module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bCVarNetEnabled = GetConVarBool(g_hCVar_NetEnabled);
 	
-	g_hCVar__NetUseBanlist = AutoExecConfig_CreateConVar("kacr_net_usebanlist", "1", "Use the global banlist", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bCVarNetUseBanlist = GetConVarBool(g_hCVar__NetUseBanlist);
+	g_hCVar_NetUseBanlist = AutoExecConfig_CreateConVar("kacr_net_usebanlist", "1", "Use the global banlist", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bCVarNetUseBanlist = GetConVarBool(g_hCVar_NetUseBanlist);
 	
-	g_hCVar__NetUseUpdate = AutoExecConfig_CreateConVar("kacr_net_autoupdate", "1", "Use the Auto-Update feature", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bCVarNetUseUpdate = GetConVarBool(g_hCVar__NetUseUpdate);
+	g_hCVar_NetUseUpdate = AutoExecConfig_CreateConVar("kacr_net_autoupdate", "1", "Use the Auto-Update feature", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_bCVarNetUseUpdate = GetConVarBool(g_hCVar_NetUseUpdate);
 	
-	HookConVarChange(g_hCVar__NetEnabled, Network_ConVarChange);
-	HookConVarChange(g_hCVar__NetUseBanlist, Network_ConVarChange);
-	HookConVarChange(g_hCVar__NetUseUpdate, Network_ConVarChange);
+	HookConVarChange(g_hCVar_NetEnabled, Network_ConVarChange);
+	HookConVarChange(g_hCVar_NetUseBanlist, Network_ConVarChange);
+	HookConVarChange(g_hCVar_NetUseUpdate, Network_ConVarChange);
 	
 	g_hTimer = CreateTimer(5.0, Network_Timer, _, TIMER_REPEAT);
 	if (g_bCVarNetEnabled)
@@ -72,14 +72,14 @@ public void Network_ConVarChange(Handle convar, const char[] oldValue, const cha
 {
 	bool bNetEnabled = g_bCVarNetEnabled;
 	
-	g_bCVarNetUseBanlist = GetConVarBool(g_hCVar__NetUseBanlist);
-	g_bCVarNetUseUpdate = GetConVarBool(g_hCVar__NetUseUpdate);
+	g_bCVarNetUseBanlist = GetConVarBool(g_hCVar_NetUseBanlist);
+	g_bCVarNetUseUpdate = GetConVarBool(g_hCVar_NetUseUpdate);
 	
 	if (!g_bCVarNetUseBanlist && !g_bCVarNetUseUpdate)
 		g_bCVarNetEnabled = false;
 		
 	else
-		g_bCVarNetEnabled = GetConVarBool(g_hCVar__NetEnabled);
+		g_bCVarNetEnabled = GetConVarBool(g_hCVar_NetEnabled);
 		
 	if (g_bCVarNetEnabled && !bNetEnabled)
 		Status_Report(g_iNetStatus, KACR_ON);

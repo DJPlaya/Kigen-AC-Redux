@@ -2,7 +2,7 @@
 // This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
 
-Handle g_hRCONCrash;
+Handle g_hCVar_RCON_CrashPrevent;
 bool g_bRCONPreventEnabled;
 int g_iMinFail = 5;
 int g_iMaxFail = 20;
@@ -16,10 +16,10 @@ public void RCON_OnPluginStart()
 {
 	if (g_hGame != Engine_CSGO && g_hGame != Engine_CSS && g_hGame != Engine_DODS && g_hGame != Engine_TF2 && g_hGame != Engine_HL2DM) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
 	{
-		g_hRCONCrash = AutoExecConfig_CreateConVar("kacr_rcon_crashprevent", "0", "Enable RCON Crash Prevention", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-		g_bRCONPreventEnabled = GetConVarBool(g_hRCONCrash);
+		g_hCVar_RCON_CrashPrevent = AutoExecConfig_CreateConVar("kacr_rcon_crashprevent", "0", "Enable RCON Crash Prevention", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_bRCONPreventEnabled = GetConVarBool(g_hCVar_RCON_CrashPrevent);
 		
-		HookConVarChange(g_hRCONCrash, RCON_CrashPrevent);
+		HookConVarChange(g_hCVar_RCON_CrashPrevent, ConVarChanged_RCON_CrashPrevent);
 		
 		if (g_bRCONPreventEnabled)
 			g_iRCONStatus = Status_Register(KACR_RCONPREVENT, KACR_ON);
@@ -35,7 +35,7 @@ public void RCON_OnPluginStart()
 
 //- Hooks -//
 
-public void RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	bool f_bEnable = GetConVarBool(convar);
 	if (f_bEnable == g_bRCONPreventEnabled)

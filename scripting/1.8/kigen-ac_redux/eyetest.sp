@@ -8,9 +8,9 @@
 
 //- Global Variables -//
 
-Handle g_hEyeTimer, g_hCVar__EyeEnable, g_hCVar__AntiWall;
+Handle g_hEyeTimer, g_hCVar_Eyetest_Enable, g_hCVar_AntiWall, g_hCVar_EyetestAction;
 float g_vClientPos[MAXPLAYERS + 1][3], g_vClientEye[MAXPLAYERS + 1][3];
-int g_iVelOff, g_iBaseVelOff, g_iEyeStatus, g_iAntiWHStatus;
+int g_iVelOff, g_iBaseVelOff, g_iEyeStatus, g_iAntiWHStatus, g_iEyetestAction;
 int g_iWeaponOwner[MAX_ENTITIES];
 bool g_bEyeEnabled, g_bAntiWall, g_bAntiWallDisabled = true;
 bool g_bIsVisible[MAXPLAYERS + 1][MAXPLAYERS + 1];
@@ -21,30 +21,35 @@ bool g_bShouldProcess[MAXPLAYERS + 1], g_bHooked[MAXPLAYERS + 1];
 
 public void Eyetest_OnPluginStart()
 {
-	/*if(g_hGame != Engine_CSGO && g_hGame != Engine_CSS && g_hGame != Engine_Insurgency && g_hGame != Engine_Left4Dead2 && g_hGame != Engine_HL2DM)
-	{*/ // TODO: Test on all supported Games
-	g_hCVar__EyeEnable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "1", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	Eyetest_EnableChange(g_hCVar__EyeEnable, "", "");
+	if(g_hGame == Engine_CSGO || g_hGame == Engine_CSS || g_hGame == Engine_Insurgency || g_hGame == Engine_Left4Dead2 || g_hGame == Engine_HL2DM)
+	{
+		g_hCVar_Eyetest_Enable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "1", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVar_EyetestAction = AutoExecConfig_CreateConVar("kacr_eyes_action", "1025", "Action(s) to take when someone does uses Aimbots, Time Bans will be 2 Weeks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+		g_hCVar_AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	}
 	
-	if (g_bEyeEnabled)
+	else // We dont know the Game, so we disable the Eyecheck by default
+	{
+		g_hCVar_Eyetest_Enable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVar_EyetestAction = AutoExecConfig_CreateConVar("kacr_eyes_action", "1040", "Action(s) to take when someone does uses Aimbots, Time Bans will be 2 Weeks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+		g_hCVar_AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "0", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	}
+	g_iEyetestAction = GetConVarInt(g_hCVar_EyetestAction);
+	
+	ConVarChanged_Eyetest_Enable(g_hCVar_Eyetest_Enable, "", "");
+	HookConVarChange(g_hCVar_Eyetest_Enable, ConVarChanged_Eyetest_Enable);
+	
+	if (g_bEyeEnabled) // TODO: Replace g_bEyeEnabled with g_hCVar_EyetestAction
 		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_ON);
 		
 	else
 		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_OFF);
 		
-	HookConVarChange(g_hCVar__EyeEnable, Eyetest_EnableChange);
-	/*}
+	ConVarChanged_Eyetest_AntiWall(g_hCVar_AntiWall, "", "");
+	HookConVarChange(g_hCVar_AntiWall, ConVarChanged_Eyetest_AntiWall);
 	
-	else
-		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_DISABLED);*/
-		
 	g_bAntiWallDisabled = false;
 	g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_OFF);
-	g_hCVar__AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	
-	Eyetest_AntiWallChange(g_hCVar__AntiWall, "", "");
-	
-	HookConVarChange(g_hCVar__AntiWall, Eyetest_AntiWallChange);
 	
 	HookEvent("player_spawn", Eyetest_PlayerSpawn);
 	HookEvent("player_death", Eyetest_PlayerDeath);
@@ -89,7 +94,7 @@ public void Eyetest_OnClientPutInServer(client)
 
 //- Timer -//
 
-public Action Eyetest_Timer(Handle timer, any we)
+public Action Eyetest_Timer(Handle timer) // TODO #36: This Check is only useful for very simpel Aimbots that do aim at targets that are out of the regular Players Aim
 {
 	if (!g_bEyeEnabled)
 	{
@@ -97,25 +102,27 @@ public Action Eyetest_Timer(Handle timer, any we)
 		return Plugin_Stop;
 	}
 	
-	float f_vAngles[3], f_fX, f_fZ;
-	char f_sIP[64];
+	float f_vAngles[3]/*, f_fX, f_fZ*/;
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (g_bShouldProcess[iClient] && GetClientEyeAngles(iClient, f_vAngles))
 		{
-			f_fX = f_vAngles[0];
-			f_fZ = f_vAngles[2];
-			if (f_fX > 180.0)
-				f_fX -= 360.0;
-				
-			if (f_fZ > 180.0)
-				f_fZ -= 360.0;
-				
-			if (f_fX > 90.0 || f_fX < -90.0 || f_fZ > 90.0 || f_fZ < -90.0)
+			//f_fX = f_vAngles[0];
+			//f_fZ = f_vAngles[2];
+			//if (f_fX > 180.0)
+			//	f_fX -= 360.0;
+			f_vAngles[0] > 180.0 ? (f_vAngles[0] -= 360.0) : f_vAngles[0];
+			//if (f_fZ > 180.0)
+			//	f_fZ -= 360.0;
+			f_vAngles[2] > 180.0 ? (f_vAngles[2] -= 360.0) : f_vAngles[2];
+			
+			if (f_vAngles[0] > 90.0 || f_vAngles[0] < -90.0 || f_vAngles[2] > 90.0 || f_vAngles[2] < -90.0)
 			{
-				GetClientIP(iClient, f_sIP, sizeof(f_sIP));
-				KACR_Log(false, "'%L'<%s> was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", iClient, f_sIP, f_fX, f_vAngles[1], f_fZ);
-				KACR_Ban(iClient, 0, KACR_BANNED, "KACR: Eye Angles Violation");
+				// char f_sIP[64];
+				// GetClientIP(iClient, f_sIP, sizeof(f_sIP));
+				// KACR_Log(false, "'%L'<%s> was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", iClient, f_sIP, f_vAngles[0], f_vAngles[1], f_vAngles[2]);
+				// KACR_Ban(iClient, 0, KACR_BANNED, "KACR: Eye Angles Violation");
+				KACR_Action (iClient, g_iEyetestAction, 20160, KACR_BANNED, "KACR: Eye Angles Violation: %f %f %f", f_vAngles[0], f_vAngles[1], f_vAngles[2])
 			}
 		}
 	}
@@ -126,7 +133,7 @@ public Action Eyetest_Timer(Handle timer, any we)
 
 //- Hooks -//
 
-public void Eyetest_EnableChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Eyetest_Enable(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	g_bEyeEnabled = GetConVarBool(convar);
 	
@@ -144,12 +151,12 @@ public void Eyetest_EnableChange(Handle convar, const char[] oldValue, const cha
 	}
 }
 
-public void Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Eyetest_AntiWall(Handle convar, const char[] oldValue, const char[] newValue)
 {
 	bool f_bEnabled = GetConVarBool(convar);
 	
-	if (!LibraryExists("sdkhooks"))
-		Status_Report(g_iAntiWHStatus, KACR_NOSDKHOOK);
+	//if (!LibraryExists("sdkhooks")) // We could integrate this Check into the Plugin Startup, but since sdkhooks should actually be installed on every Server, its not worth that
+	//	Status_Report(g_iAntiWHStatus, KACR_NOSDKHOOK);
 		
 	if (f_bEnabled == g_bAntiWall)
 		return;
@@ -158,7 +165,8 @@ public void Eyetest_AntiWallChange(Handle convar, const char[] oldValue, const c
 	{
 		if (!LibraryExists("sdkhooks"))
 		{
-			KACR_Log(false, "[Error] SDKHooks is not running, cannot enable Anti-Wall");
+			Status_Report(g_iAntiWHStatus, KACR_NOSDKHOOK);
+			KACR_Log(false, "[Critical] SDKHooks is not running, cannot enable Anti-Wall");
 			SetConVarInt(convar, 0);
 			return;
 		}
@@ -264,21 +272,7 @@ public void OnGameFrame()
 			GetEntDataVector(i, g_iVelOff, f_vVelocity);
 			if (GetEntityFlags(i) & FL_BASEVELOCITY)
 			{
-				//## TODO
 				if (!Entity_IsValid(i))
-				{
-					KACR_Log(false, "Entity '%i' networkable: %b", i, IsEntNetworkable(i));
-					KACR_Log(false, "Entity '%i' valid edict: %b", i, IsValidEdict(i));
-					KACR_Log(false, "Entity '%i' player alive: %b", i, IsPlayerAlive(i));
-					KACR_Log(false, "Entity '%i' fake client: %b", i, IsFakeClient(i));
-					
-					KACR_Log(false, "Entity '%i' array connected: %b", i, g_bConnected[i]);
-					KACR_Log(false, "Entity '%i' array authorized: %b", i, g_bAuthorized[i]);
-					KACR_Log(false, "Entity '%i' array ingame: %b", i, g_bInGame[i]);
-				}
-				//##
-				
-				else
 				{
 					GetEntDataVector(i, g_iBaseVelOff, f_vTempVec);
 					AddVectors(f_vVelocity, f_vTempVec, f_vVelocity);

@@ -1,5 +1,5 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
-// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
 // Compiler Settings
 
@@ -14,10 +14,10 @@
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
 // #include <socket> // Required for the networking Module
-#include <smlib_kacr> // Copyright (C) SMLIB Contributors // This Include is Licensed under GPLv3, see 'Licenses/License_SMLIB.txt' for Details
-#include <autoexecconfig_kacr> //  Copyright (C) 2013-2017 Impact // This Include is Licensed under GPLv3, see 'Licenses/License_AutoExecConfig.txt' for Details 
+#include <smlib_kacr> // Copyright (C) SMLIB Contributors // This Include is licensed under GPLv3, see 'Licenses/License_SMLIB.txt' for Details
+#include <autoexecconfig_kacr> //  Copyright (C) 2013-2017 Impact // This Include is licensed under GPLv3, see 'Licenses/License_AutoExecConfig.txt' for Details 
 #undef REQUIRE_PLUGIN
-#include <ASteambot> // Copyright (c) ASteamBot Contributors // This Include is Licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details // BUG: Native "ASteambot_SendMesssage" was not found
+#include <ASteambot> // Copyright (c) ASteamBot Contributors // This Include is licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Detailsd
 #define REQUIRE_PLUGIN
 
 
@@ -36,34 +36,52 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 
 //- Defines -//
 
-#define PLUGIN_VERSION "0.1" // TODO: No versioning right now, we are on a Rolling Release Cycle
-#define MAX_ENTITIES 2048 // Maximum networkable Entitys (Edicts), 2048 is hardcoded in the Engine
-
 #define loop for(;;) // Unlimited Loop
 
+#define PLUGIN_VERSION "0.1" // No versioning right now, we are on a Rolling Release Cycle
+#define MAX_ENTITIES 2048 // Maximum networkable Entitys (Edicts), 2048 is hardcoded in the Engine
+
+// TODO: Replace the hardcoded Values with theese Defines
 #define KACR_Action_Count 13 // 18.11.19 - 12+1 carryed
+
+#define KACR_ActionID_Ban 1
+#define KACR_ActionID_TimeBan 2
+#define KACR_ActionID_ServerBan 3
+#define KACR_ActionID_ServerTimeBan 4
+#define KACR_ActionID_Kick 5
+#define KACR_ActionID_Crash 6
+#define KACR_ActionID_ReportSB 7
+#define KACR_ActionID_ReportAdmins 8
+#define KACR_ActionID_ReportSteamAdmins 9
+#define KACR_ActionID_AskSteamAdmin 10
+#define KACR_ActionID_Log 11
+#define KACR_ActionID_ReportIRC 12
+
 #define KACR_Action_Ban 1
 #define KACR_Action_TimeBan 2
-#define KACR_Action_ServerBan 3
-#define KACR_Action_ServerTimeBan 4
-#define KACR_Action_Kick 5
-#define KACR_Action_Crash 6
-#define KACR_Action_ReportSB 7
-#define KACR_Action_ReportAdmins 8
-#define KACR_Action_ReportSteamAdmins 9
-#define KACR_Action_AskSteamAdmin 10
-#define KACR_Action_Log 11
-#define KACR_Action_ReportIRC 12
+#define KACR_Action_ServerBan 4
+#define KACR_Action_ServerTimeBan 8
+#define KACR_Action_Kick 16
+#define KACR_Action_Crash 32
+#define KACR_Action_ReportSB 64
+#define KACR_Action_ReportAdmins 128
+#define KACR_Action_ReportSteamAdmins 256
+#define KACR_Action_AskSteamAdmin 512
+#define KACR_Action_Log 1024
+#define KACR_Action_ReportIRC 2048
 
 
 //- Global Variables -//
 
 Handle g_hValidateTimer[MAXPLAYERS + 1];
-Handle g_hClearTimer, g_hCVar_Version;
+Handle g_hClearTimer, g_hCVar_Version, g_hCVar_PauseReports;
 EngineVersion g_hGame;
 
 StringMap g_hCLang[MAXPLAYERS + 1];
 StringMap g_hSLang, g_hDenyArray;
+
+float g_fLastCheatReported[MAXPLAYERS + 1] = 32.0; // This is for per Frame/Timed AC Checks, we do not want to spam the Log nor the Admins with Reports, so we save the last Time Someone was reported. We do set this to 32.0, so the Time Check works properly even if the Server just has started #ref 395723
+float g_fPauseReports; // Wait this long till we report/log a Client again
 
 bool g_bConnected[MAXPLAYERS + 1]; // I use these instead of the natives because they are cheaper to call
 bool g_bAuthorized[MAXPLAYERS + 1]; // When I need to check on a client's state.  Natives are very taxing on
@@ -89,7 +107,7 @@ public Plugin myinfo =
 {
 	name = "Kigen's Anti-Cheat Redux", 
 	author = "Playa (Formerly Max Krivanek)", 
-	description = "An Universal Anti Cheat Solution compactible with most Source Engine Games", 
+	description = "An Universal Anti Cheat Solution compatible with most Source Engine Games", 
 	version = PLUGIN_VERSION, 
 	url = "github.com/DJPlaya/Kigen-AC-Redux"
 };
@@ -107,7 +125,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 	MarkNativeAsOptional("SB_ReportPlayer");
 	MarkNativeAsOptional("ASteambot_RegisterModule");
 	MarkNativeAsOptional("ASteambot_RemoveModule");
-	MarkNativeAsOptional("ASteambot_SendMesssage");
+	MarkNativeAsOptional("g_cClientConnections");
 	MarkNativeAsOptional("ASteambot_IsConnected");
 	MarkNativeAsOptional("AddTargetsToMenu2"); // TODO: Normally this dosent need to be done, but ive got some strange BUG with this #ref 273812
 	
@@ -117,7 +135,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 public void OnPluginStart()
 {
 	if (GetMaxEntities() > MAX_ENTITIES) // I know this is a bit overkill, still we want to be on the safe Side // AskPluginLoad may be called before Mapstart, so we check this once we do load
-		KACR_Log(true, "[Critical] The Server has more Entitys available then the Plugin can handle, Report this Error to get it fixed")
+		KACR_Log(true, "[Critical] The Server has more Entitys available then the Plugin can handle, Report this Error immediately")
 		
 	g_hDenyArray = new StringMap();
 	g_hGame = GetEngineVersion(); // Identify the game
@@ -145,9 +163,13 @@ public void OnPluginStart()
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
 	
 	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
-	
 	SetConVarString(g_hCVar_Version, PLUGIN_VERSION); // TODO: Is this really needed?
+	
+	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "2.0", "Once a cheating Player has been Reported/Logged, wait this many Minutes before reporting him again (0 = Allways do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 32.0);
+	g_fPauseReports = GetConVarFloat(g_hCVar_PauseReports);
+	
 	HookConVarChange(g_hCVar_Version, ConVarChanged_Version); // Made, so no one touches the Version
+	HookConVarChange(g_hCVar_PauseReports, ConVarChanged_PauseReports);
 	
 	KACR_PrintToServer(KACR_LOADED);
 }
@@ -167,6 +189,7 @@ public void OnPluginEnd()
 		g_bAuthorized[iClient] = false;
 		g_bInGame[iClient] = false;
 		g_bIsAdmin[iClient] = false;
+		g_fLastCheatReported[iClient] = 60.0;
 		g_hCLang[iClient] = g_hSLang;
 		g_bShouldProcess[iClient] = false;
 		
@@ -382,6 +405,7 @@ public void OnClientDisconnect(iClient)
 	g_bInGame[iClient] = false;
 	g_bIsAdmin[iClient] = false;
 	g_bIsFake[iClient] = false;
+	g_fLastCheatReported[iClient] = 60.0;
 	g_hCLang[iClient] = g_hSLang;
 	g_bShouldProcess[iClient] = false;
 	g_bHooked[iClient] = false;
@@ -425,4 +449,9 @@ public void ConVarChanged_Version(Handle hCvar, const char[] cOldValue, const ch
 {
 	if (!StrEqual(cNewValue, PLUGIN_VERSION))
 		SetConVarString(g_hCVar_Version, PLUGIN_VERSION);
+}
+
+public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+{
+	g_fPauseReports = GetConVarFloat(g_hCVar_PauseReports);
 }
