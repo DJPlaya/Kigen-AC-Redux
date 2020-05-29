@@ -149,7 +149,7 @@ public void CVars_OnPluginStart()
 	CVars_AddCVar("r_skybox", COMP_EQUAL, ACTION_BAN, "1.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("r_visocclusion", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
 	CVars_AddCVar("vcollide_wireframe", COMP_EQUAL, ACTION_BAN, "0.0", 0.0, PRIORITY_NORMAL);
-	CVars_AddCVar("cl_cmdrate", COMP_GREATER, ACTION_KICK, "0.0", 0.0, PRIORITY_NORMAL); // There is an Exploit with the CVar beeing filled with Chars #9, if it has chars, it cant be greater than 0.0
+	CVars_AddCVar("cl_cmdrate", COMP_GREATER, ACTION_KICK, "1.0", 1.0, PRIORITY_NORMAL); // There is an Exploit with the CVar beeing filled with Chars #44, if it has chars, it cant be greater than 0.0
 	
 	
 	//- Replication Protection -//
