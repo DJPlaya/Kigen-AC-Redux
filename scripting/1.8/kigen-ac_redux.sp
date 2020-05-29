@@ -1,10 +1,10 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
 // This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
-// Compiler Settings
+//- Compiler Settings -//
 
 #pragma newdecls optional
-#pragma dynamic 393216 // 1536KB (1024+512) // 25.10.19 - 205924(1.8)-255224(1.10) bytes required - I know this MUCH for a Plugin, the normal Stack is 4KB! But do mind that this is nothing compared to only 1 GB of Memory!
+#pragma dynamic 655360 // 2560kb // 29.5.20 - 1780996(1.8)-1827984(1.10) bytes required - I know this MUCH for a Plugin, but do mind that this is nothing compared to only 1 GB of Memory!
 
 
 //- Includes -//
@@ -38,10 +38,9 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 
 #define loop for(;;) // Unlimited Loop
 
-#define PLUGIN_VERSION "0.1" // No versioning right now, we are on a Rolling Release Cycle
+#define PLUGIN_VERSION "0.1" // No versioning right now, we are on a rolling Release Cycle
 #define MAX_ENTITIES 2048 // Maximum networkable Entitys (Edicts), 2048 is hardcoded in the Engine
 
-// TODO: Replace the hardcoded Values with theese Defines
 #define KACR_Action_Count 13 // 18.11.19 - 12+1 carryed
 
 #define KACR_ActionID_Ban 1
@@ -125,7 +124,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 	MarkNativeAsOptional("SB_ReportPlayer");
 	MarkNativeAsOptional("ASteambot_RegisterModule");
 	MarkNativeAsOptional("ASteambot_RemoveModule");
-	MarkNativeAsOptional("g_cClientConnections");
+	MarkNativeAsOptional("ASteambot_SendMessage");
 	MarkNativeAsOptional("ASteambot_IsConnected");
 	MarkNativeAsOptional("AddTargetsToMenu2"); // TODO: Normally this dosent need to be done, but ive got some strange BUG with this #ref 273812
 	
@@ -232,21 +231,21 @@ public void OnAllPluginsLoaded()
 	Commands_OnAllPluginsLoaded();
 	
 	//- Late load stuff -//
-	for (int ig_iSongCount = 1; ig_iSongCount <= MaxClients; ig_iSongCount++)
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsClientConnected(ig_iSongCount))
+		if (IsClientConnected(iClient))
 		{
-			if (!OnClientConnect(ig_iSongCount, cReason, sizeof(cReason))) // Check all Clients because were late
+			if (!OnClientConnect(iClient, cReason, sizeof(cReason))) // Check all Clients because were late
 				continue;
 				
-			if (IsClientAuthorized(ig_iSongCount) && GetClientAuthId(ig_iSongCount, AuthId_Steam2, cAuthID, sizeof(cAuthID)))
+			if (IsClientAuthorized(iClient) && GetClientAuthId(iClient, AuthId_Steam2, cAuthID, sizeof(cAuthID)))
 			{
-				OnClientAuthorized(ig_iSongCount, cAuthID);
-				OnClientPostAdminCheck(ig_iSongCount);
+				OnClientAuthorized(iClient, cAuthID);
+				OnClientPostAdminCheck(iClient);
 			}
 			
-			if (IsClientInGame(ig_iSongCount))
-				OnClientPutInServer(ig_iSongCount);
+			if (IsClientInGame(iClient))
+				OnClientPutInServer(iClient);
 		}
 	}
 }

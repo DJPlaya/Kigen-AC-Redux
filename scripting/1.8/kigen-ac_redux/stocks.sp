@@ -3,6 +3,18 @@
 
 
 /*
+* Makes an String Lowercase
+* 
+* @param cText	String to Convert.
+*/
+StringToLower(char[] cText)
+{
+	int iSize = strlen(cText);
+	for (new i = 0; i < iSize; i++)
+		cText[i] = CharToLower(cText[i]);
+}
+
+/*
 * Translates an String depending on the Clients Region
 * 
 * @param iClient		Client UID.
@@ -20,7 +32,7 @@ KACR_Translate(const iClient, const char[] cTranslation, char[] cDestination, co
 }
 
 /*
-* Sends an Command Reply to an Client
+* Sends an Translated Command Reply to an Client
 * 
 * @param iClient		Client UID.
 * @param cTranslation	The Name of the Translation.
@@ -164,18 +176,6 @@ KACR_Log(const bool bBreak, const char[] cText, any ...)
 	
 	if (bBreak)
 		SetFailState(cBuffer); // Break
-}
-
-/*
-* Makes an String Lowercase
-* 
-* @param cText	String to Convert.
-*/
-StringToLower(char[] cText)
-{
-	int iSize = strlen(cText);
-	for (new i = 0; i < iSize; i++)
-		cText[i] = CharToLower(cText[i]);
 }
 
 /*
