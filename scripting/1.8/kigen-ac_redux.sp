@@ -17,13 +17,17 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//- Includes -//
+
+//- Compiler Options -//
 
 #pragma newdecls optional
 
+
+//- Includes -//
+
 #include <sdktools>
 #undef REQUIRE_EXTENSIONS 
-#include <sdkhooks>
+//#include <sdkhooks>
 #define REQUIRE_EXTENSIONS
 // #include <socket> // Required for the networking Module
 #include <smlib_kacr>
