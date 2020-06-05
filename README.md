@@ -1,6 +1,7 @@
 # Kigen Anti Cheat Redux
 ### Project Status: Maintained, Rolling Release
 SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.  
+KACR is aimed to be a failsafe Universal Security and Anti Cheat Solution for all common Source based Games.  
 I hope this Plugin will help some Server Owners. Propapbly i will merge this Project some Day into "Cheat Acid".   
 #
 Requires:
