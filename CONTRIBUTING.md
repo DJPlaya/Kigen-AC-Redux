@@ -44,6 +44,7 @@ We give People push Access who have already done some successful Pull Requests.
 * Don't use the Function "ServerCommand", unless you have a really really really good Reason to do so.
 * Don't add Code which could make KACR, the Server or the Client unstable. The highest Priority is to have worling Protection no matter what happens.
 * All Nouns and proper Names must be capitalized - Everywhere
+* 
 
 ## Checklist before submitting Pull Requests / committing new Code
 
@@ -73,9 +74,11 @@ This can look like this:
 * Global Variables must be marked with `g_`, and ConVars with `g_hCVar`
 * Variable Names must contain the Data Type and each Word must be capitalized like this: `ConVar g_hEyetestEnabled` (`g_` because it is global and `h` because an ConVar is a type of Handle).
 * All Convars must be Hooked to detect Changes, the Function Name must begin with `ConVarChanged_`
-* When defining Vars, do not make Bools = False and Handle = Invalid_Handle, thats done automatically nowadays
+* When defining Vars, do not make Bools = False and Handle = Invalid_Handle, invalid/false/0 are the default Values
 * Allways leave one Line of Space before using `return`, `break` or similar
 * There must be a Gap after an `if`/`else`/`case` if Code comes after that
+* Use the `TODO` Marker in Comments to label unfinished of not optimal Stuff that may needs to be worked on further
+* Use the `BUG` Marker for possible Bugs and Exploits in the Code
 
 ### Code Style Example
 ```Sourcepawn
