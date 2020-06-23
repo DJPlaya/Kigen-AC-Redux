@@ -18,7 +18,7 @@ Official supported Games:
 - Insurgency
 - Day of Defeat: Source
 - Half-Life 2: Deathmatch
-#### Most Elements of KACR will work on every Source 2007+ Engine Game
+#### KACR should work on most Source 2007+ Engine Game
 #
 Since i havent implemented an Updater yet, watch this Project on GitHub so you will be informed about Updates. 
 ![How to watch](https://help.github.com/assets/images/help/repository/repo-actions-watch.png)
