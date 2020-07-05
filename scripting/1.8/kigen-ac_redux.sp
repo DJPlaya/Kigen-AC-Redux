@@ -27,9 +27,9 @@
 
 #include <sdktools>
 #undef REQUIRE_EXTENSIONS 
-//#include <sdkhooks>
+#include <sdkhooks>
 #define REQUIRE_EXTENSIONS
-// #include <socket> // Required for the networking Module
+// #include <socket> // Required for the networking Module // Outdated TODO
 #include <smlib_kacr>
 #include <autoexecconfig_kacr>
 
