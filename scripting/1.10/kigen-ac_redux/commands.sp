@@ -4,15 +4,17 @@
 
 //- Global Variables -//
 
-Handle g_hg_iSongCountReset, g_hCVar_Cmds_Enable, g_hCVar_Cmds_Spam, g_hCVar_Cmds_Log;
+Handle g_hg_iSongCountReset, g_hCVar_Cmds_Enable, g_hCVar_Cmds_Spam;
 StringMap g_hBlockedCmds, g_hIgnoredCmds;
 
-char g_sCmdLogPath[256];
-
-bool g_bCmds_Enabled = true, g_bLogCmds;
+#if defined DEBUG
+ char g_sCmdLogPath[256];
+#endif
 
 int g_iCmdg_iSongCount[MAXPLAYERS + 1] =  { 0, ... };
 int g_iCmdStatus, g_iCmdSpamStatus, g_iCmdSpam = 30;
+
+bool g_bCmds_Enabled = true;
 
 
 //- Plugin Functions -//
@@ -25,20 +27,18 @@ public void Commands_OnPluginStart()
 	g_hCVar_Cmds_Spam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
 	g_iCmdSpam = GetConVarInt(g_hCVar_Cmds_Spam);
 	
-	g_hCVar_Cmds_Log = AutoExecConfig_CreateConVar("kacr_cmds_log", "0", "Log Command Usage. Use only for debugging Purposes", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-	g_bLogCmds = GetConVarBool(g_hCVar_Cmds_Log);
-	
 	HookConVarChange(g_hCVar_Cmds_Enable, ConVarChanged_Cmds_Enable);
 	HookConVarChange(g_hCVar_Cmds_Spam, ConVarChanged_Cmds_Spam);
-	HookConVarChange(g_hCVar_Cmds_Log, ConVarChanged_Cmds_Log);
 	
-	// Setup logging Path
-	for (int i = 0; ; i++)
-	{
-		BuildPath(Path_SM, g_sCmdLogPath, sizeof(g_sCmdLogPath), "logs/KACR_CmdLog_%d.log", i);
-		if (!FileExists(g_sCmdLogPath))
-			break;
-	}
+	// Setup Debug logging Path
+	#if defined DEBUG
+	 for (int i = 0; ; i++)
+	 {
+	 	BuildPath(Path_SM, g_sCmdLogPath, sizeof(g_sCmdLogPath), "logs/KACR_CmdLog_%d.log", i);
+	 	if (!FileExists(g_sCmdLogPath))
+	 		break;
+	 }
+	#endif
 	
 	if (g_bCmds_Enabled)
 	{
@@ -187,7 +187,7 @@ public void Commands_OnAllPluginsLoaded()
 
 public Action Commands_EventDisconnect(Handle event, const char[] name, bool dontBroadcast)
 {
-	char f_sReason[512], f_sTemp[512], f_sIP[64];
+	char f_sReason[512], f_sTemp[512], cIP[64];
 	
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	GetEventString(event, "reason", f_sReason, sizeof(f_sReason));
@@ -200,8 +200,8 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 		KACR_Log(false, "Bad Disconnect Reason, Length '%d', \"%s\"", f_iLength, f_sReason);
 		if (client)
 		{
-			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			KACR_Log(false, "'%L'<%s> submitted a bad Disconnect Reason and was banned", client, f_sIP);
+			GetClientIP(client, cIP, sizeof(cIP));
+			KACR_Log(false, "'%L'<%s> submitted a bad Disconnect Reason and was banned", client, cIP);
 			KACR_Ban(client, 0, KACR_BANNED, "KACR: Disconnect Exploit");
 		}
 		
@@ -220,8 +220,8 @@ public Action Commands_EventDisconnect(Handle event, const char[] name, bool don
 				KACR_Log(false, "Bad Disconnect Reason, \"%s\", Lenght = %d", f_sReason, f_iLength);
 				if (client)
 				{
-					GetClientIP(client, f_sIP, sizeof(f_sIP));
-					KACR_Log(false, "'%L'<%s> submitted a bad Disconnect. Possible Corruption or Attack", client, f_sIP);
+					GetClientIP(client, cIP, sizeof(cIP));
+					KACR_Log(false, "'%L'<%s> submitted a bad Disconnect. Possible Corruption or Attack", client, cIP);
 				}
 				
 				SetEventString(event, "reason", "Bad Disconnect Message");
@@ -244,9 +244,9 @@ public Action Commands_AddCmd(client, args)
 		return Plugin_Handled;
 	}
 	
-	char f_sCmdName[64], f_sTemp[8];
+	char cCmdName[64], f_sTemp[8];
 	bool f_bBan;
-	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
+	GetCmdArg(1, cCmdName, sizeof(cCmdName));
 	
 	GetCmdArg(2, f_sTemp, sizeof(f_sTemp));
 	if (StringToInt(f_sTemp) != 0 || StrEqual(f_sTemp, "ban") || StrEqual(f_sTemp, "yes") || StrEqual(f_sTemp, "true"))
@@ -255,11 +255,11 @@ public Action Commands_AddCmd(client, args)
 	else
 		f_bBan = false;
 		
-	if (g_hBlockedCmds.SetValue(f_sCmdName, f_bBan))
-		KACR_ReplyToCommand(client, KACR_ADDCMDSUCCESS, f_sCmdName);
+	if (g_hBlockedCmds.SetValue(cCmdName, f_bBan))
+		KACR_ReplyToCommand(client, KACR_ADDCMDSUCCESS, cCmdName);
 		
 	else
-		KACR_ReplyToCommand(client, KACR_ADDCMDFAILURE, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_ADDCMDFAILURE, cCmdName);
 		
 	return Plugin_Handled;
 }
@@ -272,15 +272,15 @@ public Action Commands_AddIgnoreCmd(client, args)
 		return Plugin_Handled;
 	}
 	
-	char f_sCmdName[64];
+	char cCmdName[64];
 	
-	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
+	GetCmdArg(1, cCmdName, sizeof(cCmdName));
 	
-	if (g_hIgnoredCmds.SetValue(f_sCmdName, true))
-		KACR_ReplyToCommand(client, KACR_ADDIGNCMDSUCCESS, f_sCmdName);
+	if (g_hIgnoredCmds.SetValue(cCmdName, true))
+		KACR_ReplyToCommand(client, KACR_ADDIGNCMDSUCCESS, cCmdName);
 		
 	else
-		KACR_ReplyToCommand(client, KACR_ADDIGNCMDFAILURE, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_ADDIGNCMDFAILURE, cCmdName);
 		
 	return Plugin_Handled;
 }
@@ -293,14 +293,14 @@ public Action Commands_RemoveCmd(client, args)
 		return Plugin_Handled;
 	}
 	
-	char f_sCmdName[64];
-	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
+	char cCmdName[64];
+	GetCmdArg(1, cCmdName, sizeof(cCmdName));
 	
-	if (g_hBlockedCmds.Remove(f_sCmdName))
-		KACR_ReplyToCommand(client, KACR_REMCMDSUCCESS, f_sCmdName);
+	if (g_hBlockedCmds.Remove(cCmdName))
+		KACR_ReplyToCommand(client, KACR_REMCMDSUCCESS, cCmdName);
 		
 	else
-		KACR_ReplyToCommand(client, KACR_REMCMDFAILURE, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_REMCMDFAILURE, cCmdName);
 		
 	return Plugin_Handled;
 }
@@ -313,14 +313,14 @@ public Action Commands_RemoveIgnoreCmd(client, args)
 		return Plugin_Handled;
 	}
 	
-	char f_sCmdName[64];
-	GetCmdArg(1, f_sCmdName, sizeof(f_sCmdName));
+	char cCmdName[64];
+	GetCmdArg(1, cCmdName, sizeof(cCmdName));
 	
-	if (g_hIgnoredCmds.Remove(f_sCmdName))
-		KACR_ReplyToCommand(client, KACR_REMIGNCMDSUCCESS, f_sCmdName);
+	if (g_hIgnoredCmds.Remove(cCmdName))
+		KACR_ReplyToCommand(client, KACR_REMIGNCMDSUCCESS, cCmdName);
 		
 	else
-		KACR_ReplyToCommand(client, KACR_REMIGNCMDFAILURE, f_sCmdName);
+		KACR_ReplyToCommand(client, KACR_REMIGNCMDFAILURE, cCmdName);
 		
 	return Plugin_Handled;
 }
@@ -336,10 +336,10 @@ public Action Commands_BlockExploit(client, args)
 		GetCmdArg(1, f_sArg, sizeof(f_sArg));
 		if (StrEqual(f_sArg, "rcon_password"))
 		{
-			char f_sIP[64], f_sCmdString[256];
-			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: sm_menu %s", client, f_sIP, f_sCmdString);
+			char cIP[64], cCmdString[256];
+			GetClientIP(client, cIP, sizeof(cIP));
+			GetCmdArgString(cCmdString, sizeof(cCmdString));
+			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: sm_menu %s", client, cIP, cCmdString);
 			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Exploit Violation");
 			return Plugin_Stop;
 		}
@@ -348,7 +348,7 @@ public Action Commands_BlockExploit(client, args)
 	return Plugin_Continue;
 }
 
-public Action Commands_FilterSay(client, args)
+public Action Commands_FilterSay(iClient, iArgs)
 {
 	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
@@ -362,7 +362,7 @@ public Action Commands_FilterSay(client, args)
 		f_cChar = f_sMsg[ig_iSongCount];
 		if (f_cChar < 32 && !IsCharMB(f_cChar))
 		{
-			KACR_ReplyToCommand(client, KACR_SAYBLOCK);
+			KACR_ReplyToCommand(iClient, KACR_SAYBLOCK);
 			return Plugin_Stop;
 		}
 	}
@@ -370,40 +370,37 @@ public Action Commands_FilterSay(client, args)
 	return Plugin_Continue;
 }
 
-public Action Commands_BlockEntExploit(client, args)
+public Action Commands_BlockEntExploit(iClient, iArgs)
 {
-	if (client < 1)
+	if (iClient < 1)
 		return Plugin_Continue;
 		
-	if (!g_bInGame[client])
+	if (!g_bInGame[iClient])
 		return Plugin_Stop;
 		
 	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
 		
-	char f_sCmd[512];
-	GetCmdArgString(f_sCmd, sizeof(f_sCmd));
+	char cCmd[512];
+	GetCmdArgString(cCmd, sizeof(cCmd));
 	
-	if (strlen(f_sCmd) > 500)
-		return Plugin_Stop; // Too long to process.
+	if (strlen(cCmd) > 500)
+		return Plugin_Stop; // No Command Calls should be this long, lets just stop it.
 		
 	// This looks ugly but i cannot think of something more efficient
-	if (StrContains(f_sCmd, "point_servercommand") != -1 || StrContains(f_sCmd, "point_clientcommand") != -1 || StrContains(f_sCmd, "logic_timer") != -1 || StrContains(f_sCmd, "quit") != -1 || StrContains(f_sCmd, "sm") != -1 || StrContains(f_sCmd, "quti") != -1 || StrContains(f_sCmd, "restart") != -1 || StrContains(f_sCmd, "alias") != -1 || StrContains(f_sCmd, "admin") != -1 || StrContains(f_sCmd, "ma_") != -1 || StrContains(f_sCmd, "rcon") != -1 || StrContains(f_sCmd, "sv_") != -1 || StrContains(f_sCmd, "mp_") != -1 || StrContains(f_sCmd, "meta") != -1 || StrContains(f_sCmd, "taketimer") != -1 || StrContains(f_sCmd, "logic_relay") != -1 || StrContains(f_sCmd, "logic_auto") != -1 || StrContains(f_sCmd, "logic_autosave") != -1 || StrContains(f_sCmd, "logic_branch") != -1 || StrContains(f_sCmd, "logic_case") != -1 || StrContains(f_sCmd, "logic_collision_pair") != -1 || StrContains(f_sCmd, "logic_compareto") != -1 || StrContains(f_sCmd, "logic_lineto") != -1 || StrContains(f_sCmd, "logic_measure_movement") != -1 || StrContains(f_sCmd, "logic_multicompare") != -1 || StrContains(f_sCmd, "logic_navigation") != -1)
-	{
-		if (g_bLogCmds)
-		{
-			char f_sCmdName[64];
-			GetCmdArg(0, f_sCmdName, sizeof(f_sCmdName));
-			LogToFileEx(g_sCmdLogPath, "%L attempted command: %s %s", client, f_sCmdName, f_sCmd);
-		}
-		
+	if (StrContains(cCmd, "point_servercommand") != -1 || StrContains(cCmd, "point_clientcommand") != -1 || StrContains(cCmd, "logic_timer") != -1 || StrContains(cCmd, "quit") != -1 || StrContains(cCmd, "sm") != -1 || StrContains(cCmd, "quti") != -1 || StrContains(cCmd, "restart") != -1 || StrContains(cCmd, "alias") != -1 || StrContains(cCmd, "admin") != -1 || StrContains(cCmd, "ma_") != -1 || StrContains(cCmd, "rcon") != -1 || StrContains(cCmd, "sv_") != -1 || StrContains(cCmd, "mp_") != -1 || StrContains(cCmd, "meta") != -1 || StrContains(cCmd, "taketimer") != -1 || StrContains(cCmd, "logic_relay") != -1 || StrContains(cCmd, "logic_auto") != -1 || StrContains(cCmd, "logic_autosave") != -1 || StrContains(cCmd, "logic_branch") != -1 || StrContains(cCmd, "logic_case") != -1 || StrContains(cCmd, "logic_collision_pair") != -1 || StrContains(cCmd, "logic_compareto") != -1 || StrContains(cCmd, "logic_lineto") != -1 || StrContains(cCmd, "logic_measure_movement") != -1 || StrContains(cCmd, "logic_multicompare") != -1 || StrContains(cCmd, "logic_navigation") != -1)
+	{ // Invalid Input detected, lets deny that Command
+		#if defined DEBUG
+		 LogToFileEx(g_sCmdLogPath, "'%L' attempted to run Command: %s", iClient, cCmd);
+		#endif
+		// TODO: Add Action here and remove the logging Feature since you can use the logging of the Action System
 		return Plugin_Stop;
 	}
 	
 	return Plugin_Continue;
 }
 
-public Action Commands_CommandListener(iClient, const char[] command, argc)
+public Action Commands_CommandListener(iClient, const char[] cCommand, iArgs)
 {
 	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
@@ -417,135 +414,130 @@ public Action Commands_CommandListener(iClient, const char[] command, argc)
 	if (!g_bInGame[iClient]) // && iClient != 0)
 		return Plugin_Stop;
 		
-	bool f_bBan;
-	char f_sCmd[64];
+	bool bBan;
+	char cCmd[64];
 	
-	strcopy(f_sCmd, sizeof(f_sCmd), command);
-	StringToLower(f_sCmd);
+	strcopy(cCmd, sizeof(cCmd), cCommand);
+	StringToLower(cCmd);
 	
 	// Check to see if this person is command spamming.
-	if (g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(f_sCmd, f_bBan) && (StrContains(f_sCmd, "es_") == -1 || StrEqual(f_sCmd, "es_version")) && g_iCmdg_iSongCount[iClient]++ > g_iCmdSpam)
+	if (g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(cCmd, bBan) && (StrContains(cCmd, "es_") == -1 || StrEqual(cCmd, "es_version")) && g_iCmdg_iSongCount[iClient]++ > g_iCmdSpam)
 	{
-		char f_sIP[64], f_sCmdString[128];
-		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
-		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		KACR_Log(false, "'%L'<%s> was kicked for Command Spamming: %s %s", iClient, f_sIP, command, f_sCmdString);
+		char cIP[64], cCmdString[128];
+		GetClientIP(iClient, cIP, sizeof(cIP));
+		GetCmdArgString(cCmdString, sizeof(cCmdString));
+		KACR_Log(false, "'%L'<%s> was kicked for Command Spamming: %s %s", iClient, cIP, cCommand, cCmdString);
 		KACR_Kick(iClient, KACR_KCMDSPAM);
 		return Plugin_Stop;
 	}
 	
-	if (g_hBlockedCmds.GetValue(f_sCmd, f_bBan))
+	if (g_hBlockedCmds.GetValue(cCmd, bBan))
 	{
-		if (f_bBan)
+		if (bBan)
 		{
-			char f_sIP[64], f_sCmdString[256];
-			GetClientIP(iClient, f_sIP, sizeof(f_sIP));
-			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", iClient, f_sIP, command, f_sCmdString);
-			KACR_Ban(iClient, 0, KACR_CBANNED, "KACR: Command %s Violation", command);
+			char cIP[64], cCmdString[256];
+			GetClientIP(iClient, cIP, sizeof(cIP));
+			GetCmdArgString(cCmdString, sizeof(cCmdString));
+			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", iClient, cIP, cCommand, cCmdString);
+			KACR_Ban(iClient, 0, KACR_CBANNED, "KACR: Command %s Violation", cCommand);
 		}
 		
 		return Plugin_Stop;
 	}
 	
-	if (g_bLogCmds)
-	{
-		char f_sIP[64], f_sCmdString[256];
-		GetClientIP(iClient, f_sIP, sizeof(f_sIP));
-		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		LogToFileEx(g_sCmdLogPath, "'%L'<%s> used Command: %s %s", iClient, f_sIP, command, f_sCmdString);
-	}
+	#if defined DEBUG
+	 char cCmdString[256];
+	 GetCmdArgString(cCmdString, sizeof(cCmdString));
+	 LogToFileEx(g_sCmdLogPath, "'%L' used Command '%s' with Args '%s'", iClient, cCommand, cCmdString);
+	#endif
 	
 	return Plugin_Continue;
 }
 
-public Action Commands_ClientCheck(client, args)
+public Action Commands_ClientCheck(iClient, iArgs)
 {
-	if (client < 1 || g_bIsFake[client])
+	if (iClient < 1 || g_bIsFake[iClient])
 		return Plugin_Continue;
 		
-	if (!g_bInGame[client])
+	if (!g_bInGame[iClient])
 		return Plugin_Stop;
 		
 	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
 		
-	char f_sCmd[64];
+	char cCmd[64];
 	bool f_bBan;
-	GetCmdArg(0, f_sCmd, sizeof(f_sCmd));
-	StringToLower(f_sCmd);
+	GetCmdArg(0, cCmd, sizeof(cCmd));
+	StringToLower(cCmd);
 	
-	if (g_hBlockedCmds.GetValue(f_sCmd, f_bBan))
+	if (g_hBlockedCmds.GetValue(cCmd, f_bBan))
 	{
 		if (f_bBan)
 		{
-			char f_sIP[64], f_sCmdString[256];
-			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
-			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Command %s Violation", f_sCmd);
+			char cIP[64], cCmdString[256];
+			GetClientIP(iClient, cIP, sizeof(cIP));
+			GetCmdArgString(cCmdString, sizeof(cCmdString));
+			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", iClient, cIP, cCmd, cCmdString);
+			KACR_Ban(iClient, 0, KACR_CBANNED, "KACR: Command %s Violation", cCmd);
 		}
 		
 		return Plugin_Stop;
 	}
 	
-	if (g_bLogCmds)
-	{
-		char f_sIP[64], f_sCmdString[256];
-		GetClientIP(client, f_sIP, sizeof(f_sIP));
-		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		LogToFileEx(g_sCmdLogPath, "'%L'<%s> used Command: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
-	}
+	#if defined DEBUG
+	 char cCmdString[256];
+	 GetCmdArgString(cCmdString, sizeof(cCmdString));
+	 LogToFileEx(g_sCmdLogPath, "'%L' used Command '%s' with Args '%s'", iClient, cCmd, cCmdString);
+	#endif
 	
 	return Plugin_Continue;
 }
 
-public Action Commands_SpamCheck(client, args)
+public Action Commands_SpamCheck(iClient, args)
 {
-	if (client < 1 || g_bIsFake[client])
+	if (iClient < 1 || g_bIsFake[iClient])
 		return Plugin_Continue;
 		
-	if (!g_bInGame[client])
+	if (!g_bInGame[iClient])
 		return Plugin_Stop;
 		
 	if (!g_bCmds_Enabled)
 		return Plugin_Continue;
 		
 	bool f_bBan;
-	char f_sCmd[64];
-	GetCmdArg(0, f_sCmd, sizeof(f_sCmd)); // This command's name.
-	StringToLower(f_sCmd);
+	char cCmd[64];
+	GetCmdArg(0, cCmd, sizeof(cCmd)); // This command's name.
+	StringToLower(cCmd);
 	
-	if (g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(f_sCmd, f_bBan) && g_iCmdg_iSongCount[client]++ > g_iCmdSpam)
+	if (g_iCmdSpam != 0 && !g_hIgnoredCmds.GetValue(cCmd, f_bBan) && g_iCmdg_iSongCount[iClient]++ > g_iCmdSpam)
 	{
-		char f_sIP[64], f_sCmdString[128];
-		GetClientIP(client, f_sIP, sizeof(f_sIP));
-		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		KACR_Log(false, "'%L'<%s> was kicked for Command Spamming: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
-		KACR_Kick(client, KACR_KCMDSPAM);
+		char cIP[64], cCmdString[128];
+		GetClientIP(iClient, cIP, sizeof(cIP));
+		GetCmdArgString(cCmdString, sizeof(cCmdString));
+		KACR_Log(false, "'%L'<%s> was kicked for Command Spamming: %s %s", iClient, cIP, cCmd, cCmdString);
+		KACR_Kick(iClient, KACR_KCMDSPAM);
 		return Plugin_Stop;
 	}
 	
-	if (g_hBlockedCmds.GetValue(f_sCmd, f_bBan))
+	if (g_hBlockedCmds.GetValue(cCmd, f_bBan))
 	{
 		if (f_bBan)
 		{
-			char f_sIP[64], f_sCmdString[256];
-			GetClientIP(client, f_sIP, sizeof(f_sIP));
-			GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", client, f_sIP, f_sCmd, f_sCmdString);
-			KACR_Ban(client, 0, KACR_CBANNED, "KACR: Command '%s' Violation", f_sCmd);
+			char cIP[64], cCmdString[256];
+			GetClientIP(iClient, cIP, sizeof(cIP));
+			GetCmdArgString(cCmdString, sizeof(cCmdString));
+			KACR_Log(false, "'%L'<%s> was banned for Command Usage Violation of Command: %s %s", iClient, cIP, cCmd, cCmdString);
+			KACR_Ban(iClient, 0, KACR_CBANNED, "KACR: Command '%s' Violation", cCmd);
 		}
 		
 		return Plugin_Stop;
 	}
 	
-	if (g_bLogCmds)
-	{
-		char f_sCmdString[256];
-		GetCmdArgString(f_sCmdString, sizeof(f_sCmdString));
-		LogToFileEx(g_sCmdLogPath, "'%L' used Command: %s %s", client, f_sCmd, f_sCmdString);
-	}
+	#if defined DEBUG
+	 char cCmdString[256];
+	 GetCmdArgString(cCmdString, sizeof(cCmdString));
+	 LogToFileEx(g_sCmdLogPath, "'%L' used Command '%s' with Args '%s'", iClient, cCmd, cCmdString);
+	#endif
 	
 	return Plugin_Continue;
 }
@@ -615,9 +607,4 @@ public void ConVarChanged_Cmds_Spam(Handle convar, const char[] oldValue, const 
 		
 	else
 		Status_Report(g_iCmdSpamStatus, KACR_ON);
-}
-
-public void ConVarChanged_Cmds_Log(Handle convar, const char[] oldValue, const char[] newValue)
-{
-	g_bLogCmds = GetConVarBool(convar);
 }

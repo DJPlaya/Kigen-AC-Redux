@@ -14,18 +14,18 @@ public void Status_OnPluginStart()
 	RegAdminCmd("kacr_status", Status_Cmd, ADMFLAG_GENERIC, "Reports KACR's Status");
 }
 
-Status_Register(char[] f_sName, char[] f_sStatus)
+Status_Register(const char[] cName, const char[] cStatus)
 {
-	Handle f_hArray = CreateArray(64);
-	PushArrayString(f_hArray, f_sName);
-	PushArrayString(f_hArray, f_sStatus);
-	return PushArrayCell(g_hStatusArray, f_hArray);
+	Handle hArray = CreateArray(64);
+	PushArrayString(hArray, cName);
+	PushArrayString(hArray, cStatus);
+	return PushArrayCell(g_hStatusArray, hArray);
 }
 
-Status_Report(f_iId, char[] f_sStatus)
+Status_Report(const iID, const char[] cStatus)
 {
-	Handle f_hArray = GetArrayCell(g_hStatusArray, f_iId);
-	SetArrayString(f_hArray, CELL_MODULESTATUS, f_sStatus);
+	Handle hArray = GetArrayCell(g_hStatusArray, iID);
+	SetArrayString(hArray, CELL_MODULESTATUS, cStatus);
 }
 
 /*stock Status_Unregister(f_iId)
@@ -33,29 +33,29 @@ Status_Report(f_iId, char[] f_sStatus)
 	RemoveFromArray(g_hStatusArray, f_iId);
 }*/
 
-public Action Status_Cmd(client, args)
+public Action Status_Cmd(const iClient, const iArgs)
 {
-	Handle f_hTemp;
-	char f_sBuff[256], f_sTemp[64], f_sTemp2[64];
+	Handle hBuffer;
+	char cTemp1[256], cTemp2[64], cTemp3[64];
 	
-	int f_ig_iSongCount = GetArraySize(g_hStatusArray)
-	KACR_ReplyToCommand(client, KACR_STATUSREPORT);
-	if (!f_ig_iSongCount)
+	int iArraySize = GetArraySize(g_hStatusArray)
+	KACR_ReplyToCommand(iClient, KACR_STATUSREPORT);
+	if (!iArraySize)
 	{
-		KACR_ReplyToCommand(client, KACR_NOREPORT);
+		KACR_ReplyToCommand(iClient, KACR_NOREPORT);
 		return Plugin_Handled;
 	}
 	
-	for (int i = 0; i < f_ig_iSongCount; i++)
+	for (int i; i < iArraySize; i++)
 	{
-		f_hTemp = GetArrayCell(g_hStatusArray, i);
-		GetArrayString(f_hTemp, CELL_MODULENAME, f_sTemp, sizeof(f_sTemp));
-		KACR_Translate(client, f_sTemp, f_sBuff, sizeof(f_sBuff));
-		GetArrayString(f_hTemp, CELL_MODULESTATUS, f_sTemp, sizeof(f_sTemp));
-		KACR_Translate(client, f_sTemp, f_sTemp2, sizeof(f_sTemp2));
-		StrCat(f_sBuff, sizeof(f_sBuff), ": ");
-		StrCat(f_sBuff, sizeof(f_sBuff), f_sTemp2);
-		ReplyToCommand(client, f_sBuff);
+		hBuffer = GetArrayCell(g_hStatusArray, i);
+		GetArrayString(hBuffer, CELL_MODULENAME, cTemp2, sizeof(cTemp2));
+		KACR_Translate(iClient, cTemp2, cTemp1, sizeof(cTemp1));
+		GetArrayString(hBuffer, CELL_MODULESTATUS, cTemp2, sizeof(cTemp2));
+		KACR_Translate(iClient, cTemp2, cTemp3, sizeof(cTemp3));
+		StrCat(cTemp1, sizeof(cTemp1), ": ");
+		StrCat(cTemp1, sizeof(cTemp1), cTemp3);
+		ReplyToCommand(iClient, cTemp1);
 	}
 	
 	return Plugin_Handled;

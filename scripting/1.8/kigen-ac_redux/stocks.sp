@@ -73,7 +73,7 @@ KACR_PrintToServer(const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-KACR_PrintToChat(const iClient, const char[] cTranslation, any ...)
+stock KACR_PrintToChat(const iClient, const char[] cTranslation, any ...) // Currently unused
 {
 	char cBuffer[256], cFormat[256];
 	g_hCLang[iClient].GetString(cTranslation, cFormat, sizeof(cFormat));
@@ -147,7 +147,7 @@ KACR_PrintToSteamAdmins(const char[] cText, any ...)
 * @param cText	Message to log.
 * @param ...	Variable number of format parameters.
 */
-/*KACR_Log(const iType, const bool bBreak, const char[] cText, any ...)
+/*stock KACR_Log(const iType, const bool bBreak, const char[] cText, any ...)
 {
 	char cBuffer[256], cPath[256];
 	VFormat(cBuffer, sizeof(cBuffer), cText, 4);
@@ -245,8 +245,8 @@ KACR_Ban(const iClient, iTime, const char[] cTranslation, const char[] cReason, 
 * 0 - Do nothing
 * 1 - Ban (SB & SB++)
 * 2 - Time Ban (SB & SB++) // TODO: Add Option to set the Time
-* 4 - Server Ban (banned_ip.cfg or banned_user.cfg)
-* 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg) // TODO: Add Option to set the Time
+* 4 - Server Ban (banned_user.cfg)
+* 8 - Server Time Ban (banned_user.cfg) // TODO: Add Option to set the Time
 * 16 - Kick
 * 32 - Crash Client (May not work on any Game)
 * 64 - Report to SB
@@ -259,9 +259,9 @@ KACR_Ban(const iClient, iTime, const char[] cTranslation, const char[] cReason, 
 * @param iClient		Client UID.
 * @param iAction		What todo with the Client.
 * @param iTime			Bantime.
-* @param cUserReason	Kickreason to display to the Client, can be a Translation starting with 'KACR_', leave blank to use cReason. 
+* @param cUserReason	Reason to display to the Client, can be a Translation starting with 'KACR_', leave blank to use cReason. 
 * @param cReason		The Reason for the Action.
-* @param ...			Variable Number of Format Parameters.
+* @param ...			Variable Number of Format Parameters for cReason.
 */
 KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason, const char[] cReason, any ...)
 {
@@ -269,7 +269,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 	// TODO: Make able to block specific Actions from outside?
 	// TODO: Make re-runnable
 	// TODO: Use KACR_ActionCheck in here
-	// TODO: Integrate Compatibility Check for the Actions??
+	// TODO: Integrate Compatibility Check for the Actions using a 2d map like the chart we have on gdrive
 	
 	if(iAction == 0) // 0 - Do nothing
 		return;
@@ -277,41 +277,42 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 	int iActionCheck = iAction; // We do not want to loose the initial Value, we need it later
 	
 	//- Log/Report Spam Protection -//
-	bool bActions[KACR_Action_Count]; // TODO: Is this a correct Handover?
-	KACR_ActionCheck(iAction); // TODO: Is this a correct Handover?
+	bool bActions[KACR_Action_Count];
+	KACR_ActionCheck(iAction, bActions);
 	
-	if (bActions[KACR_ActionID_ReportSB] || bActions[KACR_ActionID_ReportAdmins] || bActions[KACR_ActionID_ReportSteamAdmins] || bActions[KACR_ActionID_AskSteamAdmin] || bActions[KACR_ActionID_Log] || bActions[KACR_ActionID_ReportIRC]) // We have an Array so we do not call the Actions toooo often, we do not want to spam the Logs nor the Admins nor SB with Reports
-	{
-		if (GetTickedTime() / 60 - g_fLastCheatReported[iClient] < g_fPauseReports) // We do / 60 so we convert the ticked Time from Seconds to Minutes // #ref 395723
+	if (g_iPauseReports) // 0 = Disabled
+		if (bActions[KACR_ActionID_ReportSB] || bActions[KACR_ActionID_ReportAdmins] || bActions[KACR_ActionID_ReportSteamAdmins] || bActions[KACR_ActionID_AskSteamAdmin] || bActions[KACR_ActionID_Log] || bActions[KACR_ActionID_ReportIRC]) // We have an Array so we do not call the Actions toooo often, we do not want to spam the Logs nor the Admins nor SB with Reports
 		{
-			if (bActions[KACR_ActionID_ReportSB])
-				iActionCheck -= KACR_Action_ReportSB;
-				
-			if (bActions[KACR_ActionID_ReportAdmins])
-				iActionCheck -= KACR_Action_ReportAdmins;
-				
-			if (bActions[KACR_ActionID_ReportSteamAdmins])
-				iActionCheck -= KACR_Action_ReportSteamAdmins;
-				
-			if (bActions[KACR_ActionID_AskSteamAdmin])
-				iActionCheck -= KACR_Action_AskSteamAdmin;
-				
-			if (bActions[KACR_ActionID_Log])
-				iActionCheck -= KACR_Action_Log;
-				
-			if (bActions[KACR_ActionID_ReportIRC])
-				iActionCheck -= KACR_Action_ReportIRC;
+			if (RoundToNearest(GetTickedTime()) - g_iLastCheatReported[iClient] < g_iPauseReports) // #ref 395723
+			{
+				if (bActions[KACR_ActionID_ReportSB])
+					iActionCheck -= KACR_Action_ReportSB;
+					
+				if (bActions[KACR_ActionID_ReportAdmins])
+					iActionCheck -= KACR_Action_ReportAdmins;
+					
+				if (bActions[KACR_ActionID_ReportSteamAdmins])
+					iActionCheck -= KACR_Action_ReportSteamAdmins;
+					
+				if (bActions[KACR_ActionID_AskSteamAdmin])
+					iActionCheck -= KACR_Action_AskSteamAdmin;
+					
+				if (bActions[KACR_ActionID_Log])
+					iActionCheck -= KACR_Action_Log;
+					
+				if (bActions[KACR_ActionID_ReportIRC])
+					iActionCheck -= KACR_Action_ReportIRC;
+			}
+			
+			else
+				g_iLastCheatReported[iClient] = RoundToNearest(GetTickedTime()); // BUG We do not calculate with the Case that KACR_Action does fail, but thats fine
 		}
 		
-		else
-			g_fLastCheatReported[iClient] = GetTickedTime() / 60; // We do not calculate with the Case that KACR_Action does fail, but thats fine
-	}
-	
 	//- Reported Reasons -//
 	char cReason2[256], cUserReason2[256];
 	VFormat(cReason2, sizeof(cReason2), cReason, 4);
 	
-	if(StrContains(cUserReason, "KACR_")) // Is Translated
+	if(StrContains(cUserReason, "KACR_") != -1) // Is Translated
 		KACR_Translate(iClient, cUserReason, cUserReason2, sizeof(cUserReason2));
 		
 	else if(strlen(cUserReason) == 0) // Is Blank
@@ -320,6 +321,10 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 	else // Is valid
 		strcopy(cUserReason2, sizeof(cUserReason2), cUserReason);
 		
+	#if defined DEBUG
+	 PrintToServer("[Debug][Kigen AC Redux] Action Incomming with Number '%i' cut down to '%i', Reason '%s' and User Reason '%s'", iAction, iActionCheck, cReason2, cUserReason2);
+	#endif
+	
 	//- Actual Actions -// // Here the big Checker Block beginns, i wish i would be better in Math so i could design a Formula for this
 	loop
 	{
@@ -395,7 +400,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 													iActionCheck -= KACR_Action_TimeBan;
 												}
 												
-											else // 4 - Server Ban (banned_ip.cfg or banned_user.cfg)
+											else // 4 - Server Ban (banned_user.cfg)
 											{
 												if(!BanClient(iClient, 0, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR"))
 													KACR_Log(false, "[Error] Failed to Server Ban Client '%L'", iClient);
@@ -406,7 +411,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 												iActionCheck -= KACR_Action_ServerBan;
 											}
 											
-										else // 8 - Server Time Ban
+										else // 8 - Server Time Ban (banned_user.cfg)
 										{
 											if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
 												KACR_Log(false, "[Error] Failed to Server Time Ban Client '%L'", iClient);
@@ -430,13 +435,30 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 									
 								else // 32 - Crash Client
 								{
-									if(g_bAdminmenu) 
-										KACR_CrashClient(iClient, cUserReason2);
-										// OnClientDisconnect(iClient); // Executed in the 'CrashClient_ErrorCheck'
+									if (g_hGame != Engine_CSGO)
+									{
+										KACR_Log(false, "[Warning] An Client Crash was called but it isent supported by this Game, kicking him instead");
+										if(!KickClient(iClient, "%s", cUserReason2))
+											KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him also failed", iClient);
+									}
+									
+									else if(g_bAdminmenu)
+									{
+										PrintToChat(iClient, "Due to Cheating, you will be throw out by a Game Crash"); // TODO: Rework Text
+										PrintHintText(iClient, "Due to Cheating, you will be throw out by a Game Crash"); // TODO: Rework Text
 										
+										DataPack hData = new DataPack(); // TODO: Works like that?
+										hData.WriteString(cUserReason2);
+										hData.WriteFloat(view_as<float>(iClient));
+										
+										CreateTimer(5.0, KACR_CrashClient_Timer, hData, TIMER_FLAG_NO_MAPCHANGE || TIMER_DATA_HNDL_CLOSE); // BUG: Action may be aborted if called before an MapChange, this is rare so it should be fine
+										
+										// OnClientDisconnect(iClient); // Executed in the 'CrashClient_ErrorCheck'
+									}
+									
 									else
 									{
-										KACR_Log(false, "[Warning] An Client Crash was requested but Adminmenu isent installed, kicking him instead");
+										KACR_Log(false, "[Warning] An Client Crash was called but Adminmenu isent installed, kicking him instead");
 										if(!KickClient(iClient, "%s", cUserReason2))
 											KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him also failed", iClient);
 									}
@@ -490,10 +512,9 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 				{
 					if(g_bASteambot)
 					{
-						// BUG: Native "ASteambot_SendMesssage" was not found
 						if(ASteambot_IsConnected())
 						{ // 8.10.19 - 632 Chars, 900 is max so we can actually Send all in one MSG
-							KACR_PrintToSteamAdmins("[KACR] Reporting Client '%L' for doing '%s'\n[KACR] Which Action should be taken for this Client?\n[KACR] Options available:\n[KACR] 0 - Dont do anything\n[KACR] 1 - Ban (SB & SB++)\n[KACR] 2 - Time Ban (SB & SB++)\n[KACR] 4 - Server Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 16 - Kick\n[KACR] 32 - Crash Client\n[KACR] 64 - Report to SB\n[KACR] 128 - Report to online Admins\n[KACR] 256 - Tell Admins on Steam about the Violation\n[KACR] 1024 - Log to File\n[KACR] 2048 - Tell about the Violation using SourceIRC[KACR] --------------------[KACR] Enter any Number from above to call an Action\n[KACR] You can also add up the Numbers to call multiply Actions"); // I know this is ugly, but i swear, there was no other Way
+							KACR_PrintToSteamAdmins("[KACR] Reporting Client '%L' for doing '%s'\n[KACR] Which Action should be taken for this Client?\n[KACR] Options available:\n[KACR] 0 - Dont do anything\n[KACR] 1 - Ban (SB & SB++)\n[KACR] 2 - Time Ban (SB & SB++)\n[KACR] 4 - Server Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 16 - Kick\n[KACR] 32 - Crash Client\n[KACR] 64 - Report to SB\n[KACR] 128 - Report to online Admins\n[KACR] 256 - Tell Admins on Steam about the Violation\n[KACR] 1024 - Log to File\n[KACR] 2048 - Tell about the Violation using SourceIRC[KACR] --------------------[KACR] Enter any Number from above to call an Action\n[KACR] You can also add up the Numbers to call multiply Actions"); // I know this is ugly, but i swear, there was no other Way, \n is a line breaker
 							
 							// TODO: Ask if to display Actions
 							// TODO: Implement better with the Report/Log Spam Protection
@@ -607,7 +628,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 				}
 				
 				iActionCheck -= KACR_Action_Log;
-			}
+			} // End of the Log Block
 			
 		else // 2048 - Tell about the Violation using SourceIRC
 		{
@@ -617,29 +638,29 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 }
 
 /*
-* Lets a Client Crash, this Exploit requires Menus and UserMessages so it may work with Source SDK 2013 Games only
+* Lets a Client Crash, this Exploit requires Menus and UserMessages, currently only proved to work in CSGO (12.6.2020)
 * If the Exploit fails, it will kick the Player instead
-* 
-* @param iClient	The Client you want to Crash.
-* @param cReason	The Crash- or Kickreason shown to the Client.
 */
-void KACR_CrashClient(const iClient, const char[] cReason)
+Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is displayed as unused, and thats true, but i cant remove it and supressing the Warning... Nah
 {
+	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
+	char cReason[256];
+	int iClient;
+	
+	ReadPackString(hData, cReason, sizeof(cReason)); // hData.ReadString(cReason, sizeof(cReason) // TODO: Replace once we dropped legacy support
+	view_as<float>(iClient) = ReadPackFloat(hData); // view_as<float>(iClient) = ReadFloat(hData) // TODO: Replace once we dropped legacy support
+	
 	Menu hMenu = new Menu(CrashClient_MenuHandler);
 	hMenu.SetTitle(cReason);
 	AddTargetsToMenu2(hMenu, iClient, COMMAND_FILTER_CONNECTED | COMMAND_FILTER_NO_IMMUNITY); 
 	hMenu.ExitButton = true;
 	hMenu.Display(iClient, 30);
 	
-	// DataPack hData = CreateDataPack();
-	DataPack hData = new DataPack(); // TODO: Works like that?
-	if (!hData.WriteFloat(view_as<float>(iClient)))
-		KACR_Log(false, "[Error] Failed to write Client Data in the crash Client Function, Report this Error to get it fixed");
-		
-	if (!hData.WriteString(cReason))
-		KACR_Log(false, "[Error] Failed to write Ban Reason Data in the crash Client Function, Report this Error to get it fixed");
-		
-	RequestFrame(CrashClient_ErrorCheck, hData); // TODO: Is one Frame enought??
+	DataPack hData2 = new DataPack(); // TODO: Works like that?
+	hData2.WriteString(cReason);
+	hData2.WriteFloat(view_as<float>(iClient));
+	
+	RequestFrame(CrashClient_ErrorCheck, hData2); // TODO: Is one Frame enought??
 }
 
 int CrashClient_MenuHandler(Menu hMenu, MenuAction hAction, const iClient, const iItem) // BUG: iClient is displayed as unused, and thats true, but i cant remove it and supressing the Warning... Nah
@@ -669,18 +690,15 @@ int CrashClient_MenuHandler(Menu hMenu, MenuAction hAction, const iClient, const
 		CloseHandle(hMenu); // TODO: Replace with 'hMenu.Close()' once we dropped legacy support
 }
 
-CrashClient_ErrorCheck(any hData)
+CrashClient_ErrorCheck(DataPack hData)
 {
-	// hData.Reset();// ResetPack(hData); // TODO: Is the Focus at the second Entry after writing it??
-	int iClient;
+	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
 	char cReason[256];
+	int iClient;
 	
-	if (!(view_as<float>(iClient) = ReadPackFloat(hData))) // (!(view_as<float>(iClient) = ReadFloat(hData))) // TODO: Replace once we dropped legacy support
-		KACR_Log(false, "[Error] Failed to read Client Data in the crash Client Function, Report this Error to get it fixed");
-		
-	if (!(ReadPackString(hData, cReason, sizeof(cReason)))) // (!hData.ReadString(cReason, sizeof(cReason)) // TODO: Replace once we dropped legacy support
-		KACR_Log(false, "[Error] Failed to read Ban Reason Data in the crash Client Function, Report this Error to get it fixed");
-		
+	ReadPackString(hData, cReason, sizeof(cReason)); // hData.ReadString(cReason, sizeof(cReason) // TODO: Replace once we dropped legacy support
+	view_as<float>(iClient) = ReadPackFloat(hData); // view_as<float>(iClient) = ReadFloat(hData) // TODO: Replace once we dropped legacy support
+	
 	if(IsClientConnected(iClient))
 	{
 		if(KickClient(iClient, "%s", cReason))
@@ -690,21 +708,22 @@ CrashClient_ErrorCheck(any hData)
 			KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him before dident worked too! Report this Error to get it fixed", iClient);
 	}
 	
-	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO: Does the 1 Frame Delay will cause problems with our disconnect Functions?
+	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO, BUG: Does the 1 Frame Delay will cause problems with our disconnect Functions?
 		OnClientDisconnect(iClient); // Needed, will be executed in the main File
 		
 	CloseHandle(hData); // TODO: Replace with 'hData.Close()' once we dropped legacy support
 }
 
 /*
-* Checks which Actions are required
-* You will get an Bool Array as Handover, no return
+* Checks which Actions are input by iAction
+* You will get the Bool Array bActions as Handover
+* Use the KACR_Action_* Defines instead of the actual IDs
 * 
 * @param iAction	Action ID Input.
+* @param bActions	Handover Bool Array with the called Actions inside it.
 */
-bool KACR_ActionCheck(int iAction) // I wish i would be better in Math so i could design a Formula for this
+void KACR_ActionCheck(iAction, bool bActions[KACR_Action_Count]) // I wish i would be better in Math so i could design a Formula for this
 {
-	bool bActions[KACR_Action_Count];
 	loop
 	{
 		if(iAction < KACR_Action_ReportIRC)

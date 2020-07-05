@@ -233,18 +233,18 @@ public Action CVars_CmdStatus(iCmdCaller, args)
 			if (g_hPeriodicTimer[iClients] == INVALID_HANDLE)
 			{
 				KACR_Log(false, "[Warning] '%L'<%s> doesn't have a periodic Timer running and no active Queries", iClients, cIP);
-				ReplyToCommand(iCmdCaller, "[Kigen-AC_Redux] '%L'<%s> dosen't have a periodic Timer running nor active Queries", iClients, cIP);
+				ReplyToCommand(iCmdCaller, "[Kigen AC Redux] '%L'<%s> dosen't have a periodic Timer running nor active Queries", iClients, cIP);
 				g_hPeriodicTimer[iClients] = CreateTimer(0.1, CVars_PeriodicTimer, iClients);
 				continue;
 			}
 			
-			ReplyToCommand(iCmdCaller, "[Kigen-AC_Redux] '%L'<%s> is waiting for a new Query. Current Index: %d", iClients, cIP, g_iCurrentIndex[iClients]);
+			ReplyToCommand(iCmdCaller, "[Kigen AC Redux] '%L'<%s> is waiting for a new Query. Current Index: %d", iClients, cIP, g_iCurrentIndex[iClients]);
 		}
 		
 		else
 		{
 			GetArrayString(hTemp, CELL_NAME, cCVarName, sizeof(cCVarName));
-			ReplyToCommand(iCmdCaller, "[Kigen-AC_Redux] '%L'<%s> has active Query on %s. Current Index: %d. Retry Attempts: %d", iClients, cIP, cCVarName, g_iCurrentIndex[iClients], g_iRetryAttempts[iClients]);
+			ReplyToCommand(iCmdCaller, "[Kigen AC Redux] '%L'<%s> has active Query on %s. Current Index: %d. Retry Attempts: %d", iClients, cIP, cCVarName, g_iCurrentIndex[iClients], g_iRetryAttempts[iClients]);
 		}
 	}
 	

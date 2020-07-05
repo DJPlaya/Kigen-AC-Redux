@@ -118,9 +118,9 @@ public Action Eyetest_Timer(Handle timer) // TODO #36: This Check is only useful
 			
 			if (f_vAngles[0] > 90.0 || f_vAngles[0] < -90.0 || f_vAngles[2] > 90.0 || f_vAngles[2] < -90.0)
 			{
-				// char f_sIP[64];
-				// GetClientIP(iClient, f_sIP, sizeof(f_sIP));
-				// KACR_Log(false, "'%L'<%s> was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", iClient, f_sIP, f_vAngles[0], f_vAngles[1], f_vAngles[2]);
+				// char cIP[64];
+				// GetClientIP(iClient, cIP, sizeof(cIP));
+				// KACR_Log(false, "'%L'<%s> was banned for cheating with their Eye Angles. Eye Angles: %f %f %f", iClient, cIP, f_vAngles[0], f_vAngles[1], f_vAngles[2]);
 				// KACR_Ban(iClient, 0, KACR_BANNED, "KACR: Eye Angles Violation");
 				KACR_Action (iClient, g_iEyetestAction, 20160, KACR_BANNED, "KACR: Eye Angles Violation: %f %f %f", f_vAngles[0], f_vAngles[1], f_vAngles[2])
 			}

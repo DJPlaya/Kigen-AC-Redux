@@ -1,10 +1,13 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
 // This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
 
+
 //- Compiler Settings -//
 
 #pragma newdecls optional
 #pragma dynamic 655360 // 2560kb // 29.5.20 - 1780996(1.8)-1827984(1.10) bytes required - I know this MUCH for a Plugin, but do mind that this is nothing compared to only 1 GB of Memory!
+
+#define DEBUG // Debugging for nightly Builds TODO
 
 
 //- Includes -//
@@ -75,18 +78,14 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 Handle g_hValidateTimer[MAXPLAYERS + 1];
 Handle g_hClearTimer, g_hCVar_Version, g_hCVar_PauseReports;
 EngineVersion g_hGame;
-
 StringMap g_hCLang[MAXPLAYERS + 1];
 StringMap g_hSLang, g_hDenyArray;
 
-float g_fLastCheatReported[MAXPLAYERS + 1] = 32.0; // This is for per Frame/Timed AC Checks, we do not want to spam the Log nor the Admins with Reports, so we save the last Time Someone was reported. We do set this to 32.0, so the Time Check works properly even if the Server just has started #ref 395723
-float g_fPauseReports; // Wait this long till we report/log a Client again
+int g_iLastCheatReported[MAXPLAYERS + 1] = 32; // This is for per Frame/Timed AC Checks, we do not want to spam the Log nor the Admins with Reports, so we save the last Time Someone was reported. We do set this to 32.0, so the Time Check works properly even if the Server just has started #ref 395723
+int g_iPauseReports; // // Wait this long till we report/log a Client again
 
-bool g_bConnected[MAXPLAYERS + 1]; // I use these instead of the natives because they are cheaper to call
-bool g_bAuthorized[MAXPLAYERS + 1]; // When I need to check on a client's state.  Natives are very taxing on
-bool g_bInGame[MAXPLAYERS + 1]; // system resources as compared to these. - Kigen
-bool g_bIsAdmin[MAXPLAYERS + 1];
-bool g_bIsFake[MAXPLAYERS + 1];
+// Its more Resource efficient to store the data instead of grabbing it over and over again
+bool g_bConnected[MAXPLAYERS + 1], g_bAuthorized[MAXPLAYERS + 1], g_bInGame[MAXPLAYERS + 1], g_bIsAdmin[MAXPLAYERS + 1], g_bIsFake[MAXPLAYERS + 1];
 bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bAdminmenu, g_bMapStarted;
 
 
@@ -116,19 +115,22 @@ public Plugin myinfo =
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
+	//- SDKHooks -//
 	MarkNativeAsOptional("SDKHook");
 	MarkNativeAsOptional("SDKUnhook");
+	//- Sourcebans++ -//
 	MarkNativeAsOptional("SBPP_BanPlayer");
 	MarkNativeAsOptional("SBPP_ReportPlayer");
+	//- Sourcebans 2.X -//
 	MarkNativeAsOptional("SBBanPlayer");
 	MarkNativeAsOptional("SB_ReportPlayer");
+	//- ASteambot -//
 	MarkNativeAsOptional("ASteambot_RegisterModule");
 	MarkNativeAsOptional("ASteambot_RemoveModule");
 	MarkNativeAsOptional("ASteambot_SendMessage");
 	MarkNativeAsOptional("ASteambot_IsConnected");
-	MarkNativeAsOptional("AddTargetsToMenu2"); // TODO: Normally this dosent need to be done, but ive got some strange BUG with this #ref 273812
-	
-	return APLRes_Success;
+	//- Adminmenu -// TODO: Normally this dosent need to be done, but ive got some strange BUG with this #ref 273812
+	MarkNativeAsOptional("AddTargetsToMenu2");
 }
 
 public void OnPluginStart()
@@ -164,13 +166,19 @@ public void OnPluginStart()
 	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
 	SetConVarString(g_hCVar_Version, PLUGIN_VERSION); // TODO: Is this really needed?
 	
-	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "2.0", "Once a cheating Player has been Reported/Logged, wait this many Minutes before reporting him again (0 = Allways do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 32.0);
-	g_fPauseReports = GetConVarFloat(g_hCVar_PauseReports);
+	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "120", "Once a cheating Player has been Reported/Logged, wait this many Seconds before reporting/logging him again. (0 = Always do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 3600.0);
+	g_iPauseReports = GetConVarInt(g_hCVar_PauseReports);
 	
 	HookConVarChange(g_hCVar_Version, ConVarChanged_Version); // Made, so no one touches the Version
 	HookConVarChange(g_hCVar_PauseReports, ConVarChanged_PauseReports);
 	
 	KACR_PrintToServer(KACR_LOADED);
+	
+	#if defined DEBUG
+	 KACR_Log(false, "[Warning] You are running an early Version of Kigen AC Redux, please be aware that it may not run stable");
+	 
+	 RegAdminCmd("kacr_debug_action", Debug_Action_Cmd, ADMFLAG_ROOT, "Do not use unless told to. Usage: kacr_debug_action <Client ID> <Action ID>")
+	#endif
 }
 
 public void OnPluginEnd()
@@ -188,7 +196,7 @@ public void OnPluginEnd()
 		g_bAuthorized[iClient] = false;
 		g_bInGame[iClient] = false;
 		g_bIsAdmin[iClient] = false;
-		g_fLastCheatReported[iClient] = 60.0;
+		g_iLastCheatReported[iClient] = 32;
 		g_hCLang[iClient] = g_hSLang;
 		g_bShouldProcess[iClient] = false;
 		
@@ -404,7 +412,7 @@ public void OnClientDisconnect(iClient)
 	g_bInGame[iClient] = false;
 	g_bIsAdmin[iClient] = false;
 	g_bIsFake[iClient] = false;
-	g_fLastCheatReported[iClient] = 60.0;
+	g_iLastCheatReported[iClient] = 32;
 	g_hCLang[iClient] = g_hSLang;
 	g_bShouldProcess[iClient] = false;
 	g_bHooked[iClient] = false;
@@ -452,5 +460,81 @@ public void ConVarChanged_Version(Handle hCvar, const char[] cOldValue, const ch
 
 public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_fPauseReports = GetConVarFloat(g_hCVar_PauseReports);
+	g_iPauseReports = GetConVarInt(g_hCVar_PauseReports);
 }
+
+
+//- Commands -//
+
+#if defined DEBUG
+ Action Debug_Action_Cmd(const iCallingClient, const iArgs)
+ {
+ 	//- Error Checks -//
+ 	if (iArgs < 2)
+ 	{
+ 		ReplyToCommand(iCallingClient, "[Kigen AC Redux] Too few Arguments, Usage: kacr_debug_action <Client ID> <Action ID>");
+ 		return Plugin_Handled;
+ 	}
+ 	
+ 	else if (iArgs > 2)
+ 	{
+ 		ReplyToCommand(iCallingClient, "[Kigen AC Redux] Too many Arguments, Usage: kacr_debug_action <Client ID> <Action ID>");
+ 		return Plugin_Handled;
+ 	}
+ 	
+ 	//- Vars -//
+ 	char cTarget[3], cAction[8], cActionsTaken[128];
+ 	GetCmdArg(1, cTarget, 3); // Max. 128 Clients, so 3 Chars
+ 	GetCmdArg(2, cAction, 8);
+ 	int iTarget = StringToInt(cTarget);
+ 	int iAction = StringToInt(cAction);
+ 	
+ 	//- Actions -//
+ 	KACR_Action(iTarget, iAction, 5, "Kick Reason Test", "Execution Reason Test");
+ 	bool bActions[KACR_Action_Count]; // TODO: Is this a correct Handover?
+ 	KACR_ActionCheck(iAction, bActions); // TODO: Is this a correct Handover?
+ 	Format(cActionsTaken, 128, "[Debug][Kigen AC Redux] Applied the following Action on '%L' : ", iTarget);
+ 	
+ 	//- Reply Back with Actions taken -//
+ 	if (bActions[KACR_ActionID_Ban])
+ 		StrCat(cActionsTaken, 128, "Ban, ");
+ 		
+ 	if (bActions[KACR_ActionID_TimeBan])
+ 		StrCat(cActionsTaken, 128, "Time Ban, ");
+ 		
+ 	if (bActions[KACR_ActionID_ServerBan])
+ 		StrCat(cActionsTaken, 128, "Server Ban, ");
+ 		
+ 	if (bActions[KACR_ActionID_ServerTimeBan])
+ 		StrCat(cActionsTaken, 128, "Server Time Ban, ");
+ 		
+ 	if (bActions[KACR_ActionID_Kick])
+ 		StrCat(cActionsTaken, 128, "Kick, ");
+ 		
+ 	if (bActions[KACR_ActionID_Crash])
+ 		StrCat(cActionsTaken, 128, "Crash, ");
+ 		
+ 	if (bActions[KACR_ActionID_ReportSB])
+ 		StrCat(cActionsTaken, 128, "Reported to SB, ");
+ 		
+ 	if (bActions[KACR_ActionID_ReportAdmins])
+ 		StrCat(cActionsTaken, 128, "Reported to Admins, ");
+ 		
+ 	if (bActions[KACR_ActionID_ReportSteamAdmins])
+ 		StrCat(cActionsTaken, 128, "Reported to Steam Admins, ");
+ 		
+ 	if (bActions[KACR_ActionID_AskSteamAdmin])
+ 		StrCat(cActionsTaken, 128, "Asked Steam Admin(s) what todo, ");
+ 		
+ 	if (bActions[KACR_ActionID_Log])
+ 		StrCat(cActionsTaken, 128, "Logged Actions, ");
+ 		
+ 	if (bActions[KACR_ActionID_ReportIRC])
+ 		StrCat(cActionsTaken, 128, "Reported to IRC, ");
+ 		
+ 	String_Trim(cActionsTaken, cActionsTaken, 128, ", ");
+ 	ReplyToCommand(iCallingClient, cActionsTaken);
+ 	
+ 	return Plugin_Handled;
+ }
+#endif
