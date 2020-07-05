@@ -4,7 +4,7 @@ SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and
 KACR is aimed to be a failsafe universal Security and Anti Cheat Solution for all common Source based Games.  
 #
 Requires:
-- SourceMod 1.8 or Higher (kigen-ac_redux is for 1.10, kigen-ac_redux_legacy for 1.8/1.9)
+- SourceMod 1.8 or higher (kigen-ac_redux is for 1.10, kigen-ac_redux_legacy for 1.8/1.9)
 
 Optional:
 - Sourcebans++
