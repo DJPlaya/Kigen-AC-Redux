@@ -145,7 +145,7 @@ public void OnPluginStart()
 	
 	//- Module Calls -//
 	Status_OnPluginStart();
-	Client_OnPluginStart()
+	Client_OnPluginStart();
 	Commands_OnPluginStart();
 	CVars_OnPluginStart();
 	Eyetest_OnPluginStart();
@@ -155,8 +155,8 @@ public void OnPluginStart()
 	//- Get server language -//
 	char f_sLang[8];
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
-	if (!g_hLanguages.GetValue(f_sLang, any:g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
-		g_hLanguages.GetValue("en", any:g_hSLang);
+	if (!g_hLanguages.GetValue(f_sLang, g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
+		g_hLanguages.GetValue("en", g_hSLang);
 		
 	g_hClearTimer = CreateTimer(14400.0, KACR_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
@@ -216,10 +216,10 @@ public void OnAllPluginsLoaded()
 	
 	//- Library/Plugin Checks -//
 	
-	if (LibraryExists("sourcebans++")) // FindPluginByFile("sbpp_main.smx")
+	if (LibraryExists("sourcebans++"))
 		g_bSourceBansPP = true;
 		
-	if (LibraryExists("sourcebans")) // FindPluginByFile("sourcebans.smx")
+	if (LibraryExists("sourcebans"))
 	{
 		g_bSourceBans = true;
 		if (g_bSourceBansPP && g_bSourceBans)
@@ -274,14 +274,14 @@ public void OnConfigsExecuted() // TODO: Make this Part bigger // This dosent be
 
 public void OnLibraryAdded(const char[] cName)
 {
-	if (StrEqual(cName, "sourcebans++", false)) // FindPluginByFile("sbpp_main.smx")
+	if (StrEqual(cName, "sourcebans++", false))
 	{
 		g_bSourceBansPP = true;
 		if (g_bSourceBansPP && g_bSourceBans)
 			KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
 	}
 	
-	else if (StrEqual(cName, "sourcebans", false)) // FindPluginByFile("sourcebans.smx")
+	else if (StrEqual(cName, "sourcebans", false))
 	{
 		g_bSourceBans = true;
 		if (g_bSourceBansPP && g_bSourceBans)
@@ -300,10 +300,10 @@ public void OnLibraryAdded(const char[] cName)
 
 public void OnLibraryRemoved(const char[] cName)
 {
-	if (StrEqual(cName, "sourcebans++", false)) // FindPluginByFile("sbpp_main.smx")
+	if (StrEqual(cName, "sourcebans++", false))
 		g_bSourceBansPP = false;
 		
-	else if (StrEqual(cName, "sourcebans", false)) // FindPluginByFile("sourcebans.smx")
+	else if (StrEqual(cName, "sourcebans", false))
 		g_bSourceBans = false;
 		
 	else if (StrEqual(cName, "ASteambot", false))

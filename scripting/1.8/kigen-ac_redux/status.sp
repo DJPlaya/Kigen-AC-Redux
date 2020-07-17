@@ -38,7 +38,7 @@ public Action Status_Cmd(const iClient, const iArgs)
 	Handle hBuffer;
 	char cTemp1[256], cTemp2[64], cTemp3[64];
 	
-	int iArraySize = GetArraySize(g_hStatusArray)
+	int iArraySize = GetArraySize(g_hStatusArray);
 	KACR_ReplyToCommand(iClient, KACR_STATUSREPORT);
 	if (!iArraySize)
 	{

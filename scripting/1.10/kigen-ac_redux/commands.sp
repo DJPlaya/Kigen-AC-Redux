@@ -60,7 +60,7 @@ public void Commands_OnPluginStart()
 	RegConsoleCmd("say_team", Commands_FilterSay);
 	RegConsoleCmd("sm_menu", Commands_BlockExploit);
 	
-	HookEventEx("player_disconnect", Commands_EventDisconnect, EventHookMode_Pre)
+	HookEventEx("player_disconnect", Commands_EventDisconnect, EventHookMode_Pre);
 }
 
 public void Commands_OnPluginEnd()

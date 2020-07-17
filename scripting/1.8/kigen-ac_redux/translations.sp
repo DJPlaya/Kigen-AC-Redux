@@ -82,14 +82,14 @@ public Trans_OnPluginStart()
 	g_hLanguages = new StringMap();
 	
 	// Load languages into the Map
-	g_hLanguages.SetValue("en", any:new StringMap()); // English
-	g_hLanguages.SetValue("fr", any:new StringMap()); // French
-	g_hLanguages.SetValue("it", any:new StringMap()); // Italian
-	g_hLanguages.SetValue("de", any:new StringMap()); // German
-	g_hLanguages.SetValue("he", any:new StringMap()); // Hebrew
+	//g_hLanguages.SetValue("en", new StringMap()); // English
+	g_hLanguages.SetValue("fr", new StringMap()); // French
+	g_hLanguages.SetValue("it", new StringMap()); // Italian
+	g_hLanguages.SetValue("de", new StringMap()); // German
+	g_hLanguages.SetValue("he", new StringMap()); // Hebrew
 	
 	//- English -// Done by Kigen
-	if (!g_hLanguages.GetValue("en", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("en", view_as<any>(f_hTemp)) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for English");
 		KACR_Log(false, "[Error] Unable to create Language Hashmap for English");
@@ -170,7 +170,7 @@ public Trans_OnPluginStart()
 	
 	
 	//- French -// Thanks to Vintage > http://kigenac.com/memberlist.php?mode=viewprofile&u=1035
-	if (!g_hLanguages.GetValue("fr", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("fr", view_as<any>(f_hTemp)) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for French");
 		KACR_Log(false, "[Error] Unable to create Language Hashmap for French");
@@ -250,7 +250,7 @@ public Trans_OnPluginStart()
 	
 	
 	//- Italian -// Thanks to Asterix > http://kigenac.com/memberlist.php?mode=viewprofile&u=116
-	if (!g_hLanguages.GetValue("it", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("it", view_as<any>(f_hTemp)) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for Italian");
 		KACR_Log(false, "[Error] Unable to create Language Hashmap for Italian");
@@ -330,7 +330,7 @@ public Trans_OnPluginStart()
 	
 	
 	//- German -// Done by Playa
-	if (!g_hLanguages.GetValue("de", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("de", view_as<any>(f_hTemp)) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for German");
 		KACR_Log(false, "[Error] Unable to create Language Hashmap for German");
@@ -411,7 +411,7 @@ public Trans_OnPluginStart()
 	
 	
 	//- Hebrew -// Thanks to Shazero Sicario > Discord: WildGamer.net#4916
-	if (!g_hLanguages.GetValue("he", any:f_hTemp) || f_hTemp == INVALID_HANDLE)
+	if (!g_hLanguages.GetValue("he", view_as<any>(f_hTemp)) || f_hTemp == INVALID_HANDLE)
 	{
 		KACR_PrintToServer("[Error][KACR] Unable to create Language Hashmap for Hebrew");
 		KACR_Log(false, "[Error] Unable to create Language Hashmap for Hebrew");

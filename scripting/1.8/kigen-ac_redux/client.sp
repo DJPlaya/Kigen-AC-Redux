@@ -176,7 +176,7 @@ public Action Client_PlayerSpawn(Handle event, const char[] name, bool dontBroad
 		
 	g_hClientSpawned.Remove(f_sAuthID);
 	
-	return Plugin_Continue
+	return Plugin_Continue;
 }
 
 public Action Client_PlayerDeath(Handle event, const char[] name, bool dontBroadcast)
@@ -191,7 +191,7 @@ public Action Client_PlayerDeath(Handle event, const char[] name, bool dontBroad
 		
 	g_hClientSpawned.SetValue(f_sAuthID, true);
 	
-	return Plugin_Continue
+	return Plugin_Continue;
 }
 
 public Action Client_RoundStart(Handle event, const char[] name, bool dontBroadcast)

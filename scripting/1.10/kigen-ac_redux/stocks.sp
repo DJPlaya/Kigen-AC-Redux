@@ -10,7 +10,7 @@
 StringToLower(char[] cText)
 {
 	int iSize = strlen(cText);
-	for (new i = 0; i < iSize; i++)
+	for (int i = 0; i < iSize; i++)
 		cText[i] = CharToLower(cText[i]);
 }
 
@@ -659,7 +659,9 @@ Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is d
 	DataPack hData2 = new DataPack(); // TODO: Works like that?
 	hData2.WriteString(cReason);
 	hData2.WriteFloat(view_as<float>(iClient));
+	//- Crash Client -//
 	
+	//- Error Check -//
 	RequestFrame(CrashClient_ErrorCheck, hData2); // TODO: Is one Frame enought??
 }
 

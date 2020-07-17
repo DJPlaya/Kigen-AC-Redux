@@ -973,7 +973,7 @@ stock bool CVars_RemoveCVar(char[] f_sName)
 stock CVars_CreateNewOrder()
 {
 	Handle f_hPHigh, f_hPMedium, f_hPNormal, f_hCurrent;
-	new Handle:f_hOrder[g_iSize]; // TODO: IDK how to convert this to the new syntax
+	Handle[] f_hOrder = new Handle[g_iSize];
 	int f_iHigh, f_iMedium, f_iNormal, f_iTemp, f_iCurrent;
 	
 	f_hPHigh = CreateArray(64);

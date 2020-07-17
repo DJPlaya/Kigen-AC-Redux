@@ -1,7 +1,7 @@
-// Copyright (C) 2018-2019 FunForBattle
+// Copyright (C) 2018-now KACR Contributers
 // This File is Licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
 
-// Update checks to be done here
+// Update Checks to be done here
 
 int iFocus; // Who used the command?
 
@@ -15,20 +15,26 @@ Update_OnPluginStart()
 public Action Update_Command(const iClient, const iArgs)
 {
 	iFocus = iClient;
-	if(!Update_Validate())
+	
+	switch (Update_Validate())
 	{
-		CopyFile
-		KACR_Log("[Info] Succesfully updated to Version ###TODO###");
-		ReplyToCommand(iFocus, "[Info][KACR] Succesfully updated to Version ###TODO###");
+		case 0: // Up To Date
+			ReplyToCommand(iFocus, "[KACR] i am allready up to Date");
+			
+		case 1: // Failed to Update
+		
+		case 2: // Updated Succesfully
+		{
+			CopyFile
+			KACR_Log("[Info] Succesfully updated to Version ###TODO###");
+			ReplyToCommand(iFocus, "[Info][KACR] Succesfully updated to Version ###TODO###");
+		}
 	}
 	
-	else
-		ReplyToCommand(iFocus, "[KACR] KACR is allready up to Date");
-		
 	if(!RemoveDir("addons/sourcemod/data/KACR/Update"))
 	{
 		KACR_Log("[Error] Failed to delete Temp Data, you should delete 'addons/sourcemod/data/KACR/Update' manually");
-		ReplyToCommand(iFocus, "[Error] Failed to delete Temp Data, you should delete 'addons/sourcemod/data/KACR/Update' manually");
+		ReplyToCommand(iFocus, "[Error][Kigen-AC_Redux] Failed to delete Temp Data, you should delete 'addons/sourcemod/data/KACR/Update' manually");
 	}
 	
 	return Plugin_Handled;
@@ -44,7 +50,7 @@ public Update_Timer(Handle hTimer)
 /*
 * Checks if the currently installed Version matches the latest one
 * 
-* @return			If is valid or not valid
+* @return	0 = UpToDate, 1 = Failed to Update, 2 = Updated
 */
 int Update_Validate()
 {
@@ -52,7 +58,7 @@ int Update_Validate()
 	{
 		KACR_Log("[Error] Failed to download Update");
 		ReplyToCommand(iFocus, "[Error] Failed to download Update");
-		return true; // Valid, no further Actions taken
+		return 1; // Valid, no further Actions taken
 	}
 	
 	char cBuffer1[PLATFORM_MAX_PATH], cBuffer2[PLATFORM_MAX_PATH], cBuffer3[PLATFORM_MAX_PATH]; // TODO: Optimize this Mess!
@@ -66,7 +72,7 @@ int Update_Validate()
 		return true;
 		
 	else // Not
-		return false;
+		return 0;
 }
 
 /*
@@ -77,7 +83,7 @@ int Update_Validate()
 */
 Update_Download() // TODO: reply to command?
 {
-	// System2_Check7ZIP() // Nah, for that small size we wont add another dependency
+	// System2_Check7ZIP() // Nah, for that small size??
 	// TODO: LOOP
 	
 	System2FTPRequest ftpRequest = new System2FTPRequest(FtpResponseCallback, "ftp://example.com/test.txt")
@@ -105,9 +111,8 @@ FtpProgressCallback(System2FTPRequest hRequest, int dlTotal, int dlNow);
 	{
 		char cFile[PLATFORM_MAX_PATH];
 		request.GetInputFile(cFile, sizeof(cFile));
-		PrintToServer("[Info][KACR] Downloaded File '%s'(%d Bytes) with %db/sec", cFile, dlTotal, dlNow); // TODO: make MB out of the B
+		PrintToServer("[Info][KACR] Downloaded File '%s'(%i mb) with %imb/sec", cFile, dlTotal * 1000000, dlNow * 1000000);
 	}
-	
 }
 
 FtpResponseCallback(bool bSuccess, const char[] cError, System2FTPRequest hRequest, System2FTPResponse hResponse)
