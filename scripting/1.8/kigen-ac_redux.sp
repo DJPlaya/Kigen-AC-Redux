@@ -177,7 +177,8 @@ public void OnPluginStart()
 	#if defined DEBUG
 	 KACR_Log(false, "[Warning] You are running an early Version of Kigen AC Redux, please be aware that it may not run stable");
 	 
-	 RegAdminCmd("kacr_debug_action", Debug_Action_Cmd, ADMFLAG_ROOT, "Do not use unless told to. Usage: kacr_debug_action <Client ID> <Action ID>")
+	 RegAdminCmd("kacr_debug_action", Debug_Action_Cmd, ADMFLAG_ROOT, "Do not use unless told to. Usage: kacr_debug_action <Client ID> <Action ID>");
+	 RegAdminCmd("kacr_debug_arrays", Debug_Arrays_CMD, ADMFLAG_ROOT, "Do not use unless told to. Prints some internal Arrays and DataMaps"); 
 	#endif
 }
 
@@ -472,13 +473,13 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	//- Error Checks -//
  	if (iArgs < 2)
  	{
- 		ReplyToCommand(iCallingClient, "[Kigen AC Redux] Too few Arguments, Usage: kacr_debug_action <Client ID> <Action ID>");
+ 		ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Too few Arguments, Usage: kacr_debug_action <Client ID> <Action ID>");
  		return Plugin_Handled;
  	}
  	
  	else if (iArgs > 2)
  	{
- 		ReplyToCommand(iCallingClient, "[Kigen AC Redux] Too many Arguments, Usage: kacr_debug_action <Client ID> <Action ID>");
+ 		ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Too many Arguments, Usage: kacr_debug_action <Client ID> <Action ID>");
  		return Plugin_Handled;
  	}
  	
@@ -489,8 +490,14 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	int iTarget = StringToInt(cTarget);
  	int iAction = StringToInt(cAction);
  	
+ 	if (!g_bAuthorized[iTarget] || g_bIsFake[iTarget])
+ 	{
+ 		ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] The specified Client is not valid")
+ 		return Plugin_Handled;
+ 	}
+ 	
  	//- Actions -//
- 	KACR_Action(iTarget, iAction, 5, "Kick Reason Test", "Execution Reason Test");
+ 	KACR_Action(iTarget, iAction, 5, "[Debug] Kick Reason Test", "[Debug] Execution Reason Test");
  	bool bActions[KACR_Action_Count]; // TODO: Is this a correct Handover?
  	KACR_ActionCheck(iAction, bActions); // TODO: Is this a correct Handover?
  	Format(cActionsTaken, 128, "[Debug][Kigen AC Redux] Applied the following Action on '%L' : ", iTarget);
@@ -535,6 +542,50 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	String_Trim(cActionsTaken, cActionsTaken, 128, ", ");
  	ReplyToCommand(iCallingClient, cActionsTaken);
  	
+ 	return Plugin_Handled;
+ }
+#endif
+
+#if defined DEBUG
+ Action Debug_Arrays_CMD(const iCallingClient, const iArgs) // This is ugly, but it does the Job
+ {
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Printing some Array/Map Entrys raw:");
+ 	//
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Connected Players");
+ 	for (int iClient = 1; iClient <= sizeof(g_bConnected); iClient++)
+ 		if(g_bAuthorized[iClient])
+ 			ReplyToCommand(iCallingClient, "%N is Connected: %b", iClient, g_bConnected[iClient]);
+ 	//
+ 	ReplyToCommand(iCallingClient, "--------------------");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Authorized Players");
+ 	for (int iClient = 1; iClient <= sizeof(g_bAuthorized); iClient++)
+ 		if(g_bAuthorized[iClient])
+ 			ReplyToCommand(iCallingClient, "%N is Authorized: %b", iClient, g_bAuthorized[iClient]);
+ 	//
+ 	ReplyToCommand(iCallingClient, "--------------------");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Ingame Players");
+ 	for (int iClient = 1; iClient <= sizeof(g_bInGame); iClient++)
+ 		if(g_bAuthorized[iClient])
+ 			ReplyToCommand(iCallingClient, "%N is Ingame: %b", iClient, g_bInGame[iClient]);
+ 	//
+ 	ReplyToCommand(iCallingClient, "--------------------");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Admins");
+ 	for (int iClient = 1; iClient <= sizeof(g_bIsAdmin); iClient++)
+ 		if(g_bAuthorized[iClient])
+ 			ReplyToCommand(iCallingClient, "%N is Admin: %b", iClient, g_bIsAdmin[iClient]);
+ 	//
+ 	ReplyToCommand(iCallingClient, "--------------------");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Last Time the Player was Reported");
+ 	for (int iClient = 1; iClient <= sizeof(g_iLastCheatReported); iClient++)
+ 		if(g_bAuthorized[iClient])
+ 			ReplyToCommand(iCallingClient, "%N was last reported %i min. ago", iClient, g_iLastCheatReported[iClient]);
+ 	//
+ 	ReplyToCommand(iCallingClient, "--------------------");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Process by the Eyecheck?");
+ 	for (int iClient = 1; iClient <= sizeof(g_bShouldProcess); iClient++)
+ 		if(g_bAuthorized[iClient])
+ 			ReplyToCommand(iCallingClient, "%N should be proceeded: %b", iClient, g_bShouldProcess[iClient]);
+ 			
  	return Plugin_Handled;
  }
 #endif

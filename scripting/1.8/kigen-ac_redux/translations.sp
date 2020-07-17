@@ -82,7 +82,7 @@ public Trans_OnPluginStart()
 	g_hLanguages = new StringMap();
 	
 	// Load languages into the Map
-	//g_hLanguages.SetValue("en", new StringMap()); // English
+	g_hLanguages.SetValue("en", new StringMap()); // English
 	g_hLanguages.SetValue("fr", new StringMap()); // French
 	g_hLanguages.SetValue("it", new StringMap()); // Italian
 	g_hLanguages.SetValue("de", new StringMap()); // German

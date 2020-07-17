@@ -444,10 +444,10 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 									
 									else if(g_bAdminmenu)
 									{
-										PrintToChat(iClient, "Due to Cheating, you will be throw out by a Game Crash"); // TODO: Rework Text
-										PrintHintText(iClient, "Due to Cheating, you will be throw out by a Game Crash"); // TODO: Rework Text
+										PrintToChat(iClient, "Due to Cheating, we will let your Game Crash in a few Seconds"); // TODO: Rework Text, make translateable
+										PrintHintText(iClient, "Due to Cheating, we will let your Game Crash in a few Seconds"); // TODO: Rework Text, make translateable
 										
-										DataPack hData = new DataPack(); // TODO: Works like that?
+										DataPack hData = new DataPack();
 										hData.WriteString(cUserReason2);
 										hData.WriteFloat(view_as<float>(iClient));
 										
@@ -650,46 +650,27 @@ Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is d
 	ReadPackString(hData, cReason, sizeof(cReason)); // hData.ReadString(cReason, sizeof(cReason) // TODO: Replace once we dropped legacy support
 	view_as<float>(iClient) = ReadPackFloat(hData); // view_as<float>(iClient) = ReadFloat(hData) // TODO: Replace once we dropped legacy support
 	
-	Menu hMenu = new Menu(CrashClient_MenuHandler);
-	hMenu.SetTitle(cReason);
-	AddTargetsToMenu2(hMenu, iClient, COMMAND_FILTER_CONNECTED | COMMAND_FILTER_NO_IMMUNITY); 
-	hMenu.ExitButton = true;
-	hMenu.Display(iClient, 30);
-	
-	DataPack hData2 = new DataPack(); // TODO: Works like that?
-	hData2.WriteString(cReason);
-	hData2.WriteFloat(view_as<float>(iClient));
 	//- Crash Client -//
-	
-	//- Error Check -//
-	RequestFrame(CrashClient_ErrorCheck, hData2); // TODO: Is one Frame enought??
-}
-
-int CrashClient_MenuHandler(Menu hMenu, MenuAction hAction, const iClient, const iItem) // BUG: iClient is displayed as unused, and thats true, but i cant remove it and supressing the Warning... Nah
-{
-	if(hAction == MenuAction_Select)
+	if(g_bInGame[iClient])
 	{
-		char cInfo[10];
-		hMenu.GetItem(iItem, cInfo, 10);
+		Handle hSayText = StartMessageOne("SayText2", iClient);
 		
-		// int userid = StringToInt(info);
-		int iTarget = GetClientOfUserId(StringToInt(cInfo)); 
-		if(Client_IsValid(iTarget, true) && Client_IsIngame(iTarget))
+		if(hSayText != null)
 		{
-			Handle hSayText = StartMessageOne("SayText2", iTarget);
-			
-			if(hSayText != null)
-			{
-				PbSetInt(hSayText, "ent_idx", iTarget);
-				PbSetBool(hSayText, "chat", true);
-				PbSetString(hSayText, "msg_name", "#");
-				EndMessage();
-			}
+			PbSetInt(hSayText, "ent_idx", iClient);
+			PbSetBool(hSayText, "chat", true);
+			PbSetString(hSayText, "msg_name", "#");
+			EndMessage();
 		}
 	}
+	// TODO: Removed the menu and everything, change description
 	
-	else if(hAction == MenuAction_End)
-		CloseHandle(hMenu); // TODO: Replace with 'hMenu.Close()' once we dropped legacy support
+	//- Error Check -//
+	DataPack hData2 = new DataPack();
+	hData2.WriteString(cReason);
+	hData2.WriteFloat(view_as<float>(iClient));
+	
+	RequestFrame(CrashClient_ErrorCheck, hData2); // TODO: Is one Frame enought??
 }
 
 CrashClient_ErrorCheck(DataPack hData)
@@ -698,22 +679,24 @@ CrashClient_ErrorCheck(DataPack hData)
 	char cReason[256];
 	int iClient;
 	
-	ReadPackString(hData, cReason, sizeof(cReason)); // hData.ReadString(cReason, sizeof(cReason) // TODO: Replace once we dropped legacy support
-	view_as<float>(iClient) = ReadPackFloat(hData); // view_as<float>(iClient) = ReadFloat(hData) // TODO: Replace once we dropped legacy support
+	hData.ReadString(cReason, sizeof(cReason));
+	view_as<float>(iClient) = ReadPackFloat(hData); //view_as<float>(iClient) = ReadFloat(hData); // TODO: Replace once we dropped legacy support
 	
 	if(IsClientConnected(iClient))
 	{
 		if(KickClient(iClient, "%s", cReason))
 			KACR_Log(false, "[Warning] Failed to crash Client '%L', he was kicked instead", iClient);
+			// TODO: Report back #27
 			
 		else
 			KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him before dident worked too! Report this Error to get it fixed", iClient);
+			// TODO: Report back #27
 	}
 	
 	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO, BUG: Does the 1 Frame Delay will cause problems with our disconnect Functions?
 		OnClientDisconnect(iClient); // Needed, will be executed in the main File
 		
-	CloseHandle(hData); // TODO: Replace with 'hData.Close()' once we dropped legacy support
+	hData.Close();
 }
 
 /*
