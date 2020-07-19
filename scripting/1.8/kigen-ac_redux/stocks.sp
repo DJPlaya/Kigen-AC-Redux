@@ -424,7 +424,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 										
 									else // 16 - Kick
 									{
-										if(!KickClient(iClient, "%s", cUserReason2))
+										if(!KickClient(iClient, cUserReason2))
 											KACR_Log(false, "[Error] Failed to kick Client '%L'", iClient);
 											
 										else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
@@ -435,32 +435,38 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 									
 								else // 32 - Crash Client
 								{
-									if (g_hGame != Engine_CSGO)
+									if (g_hGame != Engine_CSGO) // Game not compatible
 									{
 										KACR_Log(false, "[Warning] An Client Crash was called but it isent supported by this Game, kicking him instead");
-										if(!KickClient(iClient, "%s", cUserReason2))
+										if(!KickClient(iClient, cUserReason2))
 											KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him also failed", iClient);
 									}
 									
-									else if(g_bAdminmenu)
+									else if (!g_bInGame[iClient]) // Client not Ingame
+									{
+										KACR_Log(false, "[Warning] An Client Crash was called but the Target Client isn't In-Game, kicking him instead");
+										if(!KickClient(iClient, cUserReason2))
+											KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him got aborted", iClient);	
+									}
+									
+									else if (!g_bMapStarted) // Map is changing
+									{
+										KACR_Log(false, "[Warning] An Client Crash was called but the Client cant be crashed while the Map is still changing, kicking him instead"); // TODO: Replace with an Timed re-run of the KACR_Action Function
+										if(!KickClient(iClient, cUserReason2))
+											KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him got aborted", iClient);
+									}
+									
+									else // valid
 									{
 										PrintToChat(iClient, "Due to Cheating, we will let your Game Crash in a few Seconds"); // TODO: Rework Text, make translateable
 										PrintHintText(iClient, "Due to Cheating, we will let your Game Crash in a few Seconds"); // TODO: Rework Text, make translateable
 										
 										DataPack hData = new DataPack();
+										CreateTimer(5.0, KACR_CrashClient_Timer, hData, TIMER_FLAG_NO_MAPCHANGE); // BUG: Action may be aborted if called before an MapChange, this is rare so it should be fine
 										hData.WriteString(cUserReason2);
 										hData.WriteFloat(view_as<float>(iClient));
 										
-										CreateTimer(5.0, KACR_CrashClient_Timer, hData, TIMER_FLAG_NO_MAPCHANGE || TIMER_DATA_HNDL_CLOSE); // BUG: Action may be aborted if called before an MapChange, this is rare so it should be fine
-										
 										// OnClientDisconnect(iClient); // Executed in the 'CrashClient_ErrorCheck'
-									}
-									
-									else
-									{
-										KACR_Log(false, "[Warning] An Client Crash was called but Adminmenu isent installed, kicking him instead");
-										if(!KickClient(iClient, "%s", cUserReason2))
-											KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him also failed", iClient);
 									}
 									
 									iActionCheck -= KACR_Action_Crash;
@@ -641,7 +647,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 * Lets a Client Crash, this Exploit requires Menus and UserMessages, currently only proved to work in CSGO (12.6.2020)
 * If the Exploit fails, it will kick the Player instead
 */
-Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is displayed as unused, and thats true, but i cant remove it and supressing the Warning... Nah
+Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is marked as unused, and thats true, but compressing the warning... nah
 {
 	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
 	char cReason[256];
@@ -651,29 +657,24 @@ Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is d
 	view_as<float>(iClient) = ReadPackFloat(hData); // view_as<float>(iClient) = ReadFloat(hData) // TODO: Replace once we dropped legacy support
 	
 	//- Crash Client -//
-	if(g_bInGame[iClient])
+	Handle hSayText = StartMessageOne("SayText2", iClient);
+	
+	if(hSayText != null)
 	{
-		Handle hSayText = StartMessageOne("SayText2", iClient);
-		
-		if(hSayText != null)
-		{
-			PbSetInt(hSayText, "ent_idx", iClient);
-			PbSetBool(hSayText, "chat", true);
-			PbSetString(hSayText, "msg_name", "#");
-			EndMessage();
-		}
+		PbSetInt(hSayText, "ent_idx", iClient);
+		PbSetBool(hSayText, "chat", true);
+		PbSetString(hSayText, "msg_name", "a");
+		EndMessage();
 	}
-	// TODO: Removed the menu and everything, change description
 	
 	//- Error Check -//
 	DataPack hData2 = new DataPack();
+	CreateTimer(5.0 + GetTickInterval(), CrashClient_ErrorCheck, hData2, TIMER_FLAG_NO_MAPCHANGE); // TODO:BUG?: Are 5S(+ a Frame) enought, it seems to be fine in CSGO?
 	hData2.WriteString(cReason);
 	hData2.WriteFloat(view_as<float>(iClient));
-	
-	RequestFrame(CrashClient_ErrorCheck, hData2); // TODO: Is one Frame enought??
 }
 
-CrashClient_ErrorCheck(DataPack hData)
+Action CrashClient_ErrorCheck(Handle hTimer, DataPack hData) // BUG: hTimer is marked as unused, and thats true, but compressing the warning... nah
 {
 	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
 	char cReason[256];
@@ -681,8 +682,9 @@ CrashClient_ErrorCheck(DataPack hData)
 	
 	hData.ReadString(cReason, sizeof(cReason));
 	view_as<float>(iClient) = ReadPackFloat(hData); //view_as<float>(iClient) = ReadFloat(hData); // TODO: Replace once we dropped legacy support
+	hData.Close();
 	
-	if(IsClientConnected(iClient))
+	if(g_bConnected[iClient])
 	{
 		if(KickClient(iClient, "%s", cReason))
 			KACR_Log(false, "[Warning] Failed to crash Client '%L', he was kicked instead", iClient);
@@ -696,7 +698,7 @@ CrashClient_ErrorCheck(DataPack hData)
 	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO, BUG: Does the 1 Frame Delay will cause problems with our disconnect Functions?
 		OnClientDisconnect(iClient); // Needed, will be executed in the main File
 		
-	hData.Close();
+	// BUG:TODO: Both Handles arent closed yet!!!
 }
 
 /*

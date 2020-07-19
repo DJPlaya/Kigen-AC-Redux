@@ -86,7 +86,7 @@ int g_iPauseReports; // // Wait this long till we report/log a Client again
 
 // Its more Resource efficient to store the data instead of grabbing it over and over again
 bool g_bConnected[MAXPLAYERS + 1], g_bAuthorized[MAXPLAYERS + 1], g_bInGame[MAXPLAYERS + 1], g_bIsAdmin[MAXPLAYERS + 1], g_bIsFake[MAXPLAYERS + 1];
-bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bAdminmenu, g_bMapStarted;
+bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bMapStarted;
 
 
 //- KACR Modules -// Note that the ordering of these Includes is important
@@ -233,9 +233,6 @@ public void OnAllPluginsLoaded()
 		g_bASteambot = true;
 	}
 	
-	if (LibraryExists("adminmenu"))
-		g_bAdminmenu = true;
-		
 	//- Module Calls -//
 	Commands_OnAllPluginsLoaded();
 	
@@ -294,9 +291,6 @@ public void OnLibraryAdded(const char[] cName)
 		ASteambot_RegisterModule("KACR");
 		g_bASteambot = true;
 	}
-	
-	else if (StrEqual(cName, "adminmenu", false))
-		g_bAdminmenu = true;
 }
 
 public void OnLibraryRemoved(const char[] cName)
@@ -309,11 +303,7 @@ public void OnLibraryRemoved(const char[] cName)
 		
 	else if (StrEqual(cName, "ASteambot", false))
 		g_bASteambot = false;
-		
-	else if (StrEqual(cName, "adminmenu", false))
-		g_bAdminmenu = false;
 }
-
 
 //- Map Functions -//
 
@@ -546,45 +536,51 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  }
 #endif
 
+/*BUG TODO
+L 07/19/2020 - 21:48:06: [SM] Exception reported: Array index out-of-bounds (index 66, limit 66)
+L 07/19/2020 - 21:48:06: [SM] Blaming: kigen-ac_redux.smx
+L 07/19/2020 - 21:48:06: [SM] Call stack trace:
+L 07/19/2020 - 21:48:06: [SM] [1] Line 556, kigen-ac_redux.sp::Debug_Arrays_CMD
+*/
+
 #if defined DEBUG
  Action Debug_Arrays_CMD(const iCallingClient, const iArgs) // This is ugly, but it does the Job
  {
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Printing some Array/Map Entrys raw:");
  	//
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Connected Players");
- 	for (int iClient = 1; iClient <= sizeof(g_bConnected); iClient++)
- 		if(g_bAuthorized[iClient])
- 			ReplyToCommand(iCallingClient, "%N is Connected: %b", iClient, g_bConnected[iClient]);
+ 	for (int iClient = 1; iClient <= MaxClients; iClient++)
+ 		ReplyToCommand(iCallingClient, "%N is %s", iClient, g_bConnected[iClient] ? "connected" : "not connected");
  	//
  	ReplyToCommand(iCallingClient, "--------------------");
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Authorized Players");
- 	for (int iClient = 1; iClient <= sizeof(g_bAuthorized); iClient++)
+ 	for (int iClient = 1; iClient <= MaxClients; iClient++)
  		if(g_bAuthorized[iClient])
- 			ReplyToCommand(iCallingClient, "%N is Authorized: %b", iClient, g_bAuthorized[iClient]);
+ 			ReplyToCommand(iCallingClient, "%N is %s", iClient, g_bAuthorized[iClient] ? "authorized" : "not authorized");
  	//
  	ReplyToCommand(iCallingClient, "--------------------");
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Ingame Players");
- 	for (int iClient = 1; iClient <= sizeof(g_bInGame); iClient++)
+ 	for (int iClient = 1; iClient <= MaxClients; iClient++)
  		if(g_bAuthorized[iClient])
- 			ReplyToCommand(iCallingClient, "%N is Ingame: %b", iClient, g_bInGame[iClient]);
+ 			ReplyToCommand(iCallingClient, "%N is %s", iClient, g_bInGame[iClient] ? "In-Game" : "not In-Game");
  	//
  	ReplyToCommand(iCallingClient, "--------------------");
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Admins");
- 	for (int iClient = 1; iClient <= sizeof(g_bIsAdmin); iClient++)
+ 	for (int iClient = 1; iClient <= MaxClients; iClient++)
  		if(g_bAuthorized[iClient])
- 			ReplyToCommand(iCallingClient, "%N is Admin: %b", iClient, g_bIsAdmin[iClient]);
+ 			ReplyToCommand(iCallingClient, "%N is%s", iClient, g_bIsAdmin[iClient] ? " an Admin" : "n't an Admin");
  	//
  	ReplyToCommand(iCallingClient, "--------------------");
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Last Time the Player was Reported");
- 	for (int iClient = 1; iClient <= sizeof(g_iLastCheatReported); iClient++)
+ 	for (int iClient = 1; iClient <= MaxClients; iClient++)
  		if(g_bAuthorized[iClient])
  			ReplyToCommand(iCallingClient, "%N was last reported %i min. ago", iClient, g_iLastCheatReported[iClient]);
  	//
  	ReplyToCommand(iCallingClient, "--------------------");
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Process by the Eyecheck?");
- 	for (int iClient = 1; iClient <= sizeof(g_bShouldProcess); iClient++)
+ 	for (int iClient = 1; iClient <= MaxClients; iClient++)
  		if(g_bAuthorized[iClient])
- 			ReplyToCommand(iCallingClient, "%N should be proceeded: %b", iClient, g_bShouldProcess[iClient]);
+ 			ReplyToCommand(iCallingClient, "%N should %s by the Eyecheck", iClient, g_bShouldProcess[iClient] ? "be proceeded" : "not be proceeded");
  			
  	return Plugin_Handled;
  }
