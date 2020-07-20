@@ -19,12 +19,12 @@ bool g_bClientMapStarted;
 
 public void Client_OnPluginStart()
 {
-	g_hCVar_Client_Enable = AutoExecConfig_CreateConVar("kacr_client_enable", "1", "Enable the Client Protection Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVar_Client_Enable = AutoExecConfig_CreateConVar("kacr_client_enable", "1", "Enable the Client Protection Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 	g_bClientEnable = GetConVarBool(g_hCVar_Client_Enable);
 	
 	if (g_hGame == Engine_CSS || g_hGame == Engine_CSGO)
 	{
-		g_hCVar_ClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "1", "This will prevent Clients from leaving the Game and then rejoining to Respawn", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVar_ClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "1", "This will prevent Clients from leaving the Game and then rejoining to Respawn", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 		g_bClientAntiRespawn = GetConVarBool(g_hCVar_ClientAntiRespawn);
 		
 		g_hClientSpawned = new StringMap();
@@ -39,12 +39,12 @@ public void Client_OnPluginStart()
 		RegConsoleCmd("joinclass", Client_JoinClass);
 	}
 	
-	g_hCVar_Client_NameProtect_Action = AutoExecConfig_CreateConVar("kacr_client_nameprotect_action", "1040", "Action(s) to take when someone has an invalid Name, Time Bans will be 1 min. Protects the Server from Crashes and Hacks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+	g_hCVar_Client_NameProtect_Action = AutoExecConfig_CreateConVar("kacr_client_nameprotect_action", "1040", "Action(s) to take when someone has an invalid Name, Time Bans will be 1 min. Protects the Server from Crashes and Hacks", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
 	g_iClientNameProtect = GetConVarInt(g_hCVar_Client_NameProtect_Action);
 	//
-	g_hCVar_Client_AntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "15", "Seconds to prevent Someone from reestablishing a Connection. This will also set the Time for 'kacr_client_antispamconnect_action', Round down to whole Minutes (0 = Disabled)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
+	g_hCVar_Client_AntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "15", "Seconds to prevent Someone from reestablishing a Connection. This will also set the Time for 'kacr_client_antispamconnect_action', Round down to whole Minutes (0 = Disabled)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 120.0);
 	g_iClientAntiSpamConnect = GetConVarInt(g_hCVar_Client_AntiSpamConnect);
-	g_hCVar_Client_AntiSpamConnect_Action = AutoExecConfig_CreateConVar("kacr_client_antispamconnect_action", "1032", "Action(s) to take when someone does Spam Connect, Bantimes will be set with 'kacr_client_antispamconnect'", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
+	g_hCVar_Client_AntiSpamConnect_Action = AutoExecConfig_CreateConVar("kacr_client_antispamconnect_action", "1032", "Action(s) to take when someone does Spam Connect, Bantimes will be set with 'kacr_client_antispamconnect'", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
 	g_iClientAntiSpamConnectAction = GetConVarInt(g_hCVar_Client_AntiSpamConnect_Action);
 	
 	if (g_bClientEnable)

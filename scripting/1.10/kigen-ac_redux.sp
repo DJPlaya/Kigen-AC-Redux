@@ -163,10 +163,10 @@ public void OnPluginStart()
 	AutoExecConfig_ExecuteFile(); // Execute the Config
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
 	
-	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD | FCVAR_UNLOGGED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "dontrecord" - So that we don't get saved to the Auto cfg, "unlogged" - Because changes of this CVar dosent need to be logged
+	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_UNLOGGED | FCVAR_DEMO | FCVAR_PROTECTED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "unlogged" - Because changes of this CVar dosent need to be logged, "demo" - So we get saved to Demos for later potential Cheat Analysis, "protected" - So no one can abuse Bugs in old Versions or bypass Limits set by CVars
 	SetConVarString(g_hCVar_Version, PLUGIN_VERSION); // TODO: Is this really needed?
 	
-	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "120", "Once a cheating Player has been Reported/Logged, wait this many Seconds before reporting/logging him again. (0 = Always do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 3600.0);
+	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "120", "Once a cheating Player has been Reported/Logged, wait this many Seconds before reporting/logging him again. (0 = Always do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 3600.0);
 	g_iPauseReports = GetConVarInt(g_hCVar_PauseReports);
 	
 	HookConVarChange(g_hCVar_Version, ConVarChanged_Version); // Made, so no one touches the Version

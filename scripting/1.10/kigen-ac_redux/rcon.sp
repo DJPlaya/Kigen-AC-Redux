@@ -16,7 +16,7 @@ public void RCON_OnPluginStart()
 {
 	if (g_hGame != Engine_CSGO && g_hGame != Engine_CSS && g_hGame != Engine_DODS && g_hGame != Engine_TF2 && g_hGame != Engine_HL2DM) // VALVe finally fixed the crash in OB.  Disable for security so that brute forcing a password is worthless
 	{
-		g_hCVar_RCON_CrashPrevent = AutoExecConfig_CreateConVar("kacr_rcon_crashprevent", "0", "Enable RCON Crash Prevention", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVar_RCON_CrashPrevent = AutoExecConfig_CreateConVar("kacr_rcon_crashprevent", "0", "Enable RCON Crash Prevention", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 		g_bRCONPreventEnabled = GetConVarBool(g_hCVar_RCON_CrashPrevent);
 		
 		HookConVarChange(g_hCVar_RCON_CrashPrevent, ConVarChanged_RCON_CrashPrevent);

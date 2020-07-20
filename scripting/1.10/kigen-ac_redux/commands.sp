@@ -21,10 +21,10 @@ bool g_bCmds_Enabled = true;
 
 public void Commands_OnPluginStart()
 {
-	g_hCVar_Cmds_Enable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVar_Cmds_Enable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 	g_bCmds_Enabled = GetConVarBool(g_hCVar_Cmds_Enable);
 	
-	g_hCVar_Cmds_Spam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 120.0);
+	g_hCVar_Cmds_Spam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 120.0);
 	g_iCmdSpam = GetConVarInt(g_hCVar_Cmds_Spam);
 	
 	HookConVarChange(g_hCVar_Cmds_Enable, ConVarChanged_Cmds_Enable);

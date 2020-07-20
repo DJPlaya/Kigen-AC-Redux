@@ -23,16 +23,16 @@ public void Eyetest_OnPluginStart()
 {
 	if(g_hGame == Engine_CSGO || g_hGame == Engine_CSS || g_hGame == Engine_Insurgency || g_hGame == Engine_Left4Dead2 || g_hGame == Engine_HL2DM)
 	{
-		g_hCVar_Eyetest_Enable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "1", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-		g_hCVar_EyetestAction = AutoExecConfig_CreateConVar("kacr_eyes_action", "1025", "Action(s) to take when someone does uses Aimbots, Time Bans will be 2 Weeks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
-		g_hCVar_AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVar_Eyetest_Enable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "1", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
+		g_hCVar_EyetestAction = AutoExecConfig_CreateConVar("kacr_eyes_action", "1025", "Action(s) to take when someone does uses Aimbots, Time Bans will be 2 Weeks", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
+		g_hCVar_AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 	}
 	
 	else // We dont know the Game, so we disable the Eyecheck by default
 	{
-		g_hCVar_Eyetest_Enable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
-		g_hCVar_EyetestAction = AutoExecConfig_CreateConVar("kacr_eyes_action", "1040", "Action(s) to take when someone does uses Aimbots, Time Bans will be 2 Weeks", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0);
-		g_hCVar_AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "0", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+		g_hCVar_Eyetest_Enable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
+		g_hCVar_EyetestAction = AutoExecConfig_CreateConVar("kacr_eyes_action", "1040", "Action(s) to take when someone does uses Aimbots, Time Bans will be 2 Weeks", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
+		g_hCVar_AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "0", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 	}
 	g_iEyetestAction = GetConVarInt(g_hCVar_EyetestAction);
 	

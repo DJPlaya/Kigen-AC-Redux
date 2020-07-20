@@ -66,7 +66,7 @@ public void CVars_OnPluginStart()
 	bool f_bIsCommand;
 	int f_iFlags;
 	
-	g_hCVar_CVars_Enable = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED, true, 0.0, true, 1.0);
+	g_hCVar_CVars_Enable = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 	g_bCVarsEnabled = GetConVarBool(g_hCVar_CVars_Enable);
 	
 	HookConVarChange(g_hCVar_CVars_Enable, ConVarChanged_CVars_Enable);
@@ -155,36 +155,44 @@ public void CVars_OnPluginStart()
 	//- Replication Protection -//
 	
 	f_hConCommand = FindFirstConCommand(f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags);
-	if (f_hConCommand == INVALID_HANDLE)
-		KACR_Log(true, "[Critical] Failed getting first ConVar");
-		
-	do
+	if (f_hConCommand == INVALID_HANDLE) // Better check this first
 	{
-		if (!f_bIsCommand && (f_iFlags & FCVAR_REPLICATED))
-		{
-			hConVar = FindConVar(f_sName);
-			if (hConVar == INVALID_HANDLE)
-				continue;
-				
-			CVars_ReplicateConVar(hConVar);
-			HookConVarChange(hConVar, CVars_Replicate);
-		}
+		KACR_Log(true, "[Critical] Failed getting first ConVar");
+		g_iCVarsStatus = Status_Register(KACR_CVARS, KACR_ERROR);
+		// TODO: Report back here #27
+		CloseHandle(f_hConCommand);
 	}
 	
-	while (FindNextConCommand(f_hConCommand, f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags));
-	
-	CloseHandle(f_hConCommand);
-	
-	// Register Admin Commands
-	RegAdminCmd("kacr_addcvar", CVars_CmdAddCVar, ADMFLAG_ROOT, "Adds a CVar to the Checklist");
-	RegAdminCmd("kacr_removecvar", CVars_CmdRemCVar, ADMFLAG_ROOT, "Removes a CVar from the Checklist");
-	RegAdminCmd("kacr_cvars_status", CVars_CmdStatus, ADMFLAG_GENERIC, "Shows the Status of all in-game Clients");
-	
-	if (g_bCVarsEnabled)
-		g_iCVarsStatus = Status_Register(KACR_CVARS, KACR_ON);
-		
 	else
-		g_iCVarsStatus = Status_Register(KACR_CVARS, KACR_OFF);
+	{
+		do
+		{
+			if (!f_bIsCommand && (f_iFlags & FCVAR_REPLICATED))
+			{
+				hConVar = FindConVar(f_sName);
+				if (hConVar == INVALID_HANDLE)
+					continue;
+					
+				CVars_ReplicateConVar(hConVar);
+				HookConVarChange(hConVar, CVars_Replicate);
+			}
+		}
+		
+		while (FindNextConCommand(f_hConCommand, f_sName, sizeof(f_sName), f_bIsCommand, f_iFlags));
+		
+		f_hConCommand.Close();
+		
+		// Register Admin Commands
+		RegAdminCmd("kacr_addcvar", CVars_CmdAddCVar, ADMFLAG_ROOT, "Adds a CVar to the Checklist");
+		RegAdminCmd("kacr_removecvar", CVars_CmdRemCVar, ADMFLAG_ROOT, "Removes a CVar from the Checklist");
+		RegAdminCmd("kacr_cvars_status", CVars_CmdStatus, ADMFLAG_GENERIC, "Shows the Status of all in-game Clients");
+		
+		if (g_bCVarsEnabled)
+			g_iCVarsStatus = Status_Register(KACR_CVARS, KACR_ON);
+			
+		else
+			g_iCVarsStatus = Status_Register(KACR_CVARS, KACR_OFF);
+	}
 }
 
 
