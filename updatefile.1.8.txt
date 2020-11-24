@@ -1,0 +1,27 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.0.0"
+		}
+		
+		"Notes"	"Basebuild 1.8"
+		"Notes"	"Update Notes at > github.com/DJPlaya/Kigen-AC-Redux/commits/master"
+	}
+	
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/kigen-ac_redux_legacy.smx"
+		
+		"Source"	"Path_SM/scripting/1.8/kigen-ac_redux.sp"
+		"Source"	"Path_SM/scripting/1.8/kigen-ac_redux/client.sp"
+		"Source"	"Path_SM/scripting/1.8/kigen-ac_redux/commands.sp"
+		"Source"	"Path_SM/scripting/1.8/kigen-ac_redux/cvars.sp"
+		"Source"	"Path_SM/scripting/1.8/kigen-ac_redux/eyetest.sp"
+		"Source"	"Path_SM/scripting/1.8/kigen-ac_redux/rcon.sp"
+		"Source"	"Path_SM/scripting/1.8/kigen-ac_redux/status.sp"
+		"Source"	"Path_SM/scripting/1.8/kigen-ac_redux/translations.sp"
+	}
+}

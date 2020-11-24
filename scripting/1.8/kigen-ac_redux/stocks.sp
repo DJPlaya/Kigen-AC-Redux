@@ -248,7 +248,7 @@ KACR_Ban(const iClient, iTime, const char[] cTranslation, const char[] cReason, 
 * 4 - Server Ban (banned_user.cfg)
 * 8 - Server Time Ban (banned_user.cfg) // TODO: Add Option to set the Time
 * 16 - Kick
-* 32 - Crash Client (May not work on any Game)
+* 32 - Crash Client (CSGO only for now)
 * 64 - Report to SB
 * 128 - Report to online Admins
 * 256 - Tell Admins on Steam about the Violation
@@ -305,7 +305,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			}
 			
 			else
-				g_iLastCheatReported[iClient] = RoundToNearest(GetTickedTime()); // BUG We do not calculate with the Case that KACR_Action does fail, but thats fine
+				g_iLastCheatReported[iClient] = RoundToNearest(GetTickedTime()); // BUG: We do not calculate with the Case that KACR_Action does fail, but thats fine
 		}
 		
 	//- Reported Reasons -//
@@ -475,10 +475,10 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 							else // 64 - Report to SB
 							{
 								if (g_bSourceBansPP)
-									SBPP_ReportPlayer(0, iClient, cReason);
+									SBPP_ReportPlayer(iClient, iClient, cReason2); // TODO: Edit SBPP so the reporter can be the server(0) like in the webpanel and submit to github
 									
 								else if (g_bSourceBans)
-									SB_ReportPlayer(0, iClient, cReason);
+									SB_ReportPlayer(iClient, iClient, cReason2); // TODO: Edit SBPP so the reporter can be the server(0) like in the webpanel and submit to github
 									
 								else
 									KACR_Log(false, "[Error] Tried to Report an Player to Sourcebans but it isent installed");
@@ -516,7 +516,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 					
 				else // 512 - Ask an Steam User over ASteambot for Advice
 				{
-					if(g_bASteambot)
+					/*if(g_bASteambot) TODO
 					{
 						if(ASteambot_IsConnected())
 						{ // 8.10.19 - 632 Chars, 900 is max so we can actually Send all in one MSG
@@ -532,7 +532,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 					}
 					
 					else
-						KACR_Log(false, "[Error] Tried to Use ASteambot but it isent running");
+						KACR_Log(false, "[Error] Tried to Use ASteambot but it isent running");*/
 						
 					iActionCheck -= KACR_Action_AskSteamAdmin;
 				}
@@ -542,7 +542,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 				char cClientIP[64];
 				GetClientIP(iClient, cClientIP, sizeof(cClientIP));
 				
-				KACR_Log(false, "Logging Client '%L<%s>' for doing '%s'", iClient, cClientIP, cReason);
+				KACR_Log(false, "Logging Client '%L<%s>' for doing '%s'", iClient, cClientIP, cReason2);
 				
 				// Checking all the Numbers to make a Proper Report
 				int iActionLogCheck = iAction; // We could also directly use iAction, but we may will need it later soooooo
@@ -707,7 +707,7 @@ Action CrashClient_ErrorCheck(Handle hTimer, DataPack hData) // BUG: hTimer is m
 * Use the KACR_Action_* Defines instead of the actual IDs
 * 
 * @param iAction	Action ID Input.
-* @param bActions	Handover Bool Array with the called Actions inside it.
+* @passed bActions	Handover Bool Array with the called Actions inside it.
 */
 void KACR_ActionCheck(iAction, bool bActions[KACR_Action_Count]) // I wish i would be better in Math so i could design a Formula for this
 {
@@ -799,4 +799,19 @@ void KACR_ActionCheck(iAction, bool bActions[KACR_Action_Count]) // I wish i wou
 			iAction -= KACR_Action_ReportIRC;
 		}
 	}
+	
+	/* TODO: BUG: Needs to be reworked. 1 = 1,2,,4,8,16,32,64,128 | 2 = X | 3 = 512 | 4 = X | 5 = X | 6 = 1024
+	int iCount = KACR_Action_Count - 1, iCheckValue = 1 ^ (KACR_Action_Count - 1); // Start with the highest Value
+	
+	while (iCount != 0)
+	{
+		if (iAction == iCheckValue)
+		{
+			bActions[iCount] = true;
+			//iAction - iCheckValue; // TODO: Optional, unused ATM but we may want to use iAction some time later
+		}
+		
+		iCheckValue = iCheckValue / 2;
+		iCount--;
+	}*/
 }

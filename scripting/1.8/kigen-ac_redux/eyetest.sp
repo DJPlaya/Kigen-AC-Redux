@@ -155,9 +155,6 @@ public void ConVarChanged_Eyetest_AntiWall(Handle convar, const char[] oldValue,
 {
 	bool f_bEnabled = GetConVarBool(convar);
 	
-	//if (!LibraryExists("sdkhooks")) // We could integrate this Check into the Plugin Startup, but since sdkhooks should actually be installed on every Server, its not worth that
-	//	Status_Report(g_iAntiWHStatus, KACR_NOSDKHOOK);
-		
 	if (f_bEnabled == g_bAntiWall)
 		return;
 		
@@ -173,7 +170,7 @@ public void ConVarChanged_Eyetest_AntiWall(Handle convar, const char[] oldValue,
 		
 		for (int i = 1; i <= MaxClients; i++)
 			if (Client_IsValid(i, true))
-				if (IsPlayerAlive(i) && !g_bHooked[i]) // We do not use the Arrays here since its OnPluginStart and the Players may havent been checked// TODO: is that correct?
+				if (IsPlayerAlive(i) && !g_bHooked[i]) // We do not use the Client Arrays here since its OnPluginStart and the Players may havent been checked // TODO: is that correct?
 					Eyetest_Hook(i);
 					
 		Status_Report(g_iAntiWHStatus, KACR_ON);
@@ -264,7 +261,7 @@ public void OnGameFrame()
 		return;
 		
 	float f_vVelocity[3], f_vTempVec[3], f_fTickTime;
-	f_fTickTime = GetTickInterval();
+	f_fTickTime = GetTickInterval() * 2; // This should solve #47 for now, we now do calculate twice of the Position, still needs to be tested: TODO BUG?
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (g_bHooked[i])
@@ -291,7 +288,7 @@ public void OnGameFrame()
 
 // public Eyetest_Prethink(client)
 // {
-// TODO:Test for Bhop hacks here #5
+// TODO: Test for Bhop hacks here #5
 // }
 
 public Action Eyetest_Transmit(entity, client)

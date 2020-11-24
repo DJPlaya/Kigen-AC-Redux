@@ -18,9 +18,11 @@
 #define REQUIRE_EXTENSIONS
 // #include <socket> // Required for the networking Module
 #include <smlib_kacr> // Copyright (C) SMLIB Contributors // This Include is licensed under GPLv3, see 'Licenses/License_SMLIB.txt' for Details
-#include <autoexecconfig_kacr> //  Copyright (C) 2013-2017 Impact // This Include is licensed under GPLv3, see 'Licenses/License_AutoExecConfig.txt' for Details 
+#include <autoexecconfig_kacr> // Copyright (C) 2013-2017 Impact // This Include is licensed under GPLv3, see 'Licenses/License_AutoExecConfig.txt' for Details
+#include <kvizzle> // No Copyright Information found, developed by F2 > https://forums.alliedmods.net/member.php?u=48818
 #undef REQUIRE_PLUGIN
-#include <ASteambot> // Copyright (c) ASteamBot Contributors // This Include is licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Detailsd
+#include <updater_kacr> // No Copyright Information found, developed by God-Tony > https://forums.alliedmods.net/member.php?u=6136
+#include <ASteambot> // Copyright (c) ASteamBot Contributors // This Include is licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details
 #define REQUIRE_PLUGIN
 
 
@@ -41,9 +43,24 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 
 #define loop for(;;) // Unlimited Loop
 
-#define PLUGIN_VERSION "0.1" // No versioning right now, we are on a rolling Release Cycle
+#define PLUGIN_VERSION "1.0.0" // The Versioning is important for the Updater, it needs to be changed on every Release: TODO: Update the Compiler File todo this automatically
 #define MAX_ENTITIES 2048 // Maximum networkable Entitys (Edicts), 2048 is hardcoded in the Engine
 
+// Version
+#if !defined DEBUG && SOURCEMOD_V_MAJOR == 1
+ #if SOURCEMOD_V_MINOR >= 10 // 1.10
+  #define UPDATE_URL "http://github.com/DJPlaya/Kigen-AC-Redux/tree/master/updatefile.1.10.txt"
+ 
+ #elseif SOURCEMOD_V_MINOR >= 8 // 1.8 and 1.9
+  #define UPDATE_URL "http://github.com/DJPlaya/Kigen-AC-Redux/tree/master/updatefile.1.8.txt"
+  
+ #else
+  #define UPDATE_URL NULL_STRING
+  
+ #endif
+#endif
+
+// Action Defines
 #define KACR_Action_Count 13 // 18.11.19 - 12+1 carryed
 
 #define KACR_ActionID_Ban 1
@@ -81,12 +98,21 @@ EngineVersion g_hGame;
 StringMap g_hCLang[MAXPLAYERS + 1];
 StringMap g_hSLang, g_hDenyArray;
 
-int g_iLastCheatReported[MAXPLAYERS + 1] = 32; // This is for per Frame/Timed AC Checks, we do not want to spam the Log nor the Admins with Reports, so we save the last Time Someone was reported. We do set this to 32.0, so the Time Check works properly even if the Server just has started #ref 395723
+int g_iLastCheatReported[MAXPLAYERS + 1] = -3600; // This is for per Frame/Timed AC Checks, we do not want to spam the Log nor the Admins with Reports, so we save the last Time Someone was reported. We do set this to -3600 (1h), so the Time Check works properly even if the Server just has started #ref 395723
 int g_iPauseReports; // // Wait this long till we report/log a Client again
 
 // Its more Resource efficient to store the data instead of grabbing it over and over again
 bool g_bConnected[MAXPLAYERS + 1], g_bAuthorized[MAXPLAYERS + 1], g_bInGame[MAXPLAYERS + 1], g_bIsAdmin[MAXPLAYERS + 1], g_bIsFake[MAXPLAYERS + 1];
 bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bMapStarted;
+
+public Plugin myinfo = 
+{
+	name = "Kigen's Anti-Cheat Redux", 
+	author = "Playa (Formerly Max Krivanek)", 
+	description = "An Universal Anti Cheat Solution compatible with most Source Engine Games", 
+	version = PLUGIN_VERSION, 
+	url = "github.com/DJPlaya/Kigen-AC-Redux"
+};
 
 
 //- KACR Modules -// Note that the ordering of these Includes is important
@@ -100,24 +126,15 @@ bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bMapStarted;
 #include "kigen-ac_redux/status.sp"			// Status Module
 #include "kigen-ac_redux/stocks.sp"			// Stocks Module
 
-
-public Plugin myinfo = 
-{
-	name = "Kigen's Anti-Cheat Redux", 
-	author = "Playa (Formerly Max Krivanek)", 
-	description = "An Universal Anti Cheat Solution compatible with most Source Engine Games", 
-	version = PLUGIN_VERSION, 
-	url = "github.com/DJPlaya/Kigen-AC-Redux"
-};
-
-
 //- Plugin, Native Config Functions -//
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
+public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] cError, iMaxSize)
 {
 	//- SDKHooks -//
 	MarkNativeAsOptional("SDKHook");
 	MarkNativeAsOptional("SDKUnhook");
+	//- Updater -//
+	MarkNativeAsOptional("Updater_AddPlugin");
 	//- Sourcebans++ -//
 	MarkNativeAsOptional("SBPP_BanPlayer");
 	MarkNativeAsOptional("SBPP_ReportPlayer");
@@ -164,10 +181,9 @@ public void OnPluginStart()
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
 	
 	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_UNLOGGED | FCVAR_DEMO | FCVAR_PROTECTED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "unlogged" - Because changes of this CVar dosent need to be logged, "demo" - So we get saved to Demos for later potential Cheat Analysis, "protected" - So no one can abuse Bugs in old Versions or bypass Limits set by CVars
-	SetConVarString(g_hCVar_Version, PLUGIN_VERSION); // TODO: Is this really needed?
 	
 	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "120", "Once a cheating Player has been Reported/Logged, wait this many Seconds before reporting/logging him again. (0 = Always do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 3600.0);
-	g_iPauseReports = GetConVarInt(g_hCVar_PauseReports);
+	g_iPauseReports = 60 * GetConVarInt(g_hCVar_PauseReports);
 	
 	HookConVarChange(g_hCVar_Version, ConVarChanged_Version); // Made, so no one touches the Version
 	HookConVarChange(g_hCVar_PauseReports, ConVarChanged_PauseReports);
@@ -197,7 +213,7 @@ public void OnPluginEnd()
 		g_bAuthorized[iClient] = false;
 		g_bInGame[iClient] = false;
 		g_bIsAdmin[iClient] = false;
-		g_iLastCheatReported[iClient] = 32;
+		g_iLastCheatReported[iClient] = -3600; // 1h
 		g_hCLang[iClient] = g_hSLang;
 		g_bShouldProcess[iClient] = false;
 		
@@ -216,6 +232,11 @@ public void OnAllPluginsLoaded()
 	char cReason[256], cAuthID[64];
 	
 	//- Library/Plugin Checks -//
+	#if !defined DEBUG
+	 if (LibraryExists("updater"))
+	 	Updater_AddPlugin(UPDATE_URL);
+	 	
+	#endif
 	
 	if (LibraryExists("sourcebans++"))
 		g_bSourceBansPP = true;
@@ -223,7 +244,7 @@ public void OnAllPluginsLoaded()
 	if (LibraryExists("sourcebans"))
 	{
 		g_bSourceBans = true;
-		if (g_bSourceBansPP && g_bSourceBans)
+		if (g_bSourceBansPP && g_bSourceBans) // Only SB++ will be called since it always executes with an if check before SB, so its totally failsafe
 			KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
 	}
 	
@@ -291,6 +312,12 @@ public void OnLibraryAdded(const char[] cName)
 		ASteambot_RegisterModule("KACR");
 		g_bASteambot = true;
 	}
+	
+	#if !defined DEBUG
+	 else if (LibraryExists("updater"))
+	 	Updater_AddPlugin(UPDATE_URL);
+	 	
+	#endif
 }
 
 public void OnLibraryRemoved(const char[] cName)
@@ -304,6 +331,60 @@ public void OnLibraryRemoved(const char[] cName)
 	else if (StrEqual(cName, "ASteambot", false))
 		g_bASteambot = false;
 }
+
+
+//- Updater -//
+
+public Action Updater_OnPluginDownloading()
+{
+	KACR_Log(false, "[Info] Update found, downloading it now...");
+	return Plugin_Continue;
+}
+
+public Updater_OnPluginUpdated() // TODO: Report to Admins once the Translations changed
+{
+	if (FileExists("addons/sourcemod/configs/plugin_settings.cfg"))
+	{
+		Handle hKV = KvizCreateFromFile("Plugins", "addons/sourcemod/configs/plugin_settings.cfg");
+		char cKVEntry[8];
+		bool bIncluded; // Is KACR or every Plugin set to reload once updated?
+		
+		//- Global Settings -//
+		KvizGetStringExact(hKV, cKVEntry, sizeof(cKVEntry), "*.lifetime");
+		if (StrEqual(cKVEntry, "mapsync"))
+			bIncluded = true;
+			
+		//- KACR specific Settings -//
+		KvizGetStringExact(hKV, cKVEntry, sizeof(cKVEntry), "kigen-ac_redux.lifetime");
+		if (StrEqual(cKVEntry, "mapsync"))
+			bIncluded = true;
+			
+		else if (StrEqual(cKVEntry, "lifetime")) // Just to be sure
+			bIncluded = false;
+			
+		//- Set the Plugin to reload on Mapchange -//
+		if (!bIncluded) // Not Set to reload on mapsync, changing that now!
+		{
+			if (KvizSetString(hKV, "mapsync", "kigen-ac_redux.lifetime") && KvizToFile(hKV, "plugin_settings.cfg", "kigen-ac_redux.lifetime"))
+			{
+				KACR_Log(false, "[Info] Writing 'plugin_settings.cfg' to automatically reload KACR when updated on Mapchange");
+				KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange"); // Included, KACR will reload on Mapchange
+			}
+			
+			else
+				KACR_Log(false, "[Warning] Couldent write 'plugin_settings.cfg', KACR will update on the next Restart"); // We could reload ourself, but this would interrupt the Protection and thats what we do not want to happen
+		}
+		
+		else // Included, KACR will reload on Mapchange
+			KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange");
+			
+		KvizClose(hKV);
+	}
+	
+	else // Default Settings, KACR will reload on Mapchange
+		KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange");
+}
+
 
 //- Map Functions -//
 
@@ -369,8 +450,6 @@ public void OnClientPutInServer(iClient)
 	if (IsFakeClient(iClient)) // Death to them bots!
 		return;
 		
-	char f_sLang[8];
-	
 	g_bInGame[iClient] = true;
 	
 	if (!g_bAuthorized[iClient]) // Not authorized yet?!?
@@ -379,6 +458,7 @@ public void OnClientPutInServer(iClient)
 	else
 		g_hPeriodicTimer[iClient] = CreateTimer(0.1, CVars_PeriodicTimer, iClient);
 		
+	char f_sLang[8];
 	GetLanguageInfo(GetClientLanguage(iClient), f_sLang, sizeof(f_sLang));
 	if (!g_hLanguages.GetValue(f_sLang, g_hCLang[iClient]))
 		g_hCLang[iClient] = g_hSLang;
@@ -403,7 +483,7 @@ public void OnClientDisconnect(iClient)
 	g_bInGame[iClient] = false;
 	g_bIsAdmin[iClient] = false;
 	g_bIsFake[iClient] = false;
-	g_iLastCheatReported[iClient] = 32;
+	g_iLastCheatReported[iClient] = -3600; // 1h
 	g_hCLang[iClient] = g_hSLang;
 	g_bShouldProcess[iClient] = false;
 	g_bHooked[iClient] = false;
@@ -451,7 +531,7 @@ public void ConVarChanged_Version(Handle hCvar, const char[] cOldValue, const ch
 
 public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_iPauseReports = GetConVarInt(g_hCVar_PauseReports);
+	g_iPauseReports = 60 * GetConVarInt(g_hCVar_PauseReports); // Mins to Seconds
 }
 
 
@@ -474,8 +554,8 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	}
  	
  	//- Vars -//
- 	char cTarget[3], cAction[8], cActionsTaken[128];
- 	GetCmdArg(1, cTarget, 3); // Max. 128 Clients, so 3 Chars
+ 	char cTarget[3], cAction[8], cActionsTaken[256];
+ 	GetCmdArg(1, cTarget, 3);
  	GetCmdArg(2, cAction, 8);
  	int iTarget = StringToInt(cTarget);
  	int iAction = StringToInt(cAction);
@@ -490,67 +570,62 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	KACR_Action(iTarget, iAction, 5, "[Debug] Kick Reason Test", "[Debug] Execution Reason Test");
  	bool bActions[KACR_Action_Count]; // TODO: Is this a correct Handover?
  	KACR_ActionCheck(iAction, bActions); // TODO: Is this a correct Handover?
- 	Format(cActionsTaken, 128, "[Debug][Kigen AC Redux] Applied the following Action on '%L' : ", iTarget);
+ 	Format(cActionsTaken, sizeof(cActionsTaken), "[Debug][Kigen AC Redux] Applied the following Action on '%N': ", iTarget);
  	
  	//- Reply Back with Actions taken -//
  	if (bActions[KACR_ActionID_Ban])
- 		StrCat(cActionsTaken, 128, "Ban, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Ban, ");
  		
  	if (bActions[KACR_ActionID_TimeBan])
- 		StrCat(cActionsTaken, 128, "Time Ban, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Time Ban, ");
  		
  	if (bActions[KACR_ActionID_ServerBan])
- 		StrCat(cActionsTaken, 128, "Server Ban, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Server Ban, ");
  		
  	if (bActions[KACR_ActionID_ServerTimeBan])
- 		StrCat(cActionsTaken, 128, "Server Time Ban, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Server Time Ban, ");
  		
  	if (bActions[KACR_ActionID_Kick])
- 		StrCat(cActionsTaken, 128, "Kick, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Kick, ");
  		
  	if (bActions[KACR_ActionID_Crash])
- 		StrCat(cActionsTaken, 128, "Crash, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Crash, ");
  		
  	if (bActions[KACR_ActionID_ReportSB])
- 		StrCat(cActionsTaken, 128, "Reported to SB, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Reported to SB, ");
  		
  	if (bActions[KACR_ActionID_ReportAdmins])
- 		StrCat(cActionsTaken, 128, "Reported to Admins, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Reported to Admins, ");
  		
  	if (bActions[KACR_ActionID_ReportSteamAdmins])
- 		StrCat(cActionsTaken, 128, "Reported to Steam Admins, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Reported to Steam Admins, ");
  		
  	if (bActions[KACR_ActionID_AskSteamAdmin])
- 		StrCat(cActionsTaken, 128, "Asked Steam Admin(s) what todo, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Asked Steam Admin(s) what todo, ");
  		
  	if (bActions[KACR_ActionID_Log])
- 		StrCat(cActionsTaken, 128, "Logged Actions, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Logged Actions, ");
  		
  	if (bActions[KACR_ActionID_ReportIRC])
- 		StrCat(cActionsTaken, 128, "Reported to IRC, ");
+ 		StrCat(cActionsTaken, sizeof(cActionsTaken), "Reported to IRC, ");
  		
- 	String_Trim(cActionsTaken, cActionsTaken, 128, ", ");
+ 	String_Trim(cActionsTaken, cActionsTaken, sizeof(cActionsTaken), ", ");
  	ReplyToCommand(iCallingClient, cActionsTaken);
  	
  	return Plugin_Handled;
  }
 #endif
 
-/*BUG TODO
-L 07/19/2020 - 21:48:06: [SM] Exception reported: Array index out-of-bounds (index 66, limit 66)
-L 07/19/2020 - 21:48:06: [SM] Blaming: kigen-ac_redux.smx
-L 07/19/2020 - 21:48:06: [SM] Call stack trace:
-L 07/19/2020 - 21:48:06: [SM] [1] Line 556, kigen-ac_redux.sp::Debug_Arrays_CMD
-*/
 
+// TODO: BUG: last reported isent correct
 #if defined DEBUG
  Action Debug_Arrays_CMD(const iCallingClient, const iArgs) // This is ugly, but it does the Job
  {
- 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Printing some Array/Map Entrys raw:");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Printing some Array/DataMap Entrys raw:");
  	//
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Connected Players");
  	for (int iClient = 1; iClient <= MaxClients; iClient++)
- 		ReplyToCommand(iCallingClient, "%N is %s", iClient, g_bConnected[iClient] ? "connected" : "not connected");
+ 		ReplyToCommand(iCallingClient, "%i is %s", iClient, g_bConnected[iClient] ? "connected" : "not connected");
  	//
  	ReplyToCommand(iCallingClient, "--------------------");
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Authorized Players");
@@ -571,16 +646,16 @@ L 07/19/2020 - 21:48:06: [SM] [1] Line 556, kigen-ac_redux.sp::Debug_Arrays_CMD
  			ReplyToCommand(iCallingClient, "%N is%s", iClient, g_bIsAdmin[iClient] ? " an Admin" : "n't an Admin");
  	//
  	ReplyToCommand(iCallingClient, "--------------------");
- 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Last Time the Player was Reported");
- 	for (int iClient = 1; iClient <= MaxClients; iClient++)
- 		if(g_bAuthorized[iClient])
- 			ReplyToCommand(iCallingClient, "%N was last reported %i min. ago", iClient, g_iLastCheatReported[iClient]);
- 	//
- 	ReplyToCommand(iCallingClient, "--------------------");
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Process by the Eyecheck?");
  	for (int iClient = 1; iClient <= MaxClients; iClient++)
  		if(g_bAuthorized[iClient])
  			ReplyToCommand(iCallingClient, "%N should %s by the Eyecheck", iClient, g_bShouldProcess[iClient] ? "be proceeded" : "not be proceeded");
+ 	//
+ 	ReplyToCommand(iCallingClient, "--------------------");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Last Time Players where Reported");
+ 	for (int iClient = 1; iClient <= MaxClients; iClient++)
+ 		if(g_bAuthorized[iClient])
+ 			ReplyToCommand(iCallingClient, "%N was last reported %i Seconds ago", iClient, (RoundToNearest(GetTickedTime()) - g_iLastCheatReported[iClient]));
  			
  	return Plugin_Handled;
  }
