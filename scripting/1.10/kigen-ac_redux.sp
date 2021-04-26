@@ -1,5 +1,6 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
 // This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// All Changes to the original Code are licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
 
 
 //- Compiler Settings -//
@@ -16,13 +17,13 @@
 #undef REQUIRE_EXTENSIONS 
 #include <sdkhooks>
 #define REQUIRE_EXTENSIONS
-// #include <socket> // Required for the networking Module
 #include <smlib_kacr> // Copyright (C) SMLIB Contributors // This Include is licensed under GPLv3, see 'Licenses/License_SMLIB.txt' for Details
 #include <autoexecconfig_kacr> // Copyright (C) 2013-2017 Impact // This Include is licensed under GPLv3, see 'Licenses/License_AutoExecConfig.txt' for Details
 #include <kvizzle> // No Copyright Information found, developed by F2 > https://forums.alliedmods.net/member.php?u=48818
 #undef REQUIRE_PLUGIN
 #include <updater_kacr> // No Copyright Information found, developed by God-Tony > https://forums.alliedmods.net/member.php?u=6136
-#include <ASteambot> // Copyright (c) ASteamBot Contributors // This Include is licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details
+#include <ASteambot> // Copyright (C) ASteamBot Contributors // This Include is licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details
+#include <sourceirc> // Copyright (C) Azelphur and SourceIRC Contributers // This Include is licensed under GPLv3, see 'Licenses/License_SourceIRC.txt' for Details
 #define REQUIRE_PLUGIN
 
 
@@ -99,11 +100,11 @@ StringMap g_hCLang[MAXPLAYERS + 1];
 StringMap g_hSLang, g_hDenyArray;
 
 int g_iLastCheatReported[MAXPLAYERS + 1] = -3600; // This is for per Frame/Timed AC Checks, we do not want to spam the Log nor the Admins with Reports, so we save the last Time Someone was reported. We do set this to -3600 (1h), so the Time Check works properly even if the Server just has started #ref 395723
-int g_iPauseReports; // // Wait this long till we report/log a Client again
+int g_iPauseReports; // Wait this long till we report/log a Client again
 
 // Its more Resource efficient to store the data instead of grabbing it over and over again
 bool g_bConnected[MAXPLAYERS + 1], g_bAuthorized[MAXPLAYERS + 1], g_bInGame[MAXPLAYERS + 1], g_bIsAdmin[MAXPLAYERS + 1], g_bIsFake[MAXPLAYERS + 1];
-bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bMapStarted;
+bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bSourceIRC, g_bMapStarted;
 
 public Plugin myinfo = 
 {
@@ -123,8 +124,10 @@ public Plugin myinfo =
 #include "kigen-ac_redux/cvars.sp"			// CVar Module
 #include "kigen-ac_redux/eyetest.sp"		// Eye Test Module
 #include "kigen-ac_redux/rcon.sp"			// RCON Module
+#include "kigen-ac_redux/security.sp"		// Server Security Module
 #include "kigen-ac_redux/status.sp"			// Status Module
 #include "kigen-ac_redux/stocks.sp"			// Stocks Module
+
 
 //- Plugin, Native Config Functions -//
 
@@ -152,9 +155,6 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] cError, iMaxSize
 
 public void OnPluginStart()
 {
-	if (GetMaxEntities() > MAX_ENTITIES) // I know this is a bit overkill, still we want to be on the safe Side // AskPluginLoad may be called before Mapstart, so we check this once we do load
-		KACR_Log(true, "[Critical] The Server has more Entitys available then the Plugin can handle, Report this Error immediately")
-		
 	g_hDenyArray = new StringMap();
 	g_hGame = GetEngineVersion(); // Identify the game
 	
@@ -162,6 +162,7 @@ public void OnPluginStart()
 	
 	//- Module Calls -//
 	Status_OnPluginStart();
+	Security_OnPluginStart();
 	Client_OnPluginStart();
 	Commands_OnPluginStart();
 	CVars_OnPluginStart();
@@ -188,13 +189,13 @@ public void OnPluginStart()
 	HookConVarChange(g_hCVar_Version, ConVarChanged_Version); // Made, so no one touches the Version
 	HookConVarChange(g_hCVar_PauseReports, ConVarChanged_PauseReports);
 	
-	KACR_PrintToServer(KACR_LOADED);
+	KACR_PrintTranslatedToServer(KACR_LOADED);
 	
 	#if defined DEBUG
 	 KACR_Log(false, "[Warning] You are running an early Version of Kigen AC Redux, please be aware that it may not run stable");
 	 
-	 RegAdminCmd("kacr_debug_action", Debug_Action_Cmd, ADMFLAG_ROOT, "Do not use unless told to. Usage: kacr_debug_action <Client ID> <Action ID>");
-	 RegAdminCmd("kacr_debug_arrays", Debug_Arrays_CMD, ADMFLAG_ROOT, "Do not use unless told to. Prints some internal Arrays and DataMaps"); 
+	 RegAdminCmd("kacr_debug_action", Debug_Action_Cmd, ADMFLAG_ROOT, "For debugging purposes only! Usage: kacr_debug_action <Client ID> <Action ID>");
+	 RegAdminCmd("kacr_debug_arrays", Debug_Arrays_CMD, ADMFLAG_ROOT, "For debugging purposes only! Prints some internal Arrays and DataMaps"); 
 	#endif
 }
 
@@ -206,6 +207,9 @@ public void OnPluginEnd()
 	
 	if (g_bASteambot)
 		ASteambot_RemoveModule();
+		
+	if (g_bSourceIRC)
+		IRC_CleanUp();
 		
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
@@ -225,6 +229,12 @@ public void OnPluginEnd()
 	
 	if (g_hClearTimer != INVALID_HANDLE)
 		CloseHandle(g_hClearTimer);
+}
+
+public void OnGameFrame()
+{
+	Security_OnGameFrame();
+	Eyetest_OnGameFrame();
 }
 
 public void OnAllPluginsLoaded()
@@ -254,6 +264,9 @@ public void OnAllPluginsLoaded()
 		g_bASteambot = true;
 	}
 	
+	if (LibraryExists("sourceirc"))
+		g_bSourceIRC = true;
+		
 	//- Module Calls -//
 	Commands_OnAllPluginsLoaded();
 	
@@ -277,18 +290,9 @@ public void OnAllPluginsLoaded()
 	}
 }
 
-public void OnConfigsExecuted() // TODO: Make this Part bigger // This dosent belong into cvars because that is for client vars only // TODO: Move sv_cheats to here
+public void OnConfigsExecuted()
 {
-	//- Prevent Speeds -//
-	Handle hVar1 = FindConVar("sv_max_usercmd_future_ticks"); // Prevent Speedhacks
-	if (hVar1) // != INVALID_HANDLE
-	{
-		if (GetConVarInt(hVar1) > 8)// The Value of 1 is outdated, CSS and CSGO do have 8 as default Value - 5.20 // (GetConVarInt(hVar1) != 1) // TODO: Replace with 'hVar1.IntValue != 1' once we dropped legacy Support
-		{
-			KACR_Log(false, "[Warning] 'sv_max_usercmd_future_ticks' was set to '%i' which is a risky Value, re-setting it to its default '8'", GetConVarInt(hVar1)); // TODO: Replace with 'hVar1.IntValue' once we dropped legacy Support
-			SetConVarInt(hVar1, 8); // TODO: Replace with 'hVar1.SetInt(...)' once we dropped legacy Support
-		}
-	}
+	Security_OnConfigsExecuted();
 }
 
 public void OnLibraryAdded(const char[] cName)
@@ -313,6 +317,9 @@ public void OnLibraryAdded(const char[] cName)
 		g_bASteambot = true;
 	}
 	
+	else if (StrEqual(cName, "sourceirc", false))
+		g_bSourceIRC = true;
+		
 	#if !defined DEBUG
 	 else if (LibraryExists("updater"))
 	 	Updater_AddPlugin(UPDATE_URL);
@@ -330,6 +337,12 @@ public void OnLibraryRemoved(const char[] cName)
 		
 	else if (StrEqual(cName, "ASteambot", false))
 		g_bASteambot = false;
+		
+	else if (StrEqual(cName, "sourceirc", false))
+	{
+		g_bSourceIRC = false;
+		IRC_CleanUp();
+	}
 }
 
 
@@ -386,7 +399,7 @@ public Updater_OnPluginUpdated() // TODO: Report to Admins once the Translations
 }
 
 
-//- Map Functions -//
+//- Map/Entity Hooks -//
 
 public void OnMapStart()
 {
@@ -398,6 +411,12 @@ public void OnMapEnd()
 {
 	g_bMapStarted = false;
 	Client_OnMapEnd();
+}
+
+public void OnEntityCreated(int iEntity, const char[] cClassname)
+{
+	Eyetest_OnEntityCreated(iEntity, cClassname);
+	Security_OnEntityCreated(iEntity, cClassname);
 }
 
 
@@ -521,7 +540,7 @@ public Action KACR_ClearTimer(Handle hTimer)
 }
 
 
-//- ConVar Hook -//
+//- ConVar Hooks -//
 
 public void ConVarChanged_Version(Handle hCvar, const char[] cOldValue, const char[] cNewValue)
 {

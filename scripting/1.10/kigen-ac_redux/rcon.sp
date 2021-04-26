@@ -1,6 +1,9 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
-// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// All Changes to the original Code are licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
 
+
+//- Global Variables -//
 
 Handle g_hCVar_RCON_CrashPrevent;
 bool g_bRCONPreventEnabled;
@@ -33,7 +36,7 @@ public void RCON_OnPluginStart()
 }
 
 
-//- Hooks -//
+//- ConVar Hooks -//
 
 public void ConVarChanged_RCON_CrashPrevent(Handle convar, const char[] oldValue, const char[] newValue)
 {

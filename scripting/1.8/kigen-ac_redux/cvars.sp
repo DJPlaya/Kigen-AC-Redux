@@ -1,5 +1,6 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
-// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// All Changes to the original Code are licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
 
 
 // Array Index Documentation
@@ -14,7 +15,7 @@
 // 8. Was Changed - Defines if this CVar was changed recently.
 
 
-//- Global CVARS Defines -//
+//- Defines -//
 
 #define CELL_NAME 0
 #define CELL_COMPTYPE 1
@@ -43,7 +44,7 @@
 #define PRIORITY_MEDIUM 1
 #define PRIORITY_HIGH 3
 
-//- Global CVARS Variables -//
+//- Global Variables -//
 
 Handle g_hCVar_CVars_Enable, g_hConVarArray;
 Handle g_hCurrentQuery[MAXPLAYERS + 1], g_hReplyTimer[MAXPLAYERS + 1], g_hPeriodicTimer[MAXPLAYERS + 1];
@@ -263,7 +264,7 @@ public Action CVars_CmdAddCVar(client, args)
 {
 	if (args != 4 && args != 5)
 	{
-		KACR_ReplyToCommand(client, KACR_ADDCVARUSAGE);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCVARUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -292,13 +293,13 @@ public Action CVars_CmdAddCVar(client, args)
 		
 	else
 	{
-		KACR_ReplyToCommand(client, KACR_ADDCVARBADCOMP, f_sTemp);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCVARBADCOMP, f_sTemp);
 		return Plugin_Handled;
 	}
 	
 	if (iCompType == COMP_BOUND && args < 5)
 	{
-		KACR_ReplyToCommand(client, KACR_ADDCVARBADBOUND);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCVARBADBOUND);
 		return Plugin_Handled;
 	}
 	
@@ -321,7 +322,7 @@ public Action CVars_CmdAddCVar(client, args)
 		
 	else
 	{
-		KACR_ReplyToCommand(client, KACR_ADDCVARBADACT, f_sTemp);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCVARBADACT, f_sTemp);
 		return Plugin_Handled;
 	}
 	
@@ -341,11 +342,11 @@ public Action CVars_CmdAddCVar(client, args)
 			KACR_Log(false, "'%L'<%s> added Convar %s to the Check List", client, cIP, cCVarName);
 		}
 		
-		KACR_ReplyToCommand(client, KACR_ADDCVARSUCCESS, cCVarName);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCVARSUCCESS, cCVarName);
 	}
 	
 	else
-		KACR_ReplyToCommand(client, KACR_ADDCVARFAILED, cCVarName);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCVARFAILED, cCVarName);
 		
 	return Plugin_Handled;
 }
@@ -354,7 +355,7 @@ public Action CVars_CmdRemCVar(iClient, args)
 {
 	if (args != 1)
 	{
-		KACR_ReplyToCommand(iClient, KACR_REMCVARUSAGE);
+		KACR_ReplyTranslatedToCommand(iClient, KACR_REMCVARUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -374,11 +375,11 @@ public Action CVars_CmdRemCVar(iClient, args)
 		else
 			KACR_Log(false, "The Console removed Convar %s from the Check List.", cCVarName);
 			
-		KACR_ReplyToCommand(iClient, KACR_REMCVARSUCCESS, cCVarName);
+		KACR_ReplyTranslatedToCommand(iClient, KACR_REMCVARSUCCESS, cCVarName);
 	}
 	
 	else
-		KACR_ReplyToCommand(iClient, KACR_REMCVARFAILED, cCVarName);
+		KACR_ReplyTranslatedToCommand(iClient, KACR_REMCVARFAILED, cCVarName);
 		
 	return Plugin_Handled;
 }
@@ -577,7 +578,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 			switch (iAction)
 			{
 				case ACTION_WARN:
-					KACR_PrintToChatAdmins(KACR_HASPLUGIN, client, cIP, cCVarName);
+					KACR_PrintTranslatedToChatAdmins(KACR_HASPLUGIN, client, cIP, cCVarName);
 					
 				case ACTION_MOTD:
 				{
@@ -587,7 +588,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				
 				case ACTION_MUTE:
 				{
-					KACR_PrintToChatAll(KACR_MUTED, client);
+					KACR_PrintTranslatedToChatAll(KACR_MUTED, client);
 					ServerCommand("sm_mute #%d", GetClientUserId(client));
 				}
 				
@@ -662,7 +663,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, cIP, cCVarName, cvarValue, cValue);
+						KACR_PrintTranslatedToChatAdmins(KACR_HASNOTEQUAL, client, cIP, cCVarName, cvarValue, cValue);
 						
 					case ACTION_MOTD:
 					{
@@ -672,7 +673,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_MUTE:
 					{
-						KACR_PrintToChatAll(KACR_MUTED, client);
+						KACR_PrintTranslatedToChatAll(KACR_MUTED, client);
 						ServerCommand("sm_mute #%d", GetClientUserId(client));
 					}
 					
@@ -701,7 +702,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTGREATER, client, cIP, cCVarName, cvarValue, cValue);
+						KACR_PrintTranslatedToChatAdmins(KACR_HASNOTGREATER, client, cIP, cCVarName, cvarValue, cValue);
 						
 					case ACTION_MOTD:
 					{
@@ -711,7 +712,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_MUTE:
 					{
-						KACR_PrintToChatAll(KACR_MUTED, client);
+						KACR_PrintTranslatedToChatAll(KACR_MUTED, client);
 						ServerCommand("sm_mute #%d", GetClientUserId(client));
 					}
 					
@@ -740,7 +741,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTLESS, client, cIP, cCVarName, cvarValue, cValue);
+						KACR_PrintTranslatedToChatAdmins(KACR_HASNOTLESS, client, cIP, cCVarName, cvarValue, cValue);
 						
 					case ACTION_MOTD:
 					{
@@ -750,7 +751,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_MUTE:
 					{
-						KACR_PrintToChatAll(KACR_MUTED, client);
+						KACR_PrintTranslatedToChatAll(KACR_MUTED, client);
 						ServerCommand("sm_mute #%d", GetClientUserId(client));
 					}
 					
@@ -779,7 +780,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTBOUND, client, cIP, cCVarName, cvarValue, cValue, fValue2);
+						KACR_PrintTranslatedToChatAdmins(KACR_HASNOTBOUND, client, cIP, cCVarName, cvarValue, cValue, fValue2);
 						
 					case ACTION_MOTD:
 					{
@@ -789,7 +790,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_MUTE:
 					{
-						KACR_PrintToChatAll(KACR_MUTED, client);
+						KACR_PrintTranslatedToChatAll(KACR_MUTED, client);
 						ServerCommand("sm_mute #%d", GetClientUserId(client));
 					}
 					
@@ -818,7 +819,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 				switch (iAction)
 				{
 					case ACTION_WARN:
-						KACR_PrintToChatAdmins(KACR_HASNOTEQUAL, client, cIP, cCVarName, cvarValue, cValue);
+						KACR_PrintTranslatedToChatAdmins(KACR_HASNOTEQUAL, client, cIP, cCVarName, cvarValue, cValue);
 						
 					case ACTION_MOTD:
 					{
@@ -828,7 +829,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 					
 					case ACTION_MUTE:
 					{
-						KACR_PrintToChatAll(KACR_MUTED, client);
+						KACR_PrintTranslatedToChatAll(KACR_MUTED, client);
 						ServerCommand("sm_mute #%d", GetClientUserId(client));
 					}
 					
@@ -856,7 +857,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 }
 
 
-//- Hook -//
+//- ConVar Hooks -//
 
 public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] newvalue)
 {

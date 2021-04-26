@@ -1,18 +1,9 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
-// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// All Changes to the original Code are licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
 
 
-/*
-* Makes an String Lowercase
-* 
-* @param cText	String to Convert.
-*/
-StringToLower(char[] cText)
-{
-	int iSize = strlen(cText);
-	for (int i = 0; i < iSize; i++)
-		cText[i] = CharToLower(cText[i]);
-}
+//- Translation Stocks -//
 
 /*
 * Translates an String depending on the Clients Region
@@ -38,7 +29,7 @@ KACR_Translate(const iClient, const char[] cTranslation, char[] cDestination, co
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-KACR_ReplyToCommand(const iClient, const char[] cTranslation, any ...)
+KACR_ReplyTranslatedToCommand(const iClient, const char[] cTranslation, any ...)
 {
 	char cBuffer[256], cFormat[256];
 	
@@ -58,7 +49,7 @@ KACR_ReplyToCommand(const iClient, const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-KACR_PrintToServer(const char[] cTranslation, any ...)
+KACR_PrintTranslatedToServer(const char[] cTranslation, any ...)
 {
 	char cBuffer[256], cFormat[256];
 	g_hSLang.GetString(cTranslation, cFormat, sizeof(cFormat));
@@ -73,7 +64,7 @@ KACR_PrintToServer(const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-stock KACR_PrintToChat(const iClient, const char[] cTranslation, any ...) // Currently unused
+stock KACR_PrintTranslatedToChat(const iClient, const char[] cTranslation, any ...) // Currently unused
 {
 	char cBuffer[256], cFormat[256];
 	g_hCLang[iClient].GetString(cTranslation, cFormat, sizeof(cFormat));
@@ -87,7 +78,7 @@ stock KACR_PrintToChat(const iClient, const char[] cTranslation, any ...) // Cur
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-KACR_PrintToChatAdmins(const char[] cTranslation, any ...)
+KACR_PrintTranslatedToChatAdmins(const char[] cTranslation, any ...)
 {
 	char cBuffer[256], cFormat[256];
 	for (int i = 1; i <= MaxClients; i++)
@@ -107,7 +98,7 @@ KACR_PrintToChatAdmins(const char[] cTranslation, any ...)
 * @param cTranslation	The Name of the Translation.
 * @param ...			Variable number of format parameters.
 */
-KACR_PrintToChatAll(const char[] cTranslation, any ...)
+KACR_PrintTranslatedToChatAll(const char[] cTranslation, any ...)
 {
 	char cBuffer[256], cFormat[256];
 	for (int i = 1; i <= MaxClients; i++)
@@ -119,63 +110,6 @@ KACR_PrintToChatAll(const char[] cTranslation, any ...)
 			PrintToChat(i, "[Kigen-AC_Redux] %s", cBuffer);
 		}
 	}
-}
-
-/*
-* Sends an Message to an Admin on Steam
-* You should check 'g_bASteambot' and 'ASteambot_IsConnected' before calling this
-* Use \n for splitting Messages with 1,3s Delay between the Parts (usefull to prevent getting blocked from Steam when spamming Stuff)
-* 
-* @param cText		Message to send (Max 900 Chars).
-* @param ...		Variable number of format parameters.
-*/
-KACR_PrintToSteamAdmins(const char[] cText, any ...)
-{
-	char[] cAdmin = "STEAM_ID_PENDING"; // Targeted Steam Admin AuthId_Steam2.
-	
-	char cBuffer[256], cFormat[256];
-	VFormat(cBuffer, sizeof(cBuffer), cText, 3);
-	Format(cFormat, sizeof(cFormat), "%s/%s", cAdmin, cBuffer); // TODO: Let the User Configure multiply Steam Users in one Var
-	ASteambot_SendMessage(AS_SIMPLE, cFormat);
-}
-
-/*TODO: Change this in a future Version #26
-* Logs an Message to a specific File and can Set the Plugin to failed
-* 
-* @param iType	Which Type of Message to log/which File to log to (0 = Errors and System Messages, 1 = Suspicions, 2 = Detected Violations, 3 = Actions Taken)
-* @param bBreak	Set the Plugins State to failed.
-* @param cText	Message to log.
-* @param ...	Variable number of format parameters.
-*/
-/*stock KACR_Log(const iType, const bool bBreak, const char[] cText, any ...)
-{
-	char cBuffer[256], cPath[256];
-	VFormat(cBuffer, sizeof(cBuffer), cText, 4);
-	BuildPath(Path_SM, cPath, sizeof(cPath), "logs/KACR.log");
-	LogMessage(cBuffer); // Log to SM Log
-	LogToFileEx(cPath, "%s", cBuffer); // Log to KACR.log
-	
-	if (bBreak)
-		SetFailState(cBuffer); // Break
-}*/
-
-/*
-* Logs an Error Message
-* 
-* @param bBreak	Set the Plugins State to failed.
-* @param cText	Message to log.
-* @param ...	Variable number of format parameters.
-*/
-KACR_Log(const bool bBreak, const char[] cText, any ...)
-{
-	char cBuffer[256], cPath[256];
-	VFormat(cBuffer, sizeof(cBuffer), cText, 3);
-	BuildPath(Path_SM, cPath, sizeof(cPath), "logs/KACR.log");
-	LogMessage(cBuffer); // Log to SM Log
-	LogToFileEx(cPath, "%s", cBuffer); // Log to KACR.log
-	
-	if (bBreak)
-		SetFailState(cBuffer); // Break
 }
 
 /*
@@ -228,16 +162,61 @@ KACR_Ban(const iClient, iTime, const char[] cTranslation, const char[] cReason, 
 }
 
 
-//- Action System -//
+//- Stocks-//
 
 /*
-	//i (index of something) / 2 ^ N = FloatMod(Sqr(i != 0.0), 0) (A php thingy 'll get on that later)
-	
-	float FloatMod(float num, float denom)
-	{
-	    return num - denom * RoundToFloor(num / denom);
-	}
+* Makes an String Lowercase
+* 
+* @param cText	String to Convert.
 */
+StringToLower(char[] cText)
+{
+	int iSize = strlen(cText);
+	for (int i = 0; i < iSize; i++)
+		cText[i] = CharToLower(cText[i]);
+}
+
+/*TODO: Change this in a future Version #26
+* Logs an Message to a specific File and can Set the Plugin to failed
+* 
+* @param iType	Which Type of Message to log/which File to log to (0 = Errors and System Messages, 1 = Suspicions, 2 = Detected Violations, 3 = Actions Taken)
+* @param bBreak	Set the Plugins State to failed.
+* @param cText	Message to log.
+* @param ...	Variable number of format parameters.
+*/
+/*stock KACR_Log(const iType, const bool bBreak, const char[] cText, any ...)
+{
+	char cBuffer[256], cPath[256];
+	VFormat(cBuffer, sizeof(cBuffer), cText, 4);
+	BuildPath(Path_SM, cPath, sizeof(cPath), "logs/KACR.log");
+	LogMessage(cBuffer); // Log to SM Log
+	LogToFileEx(cPath, "%s", cBuffer); // Log to KACR.log
+	
+	if (bBreak)
+		SetFailState(cBuffer); // Break
+}*/
+
+/*
+* Logs an Error Message
+* 
+* @param bBreak	Set the Plugins State to failed.
+* @param cText	Message to log.
+* @param ...	Variable number of format parameters.
+*/
+KACR_Log(const bool bBreak, const char[] cText, any ...)
+{
+	char cBuffer[256], cPath[256];
+	VFormat(cBuffer, sizeof(cBuffer), cText, 3);
+	BuildPath(Path_SM, cPath, sizeof(cPath), "logs/KACR.log");
+	LogMessage(cBuffer); // Log to SM Log
+	LogToFileEx(cPath, "%s", cBuffer); // Log to KACR.log
+	
+	if (bBreak)
+		SetFailState(cBuffer); // Break
+}
+
+
+//- Action System -//
 
 /*
 * Performens an specified Action
@@ -270,6 +249,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 	// TODO: Make re-runnable
 	// TODO: Use KACR_ActionCheck in here
 	// TODO: Integrate Compatibility Check for the Actions using a 2d map like the chart we have on gdrive
+	// BUG: SBPP, CallAdmin and propably others have an Reason char limit of 128, this may cause an problem
 	
 	if(iAction == 0) // 0 - Do nothing
 		return;
@@ -488,7 +468,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 							
 						else // 128 - Report to online Admins
 						{
-							// KACR_PrintToChatAdmins(###cTranslation###); // TODO: Match Reasons to find Translations
+							// KACR_PrintTranslatedToChatAdmins(###cTranslation###); // TODO: Match Reasons to find Translations
 							
 							for (int i = 1; i <= MaxClients; i++)
 								if (g_bIsAdmin[i])
@@ -523,7 +503,6 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 							KACR_PrintToSteamAdmins("[KACR] Reporting Client '%L' for doing '%s'\n[KACR] Which Action should be taken for this Client?\n[KACR] Options available:\n[KACR] 0 - Dont do anything\n[KACR] 1 - Ban (SB & SB++)\n[KACR] 2 - Time Ban (SB & SB++)\n[KACR] 4 - Server Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 16 - Kick\n[KACR] 32 - Crash Client\n[KACR] 64 - Report to SB\n[KACR] 128 - Report to online Admins\n[KACR] 256 - Tell Admins on Steam about the Violation\n[KACR] 1024 - Log to File\n[KACR] 2048 - Tell about the Violation using SourceIRC[KACR] --------------------[KACR] Enter any Number from above to call an Action\n[KACR] You can also add up the Numbers to call multiply Actions"); // I know this is ugly, but i swear, there was no other Way, \n is a line breaker
 							
 							// TODO: Ask if to display Actions
-							// TODO: Implement better with the Report/Log Spam Protection
 							// TODO: Warning, we must make this multithread! Else multiply reports could Result in the Plugin going weird
 						}
 						
@@ -638,67 +617,26 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			
 		else // 2048 - Tell about the Violation using SourceIRC
 		{
+			if (g_bSourceIRC)
+				IRC_MsgFlaggedChannels("kacr_reports", "[KACR] Reporting Client '%L' for doing '%s'", iClient, cReason2); // Flag: kacr_reports
+				
+			else
+				KACR_Log(false, "[Error] Tried to Report an Player to SourceIRC but it isent installed");
+				
 			iActionCheck -= KACR_Action_ReportIRC;
 		}
-	}
-}
-
-/*
-* Lets a Client Crash, this Exploit requires Menus and UserMessages, currently only proved to work in CSGO (12.6.2020)
-* If the Exploit fails, it will kick the Player instead
-*/
-Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is marked as unused, and thats true, but compressing the warning... nah
-{
-	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
-	char cReason[256];
-	int iClient;
-	
-	ReadPackString(hData, cReason, sizeof(cReason)); // hData.ReadString(cReason, sizeof(cReason) // TODO: Replace once we dropped legacy support
-	view_as<float>(iClient) = ReadPackFloat(hData); // view_as<float>(iClient) = ReadFloat(hData) // TODO: Replace once we dropped legacy support
-	
-	//- Crash Client -//
-	Handle hSayText = StartMessageOne("SayText2", iClient);
-	
-	if(hSayText != null)
-	{
-		PbSetInt(hSayText, "ent_idx", iClient);
-		PbSetBool(hSayText, "chat", true);
-		PbSetString(hSayText, "msg_name", "a");
-		EndMessage();
-	}
-	
-	//- Error Check -//
-	DataPack hData2 = new DataPack();
-	CreateTimer(5.0 + GetTickInterval(), CrashClient_ErrorCheck, hData2, TIMER_FLAG_NO_MAPCHANGE); // TODO:BUG?: Are 5S(+ a Frame) enought, it seems to be fine in CSGO?
-	hData2.WriteString(cReason);
-	hData2.WriteFloat(view_as<float>(iClient));
-}
-
-Action CrashClient_ErrorCheck(Handle hTimer, DataPack hData) // BUG: hTimer is marked as unused, and thats true, but compressing the warning... nah
-{
-	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
-	char cReason[256];
-	int iClient;
-	
-	hData.ReadString(cReason, sizeof(cReason));
-	view_as<float>(iClient) = ReadPackFloat(hData); //view_as<float>(iClient) = ReadFloat(hData); // TODO: Replace once we dropped legacy support
-	hData.Close();
-	
-	if(g_bConnected[iClient])
-	{
-		if(KickClient(iClient, "%s", cReason))
-			KACR_Log(false, "[Warning] Failed to crash Client '%L', he was kicked instead", iClient);
-			// TODO: Report back #27
-			
-		else
-			KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him before dident worked too! Report this Error to get it fixed", iClient);
-			// TODO: Report back #27
-	}
-	
-	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO, BUG: Does the 1 Frame Delay will cause problems with our disconnect Functions?
-		OnClientDisconnect(iClient); // Needed, will be executed in the main File
 		
-	// BUG:TODO: Both Handles arent closed yet!!!
+		/*else // 4096 - Ask on an IRC Channel for Advice
+		{
+			IRC_MsgFlaggedChannels("kacr_advice", const String:format[], any:...); // Flag: kacr_advice
+		}*/
+		
+		/*else // 8192 - Report using CallAdmin
+		{
+			if(g_bCallAdmin)
+				CallAdmin_ReportClient(REPORTER_CONSOLE, iClient, cReason2);
+		}*/
+	}
 }
 
 /*
@@ -800,6 +738,29 @@ void KACR_ActionCheck(iAction, bool bActions[KACR_Action_Count]) // I wish i wou
 		}
 	}
 	
+	/* TODO: Needs to be integrated into SP
+	int sumx = iValue - 2 ** power; // sumx = iValue - pow(2, power);
+	
+	while ((sumx != 0) && (power > 1) && (iValue > 1))
+	
+	do
+	{
+		sumx = iValue - 2 ** power;
+		if (sumx >= 0)
+		{
+			bActions[power] = true; // checklist.append(power);
+			iValue = iValue - 2 ** power;
+			power = power - 1;
+		}
+		
+		if (sumx < 0)
+			power = power -1;
+	}
+	
+	if (iValue)
+		bActions[1] = true; // checklist.append(1);
+	*/
+	
 	/* TODO: BUG: Needs to be reworked. 1 = 1,2,,4,8,16,32,64,128 | 2 = X | 3 = 512 | 4 = X | 5 = X | 6 = 1024
 	int iCount = KACR_Action_Count - 1, iCheckValue = 1 ^ (KACR_Action_Count - 1); // Start with the highest Value
 	
@@ -814,4 +775,80 @@ void KACR_ActionCheck(iAction, bool bActions[KACR_Action_Count]) // I wish i wou
 		iCheckValue = iCheckValue / 2;
 		iCount--;
 	}*/
+}
+
+/*
+* Lets a Client Crash, this Exploit requires UserMessages, currently only proved to work in CSGO (12.6.2020)
+* If the Exploit fails, it will kick the Player instead
+*/
+Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is marked as unused, and thats true, but compressing the warning... nah
+{
+	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
+	char cReason[256];
+	int iClient;
+	
+	ReadPackString(hData, cReason, sizeof(cReason)); // hData.ReadString(cReason, sizeof(cReason) // TODO: Replace once we dropped legacy support
+	view_as<float>(iClient) = ReadPackFloat(hData); // view_as<float>(iClient) = ReadFloat(hData) // TODO: Replace once we dropped legacy support
+	
+	//- Crash Client -//
+	Handle hSayText = StartMessageOne("SayText2", iClient);
+	
+	if(hSayText != null)
+	{
+		PbSetInt(hSayText, "ent_idx", iClient);
+		PbSetBool(hSayText, "chat", true);
+		PbSetString(hSayText, "msg_name", "a");
+		EndMessage();
+	}
+	
+	//- Error Check -//
+	DataPack hData2 = new DataPack();
+	CreateTimer(5.0 + GetTickInterval(), CrashClient_ErrorCheck, hData2, TIMER_FLAG_NO_MAPCHANGE); // TODO:BUG?: Are 5S(+ a Frame) enought, it seems to be fine in CSGO?
+	hData2.WriteString(cReason);
+	hData2.WriteFloat(view_as<float>(iClient));
+}
+
+Action CrashClient_ErrorCheck(Handle hTimer, DataPack hData) // BUG: hTimer is marked as unused, and thats true, but compressing the warning... nah
+{
+	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
+	char cReason[256];
+	int iClient;
+	
+	hData.ReadString(cReason, sizeof(cReason));
+	view_as<float>(iClient) = ReadPackFloat(hData); //view_as<float>(iClient) = ReadFloat(hData); // TODO: Replace once we dropped legacy support
+	hData.Close();
+	
+	if(g_bConnected[iClient])
+	{
+		if(KickClient(iClient, "%s", cReason))
+			KACR_Log(false, "[Warning] Failed to crash Client '%L', he was kicked instead", iClient);
+			// TODO: Report back #27
+			
+		else
+			KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him before dident worked too! Report this Error to get it fixed", iClient);
+			// TODO: Report back #27
+	}
+	
+	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO, BUG: Does the 1 Frame Delay will cause problems with our disconnect Functions?
+		OnClientDisconnect(iClient); // Needed, will be executed in the main File
+		
+	// BUG:TODO: Both Handles arent closed yet!!!
+}
+
+/*
+* Sends an Message to an Admin on Steam
+* You should check 'g_bASteambot' and 'ASteambot_IsConnected' before calling this
+* Use \n for splitting Messages with 1,3s Delay between the Parts (usefull to prevent getting blocked from Steam when spamming Stuff)
+* 
+* @param cText		Message to send (Max 900 Chars).
+* @param ...		Variable number of format parameters.
+*/
+KACR_PrintToSteamAdmins(const char[] cText, any ...)
+{
+	char[] cAdmin = "STEAM_ID_PENDING"; // Targeted Steam Admin AuthId_Steam2.
+	
+	char cBuffer[256], cFormat[256];
+	VFormat(cBuffer, sizeof(cBuffer), cText, 3);
+	Format(cFormat, sizeof(cFormat), "%s/%s", cAdmin, cBuffer); // TODO: Let the User Configure multiply Steam Users in one Var
+	ASteambot_SendMessage(AS_SIMPLE, cFormat);
 }

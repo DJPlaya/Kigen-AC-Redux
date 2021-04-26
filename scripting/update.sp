@@ -3,7 +3,12 @@
 
 // Update Checks to be done here
 
+//- Global Variables -//
+
 int iFocus; // Who used the command?
+
+
+//- Plugin Functions -//
 
 Update_OnPluginStart()
 {

@@ -1,5 +1,7 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
-// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// All Changes to the original Code are licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
+
 
 #define NETWORK
 
@@ -95,7 +97,7 @@ public Action Network_Checked(client, args)
 {
 	if (!g_bCVarNetEnabled || !g_bCVarNetUseBanlist)
 	{
-		KACR_ReplyToCommand(client, KACR_DISABLED);
+		KACR_ReplyTranslatedToCommand(client, KACR_DISABLED);
 		return Plugin_Handled;
 	}
 	
@@ -108,14 +110,14 @@ public Action Network_Checked(client, args)
 			for (int i = 1; i <= MaxClients; i++)
 				if (g_bInGame[i] && !g_bChecked[i])
 				{
-					KACR_ReplyToCommand(client, KACR_CANNOTREVAL);
+					KACR_ReplyTranslatedToCommand(client, KACR_CANNOTREVAL);
 					return Plugin_Handled;
 				}
 				
 			for (int i = 1; i <= MaxClients; i++)
 				g_bChecked[i] = false;
 				
-			KACR_ReplyToCommand(client, KACR_FORCEDREVAL);
+			KACR_ReplyTranslatedToCommand(client, KACR_FORCEDREVAL);
 			return Plugin_Handled;
 		}
 	}

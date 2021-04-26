@@ -1,5 +1,6 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
-// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// All Changes to the original Code are licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
 
 
 //- Global Variables -//
@@ -240,7 +241,7 @@ public Action Commands_AddCmd(client, args)
 {
 	if (args != 2)
 	{
-		KACR_ReplyToCommand(client, KACR_ADDCMDUSAGE);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCMDUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -256,10 +257,10 @@ public Action Commands_AddCmd(client, args)
 		f_bBan = false;
 		
 	if (g_hBlockedCmds.SetValue(cCmdName, f_bBan))
-		KACR_ReplyToCommand(client, KACR_ADDCMDSUCCESS, cCmdName);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCMDSUCCESS, cCmdName);
 		
 	else
-		KACR_ReplyToCommand(client, KACR_ADDCMDFAILURE, cCmdName);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDCMDFAILURE, cCmdName);
 		
 	return Plugin_Handled;
 }
@@ -268,7 +269,7 @@ public Action Commands_AddIgnoreCmd(client, args)
 {
 	if (args != 1)
 	{
-		KACR_ReplyToCommand(client, KACR_ADDIGNCMDUSAGE);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDIGNCMDUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -277,10 +278,10 @@ public Action Commands_AddIgnoreCmd(client, args)
 	GetCmdArg(1, cCmdName, sizeof(cCmdName));
 	
 	if (g_hIgnoredCmds.SetValue(cCmdName, true))
-		KACR_ReplyToCommand(client, KACR_ADDIGNCMDSUCCESS, cCmdName);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDIGNCMDSUCCESS, cCmdName);
 		
 	else
-		KACR_ReplyToCommand(client, KACR_ADDIGNCMDFAILURE, cCmdName);
+		KACR_ReplyTranslatedToCommand(client, KACR_ADDIGNCMDFAILURE, cCmdName);
 		
 	return Plugin_Handled;
 }
@@ -289,7 +290,7 @@ public Action Commands_RemoveCmd(client, args)
 {
 	if (args != 1)
 	{
-		KACR_ReplyToCommand(client, KACR_REMCMDUSAGE);
+		KACR_ReplyTranslatedToCommand(client, KACR_REMCMDUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -297,10 +298,10 @@ public Action Commands_RemoveCmd(client, args)
 	GetCmdArg(1, cCmdName, sizeof(cCmdName));
 	
 	if (g_hBlockedCmds.Remove(cCmdName))
-		KACR_ReplyToCommand(client, KACR_REMCMDSUCCESS, cCmdName);
+		KACR_ReplyTranslatedToCommand(client, KACR_REMCMDSUCCESS, cCmdName);
 		
 	else
-		KACR_ReplyToCommand(client, KACR_REMCMDFAILURE, cCmdName);
+		KACR_ReplyTranslatedToCommand(client, KACR_REMCMDFAILURE, cCmdName);
 		
 	return Plugin_Handled;
 }
@@ -309,7 +310,7 @@ public Action Commands_RemoveIgnoreCmd(client, args)
 {
 	if (args != 1)
 	{
-		KACR_ReplyToCommand(client, KACR_REMIGNCMDUSAGE);
+		KACR_ReplyTranslatedToCommand(client, KACR_REMIGNCMDUSAGE);
 		return Plugin_Handled;
 	}
 	
@@ -317,10 +318,10 @@ public Action Commands_RemoveIgnoreCmd(client, args)
 	GetCmdArg(1, cCmdName, sizeof(cCmdName));
 	
 	if (g_hIgnoredCmds.Remove(cCmdName))
-		KACR_ReplyToCommand(client, KACR_REMIGNCMDSUCCESS, cCmdName);
+		KACR_ReplyTranslatedToCommand(client, KACR_REMIGNCMDSUCCESS, cCmdName);
 		
 	else
-		KACR_ReplyToCommand(client, KACR_REMIGNCMDFAILURE, cCmdName);
+		KACR_ReplyTranslatedToCommand(client, KACR_REMIGNCMDFAILURE, cCmdName);
 		
 	return Plugin_Handled;
 }
@@ -362,7 +363,7 @@ public Action Commands_FilterSay(iClient, iArgs)
 		f_cChar = f_sMsg[ig_iSongCount];
 		if (f_cChar < 32 && !IsCharMB(f_cChar))
 		{
-			KACR_ReplyToCommand(iClient, KACR_SAYBLOCK);
+			KACR_ReplyTranslatedToCommand(iClient, KACR_SAYBLOCK);
 			return Plugin_Stop;
 		}
 	}
@@ -560,7 +561,7 @@ public Action Commands_g_iSongCountReset(Handle timer, any args)
 }
 
 
-//- Hooks -//
+//- ConVar Hooks -//
 
 public void ConVarChanged_Cmds_Enable(Handle convar, const char[] oldValue, const char[] newValue)
 {

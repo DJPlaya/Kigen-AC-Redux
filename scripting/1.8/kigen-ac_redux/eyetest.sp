@@ -1,6 +1,9 @@
 // Copyright (C) 2007-2011 CodingDirect LLC
-// This File is Licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// This File is licensed under GPLv3, see 'Licenses/License_KAC.txt' for Details
+// All Changes to the original Code are licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
 
+
+//- Defines -//
 
 #define POINT_ALMOST_VISIBLE 0.75
 #define POINT_MID_VISIBLE 0.6
@@ -131,7 +134,7 @@ public Action Eyetest_Timer(Handle timer) // TODO #36: This Check is only useful
 }
 
 
-//- Hooks -//
+//- ConVar Hooks -//
 
 public void ConVarChanged_Eyetest_Enable(Handle convar, const char[] oldValue, const char[] newValue)
 {
@@ -169,8 +172,7 @@ public void ConVarChanged_Eyetest_AntiWall(Handle convar, const char[] oldValue,
 		}
 		
 		for (int i = 1; i <= MaxClients; i++)
-			if (Client_IsValid(i, true))
-				if (IsPlayerAlive(i) && !g_bHooked[i]) // We do not use the Client Arrays here since its OnPluginStart and the Players may havent been checked // TODO: is that correct?
+			if (IsClientInGame(i) && !IsFakeClient(i) && IsPlayerAlive(i) && !g_bHooked[i]) // We do not use the Client Arrays here since its OnPluginStart and the Players may havent been checked // TODO: is that correct?
 					Eyetest_Hook(i);
 					
 		Status_Report(g_iAntiWHStatus, KACR_ON);
@@ -187,6 +189,9 @@ public void ConVarChanged_Eyetest_AntiWall(Handle convar, const char[] oldValue,
 	
 	g_bAntiWall = f_bEnabled;
 }
+
+
+//- Event Hooks -//
 
 public Action Eyetest_PlayerSpawn(Handle hEvent, const char[] cName, bool bDontBroadcast)
 {
@@ -212,23 +217,24 @@ public Action Eyetest_PlayerDeath(Handle hEvent, const char[] cName, bool bDontB
 	}
 }
 
-// Weapon stuff
 
-public void OnEntityCreated(entity, const char[] cClassname)
+//- Weapon/Item Hooks -//
+
+public void Eyetest_OnEntityCreated(iEntity, const char[] cClassname)
 {
-	if (!g_bAntiWallDisabled && entity > MaxClients && entity < MAX_ENTITIES)
-		g_iWeaponOwner[entity] = 0;
+	if (!g_bAntiWallDisabled && iEntity > MaxClients && iEntity < MAX_ENTITIES)
+		g_iWeaponOwner[iEntity] = 0;
 }
 
-public void OnEntityDestroyed(entity)
+public void OnEntityDestroyed(iEntity)
 {
-	if (!g_bAntiWallDisabled && entity > MaxClients && entity < MAX_ENTITIES)
-		g_iWeaponOwner[entity] = 0;
+	if (!g_bAntiWallDisabled && iEntity > MaxClients && iEntity < MAX_ENTITIES)
+		g_iWeaponOwner[iEntity] = 0;
 }
 
-public Action Eyetest_WeaponTransmit(entity, iClient)
+public Action Eyetest_WeaponTransmit(iEntity, iClient)
 {
-	if (!g_bAntiWall || iClient < 1 || iClient > MaxClients || g_bIsVisible[g_iWeaponOwner[entity]][iClient])
+	if (!g_bAntiWall || iClient < 1 || iClient > MaxClients || g_bIsVisible[g_iWeaponOwner[iEntity]][iClient])
 		return Plugin_Continue;
 		
 	return Plugin_Stop;
@@ -253,35 +259,35 @@ public Action Eyetest_Drop(client, weapon)
 }
 
 
-// Back to it.
+//- Eyetest Checks -//
 
-public void OnGameFrame()
+public void Eyetest_OnGameFrame()
 {
-	if (!g_bAntiWall)
-		return;
-		
-	float f_vVelocity[3], f_vTempVec[3], f_fTickTime;
-	f_fTickTime = GetTickInterval() * 2; // This should solve #47 for now, we now do calculate twice of the Position, still needs to be tested: TODO BUG?
-	for (int i = 1; i <= MaxClients; i++)
+	if (g_bAntiWall)
 	{
-		if (g_bHooked[i])
+		float f_vVelocity[3], f_vTempVec[3], f_fTickTime;
+		f_fTickTime = GetTickInterval() * 2; // This should solve #47 for now, we now do calculate twice of the Position, still needs to be tested: TODO BUG?
+		for (int i = 1; i <= MaxClients; i++)
 		{
-			GetEntDataVector(i, g_iVelOff, f_vVelocity);
-			if (GetEntityFlags(i) & FL_BASEVELOCITY)
+			if (g_bHooked[i])
 			{
-				if (!Entity_IsValid(i))
+				GetEntDataVector(i, g_iVelOff, f_vVelocity);
+				if (GetEntityFlags(i) & FL_BASEVELOCITY)
 				{
-					GetEntDataVector(i, g_iBaseVelOff, f_vTempVec);
-					AddVectors(f_vVelocity, f_vTempVec, f_vVelocity);
+					if (!Entity_IsValid(i))
+					{
+						GetEntDataVector(i, g_iBaseVelOff, f_vTempVec);
+						AddVectors(f_vVelocity, f_vTempVec, f_vVelocity);
+					}
 				}
+				
+				ScaleVector(f_vVelocity, f_fTickTime);
+				GetClientEyePosition(i, f_vTempVec);
+				AddVectors(f_vTempVec, f_vVelocity, g_vClientEye[i]);
+				GetClientAbsOrigin(i, f_vTempVec);
+				AddVectors(f_vTempVec, f_vVelocity, g_vClientPos[i]);
+				ChangeEdictState(i, g_iVelOff); // Mark as changed so we cause SetTransmit to be called but we don't cause a full update.
 			}
-			
-			ScaleVector(f_vVelocity, f_fTickTime);
-			GetClientEyePosition(i, f_vTempVec);
-			AddVectors(f_vTempVec, f_vVelocity, g_vClientEye[i]);
-			GetClientAbsOrigin(i, f_vTempVec);
-			AddVectors(f_vTempVec, f_vVelocity, g_vClientPos[i]);
-			ChangeEdictState(i, g_iVelOff); // Mark as changed so we cause SetTransmit to be called but we don't cause a full update.
 		}
 	}
 }
@@ -419,41 +425,41 @@ public bool Eyetest_TraceFilter(entity, mask)
 
 //- Private Functions -//
 
-stock bool IsInRange(const float start[3], const float end[3])
+stock bool IsInRange(const float fStart[3], const float fEnd[3])
 {
-	TR_TraceRayFilter(start, end, MASK_OPAQUE, RayType_EndPoint, Eyetest_TraceFilter);
+	TR_TraceRayFilter(fStart, fEnd, MASK_OPAQUE, RayType_EndPoint, Eyetest_TraceFilter);
 	
 	return TR_GetFraction() > 0.0;
 }
 
-stock bool IsPointAlmostVisible(const float start[3], const float end[3])
+stock bool IsPointAlmostVisible(const float fStart[3], const float fEnd[3])
 {
-	TR_TraceRayFilter(start, end, MASK_OPAQUE, RayType_EndPoint, Eyetest_TraceFilter);
+	TR_TraceRayFilter(fStart, fEnd, MASK_OPAQUE, RayType_EndPoint, Eyetest_TraceFilter);
 	
 	return TR_GetFraction() > POINT_ALMOST_VISIBLE;
 }
 
-stock bool IsPointVisible(const float start[3], const float end[3])
+stock bool IsPointVisible(const float fStart[3], const float fEnd[3])
 {
-	TR_TraceRayFilter(start, end, MASK_OPAQUE, RayType_EndPoint, Eyetest_TraceFilter);
+	TR_TraceRayFilter(fStart, fEnd, MASK_OPAQUE, RayType_EndPoint, Eyetest_TraceFilter);
 	
 	return TR_GetFraction() == 1.0;
 }
 
-Eyetest_Hook(client)
+Eyetest_Hook(iClient)
 {
-	g_bHooked[client] = true;
-	SDKHook(client, SDKHook_SetTransmit, Eyetest_Transmit);
-	// SDKHook(client, SDKHook_PreThink, Eyetest_Prethink);
-	SDKHook(client, SDKHook_WeaponEquip, Eyetest_Equip);
-	SDKHook(client, SDKHook_WeaponDrop, Eyetest_Drop);
+	g_bHooked[iClient] = true;
+	SDKHook(iClient, SDKHook_SetTransmit, Eyetest_Transmit);
+	// SDKHook(iClient, SDKHook_PreThink, Eyetest_Prethink);
+	SDKHook(iClient, SDKHook_WeaponEquip, Eyetest_Equip);
+	SDKHook(iClient, SDKHook_WeaponDrop, Eyetest_Drop);
 }
 
-Eyetest_Unhook(client)
+Eyetest_Unhook(iClient)
 {
-	g_bHooked[client] = false;
-	SDKUnhook(client, SDKHook_SetTransmit, Eyetest_Transmit);
-	// SDKUnhook(client, SDKHook_PreThink, Eyetest_Prethink);
-	SDKUnhook(client, SDKHook_WeaponEquip, Eyetest_Equip);
-	SDKUnhook(client, SDKHook_WeaponDrop, Eyetest_Drop);
+	g_bHooked[iClient] = false;
+	SDKUnhook(iClient, SDKHook_SetTransmit, Eyetest_Transmit);
+	// SDKUnhook(iClient, SDKHook_PreThink, Eyetest_Prethink);
+	SDKUnhook(iClient, SDKHook_WeaponEquip, Eyetest_Equip);
+	SDKUnhook(iClient, SDKHook_WeaponDrop, Eyetest_Drop);
 }
