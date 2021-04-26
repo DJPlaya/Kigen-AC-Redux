@@ -739,43 +739,25 @@ void KACR_ActionCheck(iAction, bool bActions[KACR_Action_Count]) // I wish i wou
 	}
 	
 	/* TODO: Needs to be integrated into SP
-	int sumx = iValue - 2 ** power; // sumx = iValue - pow(2, power);
-	
-	while ((sumx != 0) && (power > 1) && (iValue > 1))
-	
-	do
-	{
-		sumx = iValue - 2 ** power;
-		if (sumx >= 0)
-		{
-			bActions[power] = true; // checklist.append(power);
-			iValue = iValue - 2 ** power;
-			power = power - 1;
-		}
-		
-		if (sumx < 0)
-			power = power -1;
-	}
-	
-	if (iValue)
-		bActions[1] = true; // checklist.append(1);
-	*/
-	
-	/* TODO: BUG: Needs to be reworked. 1 = 1,2,,4,8,16,32,64,128 | 2 = X | 3 = 512 | 4 = X | 5 = X | 6 = 1024
-	int iCount = KACR_Action_Count - 1, iCheckValue = 1 ^ (KACR_Action_Count - 1); // Start with the highest Value
-	
-	while (iCount != 0)
-	{
-		if (iAction == iCheckValue)
-		{
-			bActions[iCount] = true;
-			//iAction - iCheckValue; // TODO: Optional, unused ATM but we may want to use iAction some time later
-		}
-		
-		iCheckValue = iCheckValue / 2;
-		iCount--;
-	}*/
-}
+y = 0
+x = 0
+list = []
+sumx = 151324
+while(sumx > 0):
+    if(sumx%2 == 0):
+        list.insert(x, 0)
+        sumx = (sumx/2)
+        x = x+1
+    elif(sumx==1):
+        list.insert(x, 1)
+        break
+    elif(sumx%2 == 1):
+        list.insert(x, 1)
+        sumx = ((sumx-1)/2)
+        x = x+1
+    sumx = int(sumx)
+print(list)
+#x= index, y = 0 or 1
 
 /*
 * Lets a Client Crash, this Exploit requires UserMessages, currently only proved to work in CSGO (12.6.2020)
