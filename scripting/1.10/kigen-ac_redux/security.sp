@@ -9,6 +9,7 @@ New Module, Fix exploits and abusable stuff
  |"memorypatch" and similar modules for memory bug patching on the line
  |integrate status module features
  |convar or config for the entity checks
+ |Integrate optionally > https://forums.alliedmods.net/showthread.php?t=184270
 */
 
 

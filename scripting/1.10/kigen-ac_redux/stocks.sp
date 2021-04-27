@@ -758,11 +758,13 @@ while(sumx > 0):
     sumx = int(sumx)
 print(list)
 #x= index, y = 0 or 1
-
+*/
 /*
 * Lets a Client Crash, this Exploit requires UserMessages, currently only proved to work in CSGO (12.6.2020)
 * If the Exploit fails, it will kick the Player instead
 */
+}
+
 Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is marked as unused, and thats true, but compressing the warning... nah
 {
 	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again

@@ -640,7 +640,7 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
 #if defined DEBUG
  Action Debug_Arrays_CMD(const iCallingClient, const iArgs) // This is ugly, but it does the Job
  {
- 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Printing some Array/DataMap Entrys raw:");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Printing some Array/DataMap Entrys:");
  	//
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Connected Players");
  	for (int iClient = 1; iClient <= MaxClients; iClient++)
@@ -665,7 +665,7 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  			ReplyToCommand(iCallingClient, "%N is%s", iClient, g_bIsAdmin[iClient] ? " an Admin" : "n't an Admin");
  	//
  	ReplyToCommand(iCallingClient, "--------------------");
- 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Process by the Eyecheck?");
+ 	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Clients Processed by the Eyecheck?");
  	for (int iClient = 1; iClient <= MaxClients; iClient++)
  		if(g_bAuthorized[iClient])
  			ReplyToCommand(iCallingClient, "%N should %s by the Eyecheck", iClient, g_bShouldProcess[iClient] ? "be proceeded" : "not be proceeded");
