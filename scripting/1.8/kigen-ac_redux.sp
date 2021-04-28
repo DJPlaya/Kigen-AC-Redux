@@ -22,6 +22,7 @@
 #include <kvizzle> // No Copyright Information found, developed by F2 > https://forums.alliedmods.net/member.php?u=48818
 #undef REQUIRE_PLUGIN
 #include <updater_kacr> // No Copyright Information found, developed by God-Tony > https://forums.alliedmods.net/member.php?u=6136
+#include <materialadmin> // Copyright (C) SB-MaterialAdmin Contributors // This Include is licensed under GPLv3, see 'Licenses/GPLv3.txt' for Details
 #include <ASteambot> // Copyright (C) ASteamBot Contributors // This Include is licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details
 #include <sourceirc> // Copyright (C) Azelphur and SourceIRC Contributers // This Include is licensed under GPLv3, see 'Licenses/License_SourceIRC.txt' for Details
 #define REQUIRE_PLUGIN
@@ -104,7 +105,7 @@ int g_iPauseReports; // Wait this long till we report/log a Client again
 
 // Its more Resource efficient to store the data instead of grabbing it over and over again
 bool g_bConnected[MAXPLAYERS + 1], g_bAuthorized[MAXPLAYERS + 1], g_bInGame[MAXPLAYERS + 1], g_bIsAdmin[MAXPLAYERS + 1], g_bIsFake[MAXPLAYERS + 1];
-bool g_bSourceBans, g_bSourceBansPP, g_bASteambot, g_bSourceIRC, g_bMapStarted;
+bool g_bSourceBansPP, g_bSBMaterialAdmin, g_bSourceBans, g_bASteambot, g_bSourceIRC, g_bMapStarted;
 
 public Plugin myinfo = 
 {
@@ -141,6 +142,10 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] cError, iMaxSize
 	//- Sourcebans++ -//
 	MarkNativeAsOptional("SBPP_BanPlayer");
 	MarkNativeAsOptional("SBPP_ReportPlayer");
+	//- SB Material Admin -//
+	//MarkNativeAsOptional("MAOffBanPlayer");
+	//MarkNativeAsOptional("MABanPlayer");
+	//MarkNativeAsOptional("MALog");
 	//- Sourcebans 2.X -//
 	MarkNativeAsOptional("SBBanPlayer");
 	MarkNativeAsOptional("SB_ReportPlayer");
@@ -149,6 +154,8 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] cError, iMaxSize
 	MarkNativeAsOptional("ASteambot_RemoveModule");
 	MarkNativeAsOptional("ASteambot_SendMessage");
 	MarkNativeAsOptional("ASteambot_IsConnected");
+	//- SourceIRC -//
+	MarkNativeAsOptional("IRC_MsgFlaggedChannels"); // Other Natives are marked as optional in the Include
 	//- Adminmenu -// TODO: Normally this dosent need to be done, but ive got some strange BUG with this #ref 273812
 	MarkNativeAsOptional("AddTargetsToMenu2");
 }
@@ -239,7 +246,7 @@ public void OnGameFrame()
 
 public void OnAllPluginsLoaded()
 {
-	char cReason[256], cAuthID[64];
+	char cReason[256], cAuthID[16];
 	
 	//- Library/Plugin Checks -//
 	#if !defined DEBUG
@@ -251,13 +258,14 @@ public void OnAllPluginsLoaded()
 	if (LibraryExists("sourcebans++"))
 		g_bSourceBansPP = true;
 		
+	if (LibraryExists("materialadmin")) // SB-Material Admin
+		g_bSBMaterialAdmin = true;
+		
 	if (LibraryExists("sourcebans"))
-	{
 		g_bSourceBans = true;
-		if (g_bSourceBansPP && g_bSourceBans) // Only SB++ will be called since it always executes with an if check before SB, so its totally failsafe
-			KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
-	}
-	
+		
+		KACR_CheckSBSystems();
+		
 	if (LibraryExists("ASteambot"))
 	{
 		ASteambot_RegisterModule("KACR");
@@ -300,15 +308,19 @@ public void OnLibraryAdded(const char[] cName)
 	if (StrEqual(cName, "sourcebans++", false))
 	{
 		g_bSourceBansPP = true;
-		if (g_bSourceBansPP && g_bSourceBans)
-			KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
+		KACR_CheckSBSystems();
+	}
+	
+	else if (LibraryExists("materialadmin")) // SB-Material Admin
+	{
+		g_bSBMaterialAdmin = true;
+		KACR_CheckSBSystems();
 	}
 	
 	else if (StrEqual(cName, "sourcebans", false))
 	{
 		g_bSourceBans = true;
-		if (g_bSourceBansPP && g_bSourceBans)
-			KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
+		KACR_CheckSBSystems();
 	}
 	
 	else if (StrEqual(cName, "ASteambot", false) && !g_bASteambot) // Check so we do not register twice
@@ -331,6 +343,9 @@ public void OnLibraryRemoved(const char[] cName)
 {
 	if (StrEqual(cName, "sourcebans++", false))
 		g_bSourceBansPP = false;
+		
+	else if (LibraryExists("materialadmin")) // SB-Material Admin
+		g_bSBMaterialAdmin = false;
 		
 	else if (StrEqual(cName, "sourcebans", false))
 		g_bSourceBans = false;
@@ -589,7 +604,7 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	KACR_Action(iTarget, iAction, 5, "[Debug] Kick Reason Test", "[Debug] Execution Reason Test");
  	bool bActions[KACR_Action_Count]; // TODO: Is this a correct Handover?
  	KACR_ActionCheck(iAction, bActions); // TODO: Is this a correct Handover?
- 	Format(cActionsTaken, sizeof(cActionsTaken), "[Debug][Kigen AC Redux] Applied the following Action on '%N': ", iTarget);
+ 	Format(cActionsTaken, sizeof(cActionsTaken), "[Debug][Kigen AC Redux] Applied the following Action(s) on '%N': ", iTarget);
  	
  	//- Reply Back with Actions taken -//
  	if (bActions[KACR_ActionID_Ban])
@@ -679,3 +694,27 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	return Plugin_Handled;
  }
 #endif
+
+
+//- Functions -//
+
+/*
+* Checks wether multiply Sourcebans Versions are installed
+*/
+KACR_CheckSBSystems()
+{
+	if (g_bSourceBansPP && g_bSBMaterialAdmin) // Only SB++ will be called since it always executes with an if check before SB-MA and SB, so its totally failsafe
+	{
+		KACR_Log(false, "[Warning] Sourcebans++ and SB-MaterialAdmin are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
+		MALog(MA_LogConfig, "[Warning] Sourcebans++ and SB-MaterialAdmin are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now"); // There is no description for the Log type, i hope thats correct ref. 392749
+	}
+	
+	else if (g_bSourceBansPP && g_bSourceBans)
+		KACR_Log(false, "[Warning] Sourcebans++ and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB++ for now");
+		
+	else if(g_bSBMaterialAdmin && g_bSourceBans) 
+	{
+		KACR_Log(false, "[Warning] SB-MaterialAdmin and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB-MaterialAdmin for now");
+		MALog(MA_LogConfig, "[Warning] SB-MaterialAdmin and Sourcebans 2.X are installed at the same Time! This can Result in Problems, KACR will only use SB-MaterialAdmin for now"); // There is no description for the Log type, i hope thats correct ref. 392749
+	}
+}

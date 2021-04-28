@@ -15,17 +15,19 @@ New Module, Fix exploits and abusable stuff
 
 //- Global Variables -//
 
-Handle g_hCVar_Security_CVars, g_hCVar_sv_cheats, g_hCVar_sv_allowupload;
+Handle g_hCVar_SecurityCVars, g_hCVar_SecurityEntities, g_hCVar_sv_cheats, g_hCVar_sv_allowupload;
 
-bool g_bSecurityCVars;
+bool g_bSecurityCVars, g_bSecurityEntities, g_bSecurityCVars_sv_cheats, g_bSecurityCVars_sv_allowupload;
 
 
 //- Plugin Functions -//
 
 public void Security_OnPluginStart()
 {
-	g_hCVar_Security_CVars = AutoExecConfig_CreateConVar("kacr_security_cvars", "1", "Enable limiting exploitable ConVars (0 = False, 1 = True)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
-	g_bSecurityCVars = GetConVarBool(g_hCVar_Security_CVars);
+	// ConVars
+	
+	g_hCVar_SecurityCVars = AutoExecConfig_CreateConVar("kacr_security_cvars", "1", "Enable limiting exploitable ConVars (0 = False, 1 = True)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
+	g_hCVar_SecurityEntities = AutoExecConfig_CreateConVar("kacr_security_entities", "1", "Enable limiting Entities and Map related Feature (may break interactive Maps) (0 = False, 1 = True)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 	
 	// Security Checks
 	
@@ -34,11 +36,14 @@ public void Security_OnPluginStart()
 		
 	// Hooks
 	
+	HookConVarChange(g_hCVar_SecurityCVars, ConVarChanged_Security_CVars);
+	HookConVarChange(g_hCVar_SecurityEntities, ConVarChanged_Security_Entities)
+	
 	g_hCVar_sv_cheats = FindConVar("sv_cheats");
 	if (g_hCVar_sv_cheats == INVALID_HANDLE)
 	{
-		g_bSecurityCVars = false;
-		KACR_Log(false, "[Error] Failed to find ConVar sv_cheats, CVar security Checks disabled");
+		g_bSecurityCVars_sv_cheats = false;
+		KACR_Log(false, "[Error] Failed to find ConVar 'sv_cheats' CVar security Check disabled");
 	}
 	
 	if (g_hGame != Engine_CSGO && g_hGame != Engine_CSS && g_hGame != Engine_DODS && g_hGame != Engine_TF2 && g_hGame != Engine_HL2DM) // Older Engines may be exploitable true sv_allowupload
@@ -46,25 +51,25 @@ public void Security_OnPluginStart()
 		g_hCVar_sv_allowupload = FindConVar("sv_allowupload");
 		if (g_hCVar_sv_allowupload == INVALID_HANDLE)
 		{
-			g_bSecurityCVars = false;
-			KACR_Log(false, "[Error] Failed to find ConVar 'sv_allowupload', CVar security Checks disabled");
+			g_bSecurityCVars_sv_allowupload = false;
+			KACR_Log(false, "[Error] Failed to find ConVar 'sv_allowupload', CVar security Check disabled");
 		}
 		
 		KACR_Log(false, "[Info] KACR disabled 'sv_allowupload' because your Game isent listed as secure, this will disable Sprays. If you believe this is an Mistake, fill in an Bug Report");
 	}
-	
-	HookConVarChange(g_hCVar_Security_CVars, ConVarChanged_Security_CVars);
 }
 
 public void Security_OnGameFrame()
 {
 	if (g_bSecurityCVars)
 	{
-		if (GetConVarInt(g_hCVar_sv_cheats) != 0)
-			SetConVarInt(g_hCVar_sv_cheats, 0);
-			
-		if (GetConVarInt(g_hCVar_sv_allowupload) != 0)
-			SetConVarInt(g_hCVar_sv_allowupload, 0);
+		if (g_bSecurityCVars_sv_cheats)
+			if (GetConVarInt(g_hCVar_sv_cheats) != 0)
+				SetConVarInt(g_hCVar_sv_cheats, 0);
+				
+		if (g_bSecurityCVars_sv_allowupload)
+			if (GetConVarInt(g_hCVar_sv_allowupload) != 0)
+				SetConVarInt(g_hCVar_sv_allowupload, 0);
 	}
 }
 
@@ -79,7 +84,7 @@ public void Security_OnConfigsExecuted() // This dosent belong into cvars becaus
 	{
 		if (GetConVarInt(hVar1) > 8)// The Value of 1 is outdated, CSS and CSGO do have 8 as default Value - 5.20 // (GetConVarInt(hVar1) != 1) // TODO: Replace with 'hVar1.IntValue != 1' once we dropped legacy Support
 		{
-			KACR_Log(false, "[Warning] 'sv_max_usercmd_future_ticks' was set to '%i' which is a risky Value, re-setting it to its default '8'", GetConVarInt(hVar1)); // TODO: Replace with 'hVar1.IntValue' once we dropped legacy Support
+			KACR_Log(false, "[Info] 'sv_max_usercmd_future_ticks' was set to '%i' which is a risky Value, re-setting it to its default '8'", GetConVarInt(hVar1)); // TODO: Replace with 'hVar1.IntValue' once we dropped legacy Support
 			SetConVarInt(hVar1, 8); // TODO: Replace with 'hVar1.SetInt(...)' once we dropped legacy Support
 		}
 	}
@@ -90,8 +95,9 @@ public void Security_OnConfigsExecuted() // This dosent belong into cvars becaus
 
 public void Security_OnEntityCreated(iEntity, const char[] cClassname)
 {
-	if(StrEqual(cClassname, "point_servercommand", false))
-		AcceptEntityInput(iEntity, "kill"); // TODO: BUG: Can the Input trigger other VScript actions???
+	if (g_bSecurityEntities)
+		if(StrEqual(cClassname, "point_servercommand", false))
+			AcceptEntityInput(iEntity, "kill"); // TODO: BUG: Can the Input trigger other VScript actions???
 }
 
 
@@ -100,4 +106,9 @@ public void Security_OnEntityCreated(iEntity, const char[] cClassname)
 public void ConVarChanged_Security_CVars(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
 	g_bSecurityCVars = GetConVarBool(hConVar);
+}
+
+public void ConVarChanged_Security_Entities(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+{
+	g_bSecurityEntities = GetConVarBool(hConVar);
 }

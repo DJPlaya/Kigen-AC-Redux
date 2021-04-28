@@ -322,19 +322,37 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 													if(iActionCheck < KACR_Action_Ban) // == 0, negative Values would be strange
 														break;
 														
-													else // 1 - Ban (SB & SB++)
+													else // 1 - Ban (SB++, SB-MA & SB)
 													{
 														if (g_bSourceBansPP)
 														{
 															SBPP_BanPlayer(0, iClient, 0, cReason2); // Admin 0 is the Server in SBPP
-															if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+															if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+																OnClientDisconnect(iClient); // Needed, will be executed in the main File
+														}
+														
+														else if (g_bSBMaterialAdmin)
+														{
+															if (!MABanPlayer(0, iClient, MA_BAN_STEAM, 0, cReason2))
+															{
+																LogError("[Error] Failed to add an SB-MaterialAdmin Ban for '%L'", iClient);
+																MALog(MA_LogAction, "[Error][KACR] Failed to add an Ban for '%L'", iClient);
+																
+																if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
+																	KACR_Log(false, "[Error] Failed to Server Ban Client '%L', after an SB-MaterialAdmin Ban also failed", iClient);
+																	
+																else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+																	OnClientDisconnect(iClient); // Needed, will be executed in the main File
+															}
+															
+															if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 																OnClientDisconnect(iClient); // Needed, will be executed in the main File
 														}
 														
 														else if (g_bSourceBans)
 														{
 															SBBanPlayer(0, iClient, 0, cReason2);
-															if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+															if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 																OnClientDisconnect(iClient); // Needed, will be executed in the main File
 														}
 														
@@ -344,26 +362,70 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 															if(!BanClient(iClient, 0, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
 																KACR_Log(false, "[Error] Failed to Server Ban Client '%L', after an SB Ban also failed", iClient);
 																
-															else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+															else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 																OnClientDisconnect(iClient); // Needed, will be executed in the main Filee
 														}
 														
 														iActionCheck -= KACR_Action_Ban;
 													}
 													
-												else // 2 - Time Ban (SB & SB++)
+												else // 2 - Time Ban (SB++, SB-MA & SB)
 												{
 													if (g_bSourceBansPP)
 													{
 														SBPP_BanPlayer(0, iClient, iTime, cReason2); // Admin 0 is the Server in SBPP, this ID CAN be created or edited manually in the Database to show Name "Server" on the Webpanel
-														if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+														if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 															OnClientDisconnect(iClient); // Needed, will be executed in the main File
+													}
+													
+													else if (g_bSBMaterialAdmin)
+													{
+														if (iTime > 5)
+														{
+															if (!MABanPlayer(0, iClient, MA_BAN_STEAM, iTime, cReason2))
+															{
+																LogError("[Error] Failed to add an SB-MaterialAdmin Ban for '%L'", iClient);
+																MALog(MA_LogAction, "[Error][KACR] Failed to add an Ban for '%L'", iClient);
+																
+																if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
+																	KACR_Log(false, "[Error] Failed to Server Ban Client '%L', after an SB-MaterialAdmin Ban also failed", iClient);
+																	
+																else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+																	OnClientDisconnect(iClient); // Needed, will be executed in the main File
+															}
+															
+															else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+																OnClientDisconnect(iClient); // Needed, will be executed in the main File
+														}
+														
+														else // Bantime under 5 mins
+														{
+															char cSteamID[16], cClientIP[64], cName[MAX_NAME_LENGTH];
+															GetClientAuthId(iClient, AuthId_Steam3, cSteamID, 16);
+															GetClientIP(iClient, cClientIP, sizeof(cClientIP));  // Maybe merge this in the Head of the Function ref. 568203
+															GetClientName(iClient, cName, sizeof(cName));
+															
+															if (!MAOffBanPlayer(iClient, MA_BAN_STEAM, cSteamID, cClientIP, cName, iTime, cReason2))
+															{
+																LogError("[Error] Failed to add an SB Material Admin Offline Ban for '%L'", iClient);
+																MALog(MA_LogAction, "[Error][KACR] Failed to add an Offline Ban for '%L'", iClient);
+																
+																if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
+																	KACR_Log(false, "[Error] Failed to Server Ban Client '%L', after an SB-MaterialAdmin Offline Ban also failed", iClient)
+																	
+																else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+																	OnClientDisconnect(iClient); // Needed, will be executed in the main File
+															}
+															
+															else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+																OnClientDisconnect(iClient); // Needed, will be executed in the main File
+														}
 													}
 													
 													else if (g_bSourceBans)
 													{
 														SBBanPlayer(0, iClient, iTime, cReason2);
-														if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+														if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 															OnClientDisconnect(iClient); // Needed, will be executed in the main File
 													}
 													
@@ -373,7 +435,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 														if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR"))
 															KACR_Log(false, "[Error] Failed to Server Time Ban Client '%L', after an SB Ban also failed", iClient);
 															
-														else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+														else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 															OnClientDisconnect(iClient); // Needed, will be executed in the main File
 													}
 													
@@ -385,7 +447,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 												if(!BanClient(iClient, 0, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR"))
 													KACR_Log(false, "[Error] Failed to Server Ban Client '%L'", iClient);
 													
-												else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+												else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 													OnClientDisconnect(iClient); // Needed, will be executed in the main File
 													
 												iActionCheck -= KACR_Action_ServerBan;
@@ -396,7 +458,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 											if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
 												KACR_Log(false, "[Error] Failed to Server Time Ban Client '%L'", iClient);
 												
-											else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+											else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 												OnClientDisconnect(iClient); // Needed, will be executed in the main File
 												
 											iActionCheck -= KACR_Action_ServerTimeBan;
@@ -407,7 +469,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 										if(!KickClient(iClient, cUserReason2))
 											KACR_Log(false, "[Error] Failed to kick Client '%L'", iClient);
 											
-										else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
+										else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger
 											OnClientDisconnect(iClient); // Needed, will be executed in the main File
 											
 										iActionCheck -= KACR_Action_Kick;
@@ -519,7 +581,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			else // 1024 - Log to File
 			{
 				char cClientIP[64];
-				GetClientIP(iClient, cClientIP, sizeof(cClientIP));
+				GetClientIP(iClient, cClientIP, sizeof(cClientIP)); // Maybe merge this in the Head of the Function ref. 568203
 				
 				KACR_Log(false, "Logging Client '%L<%s>' for doing '%s'", iClient, cClientIP, cReason2);
 				
@@ -539,13 +601,13 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 															if(iActionLogCheck < KACR_Action_Ban) // == 0, negative Values would be strange // 0 - Nothin
 																break;
 																
-															else // == 1 // 1 - Ban (SB & SB++)
+															else // == 1 // 1 - Ban (SB++, SB-MA & SB)
 															{
 																KACR_Log(false, "Logging Action 1: Banned Client '%L<%s>'", iClient, cClientIP);
 																iActionLogCheck -= KACR_Action_Ban;
 															}
 															
-														else // 2 - Time Ban (SB & SB++)
+														else // 2 - Time Ban (SB++, SB-MA & SB)
 														{
 															KACR_Log(false, "Logging Action 2: Time Banned Client '%L<%s>' for '%i' Minutes", iClient, cClientIP, iTime);
 															iActionLogCheck -= KACR_Action_TimeBan;
@@ -737,8 +799,8 @@ void KACR_ActionCheck(iAction, bool bActions[KACR_Action_Count]) // I wish i wou
 			iAction -= KACR_Action_ReportIRC;
 		}
 	}
-	
-	/* TODO: Needs to be integrated into SP
+}
+/* TODO: Needs to be integrated into SP
 y = 0
 x = 0
 list = []
@@ -759,12 +821,11 @@ while(sumx > 0):
 print(list)
 #x= index, y = 0 or 1
 */
+
 /*
 * Lets a Client Crash, this Exploit requires UserMessages, currently only proved to work in CSGO (12.6.2020)
 * If the Exploit fails, it will kick the Player instead
 */
-}
-
 Action KACR_CrashClient_Timer(Handle hTimer, DataPack hData) // BUG: hTimer is marked as unused, and thats true, but compressing the warning... nah
 {
 	hData.Reset(false); // Reset the Positon, so the Focus is on the first Entry again
@@ -813,7 +874,7 @@ Action CrashClient_ErrorCheck(Handle hTimer, DataPack hData) // BUG: hTimer is m
 			// TODO: Report back #27
 	}
 	
-	else if(g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO, BUG: Does the 1 Frame Delay will cause problems with our disconnect Functions?
+	else if (g_bAuthorized[iClient]) // Required for the OnClientConnect Trigger // TODO, BUG: Does the 1 Frame Delay will cause problems with our disconnect Functions?
 		OnClientDisconnect(iClient); // Needed, will be executed in the main File
 		
 	// BUG:TODO: Both Handles arent closed yet!!!

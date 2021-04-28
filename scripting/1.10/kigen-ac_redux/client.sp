@@ -98,7 +98,7 @@ public Action Client_JoinClass(client, args)
 	if (!g_bClientEnable || !g_bClientAntiRespawn || !g_bClientMapStarted || client < 1 || IsFakeClient(client) || GetClientTeam(client) < 2)
 		return Plugin_Continue;
 		
-	char f_sAuthID[64], f_sTemp[64];
+	char f_sAuthID[16], f_sTemp[64];
 	int f_iTemp;
 	if (!GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
@@ -177,7 +177,7 @@ public Action Client_PlayerSpawn(Handle event, const char[] name, bool dontBroad
 		return Plugin_Continue;
 		
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	char f_sAuthID[64];
+	char f_sAuthID[16];
 	if (client < 1 || GetClientTeam(client) < 2 || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
@@ -192,7 +192,7 @@ public Action Client_PlayerDeath(Handle event, const char[] name, bool dontBroad
 		return Plugin_Continue;
 		
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	char f_sAuthID[64];
+	char f_sAuthID[16];
 	if (client < 1 || !GetClientAuthId(client, AuthId_Steam2, f_sAuthID, sizeof(f_sAuthID)))
 		return Plugin_Continue;
 		
@@ -226,14 +226,14 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 	if (!g_bClientEnable)
 		return true;
 		
-	char f_sClientIP[64];
-	GetClientIP(iClient, f_sClientIP, sizeof(f_sClientIP));
+	char cClientIP[32];
+	GetClientIP(iClient, cClientIP, sizeof(cClientIP));
 	
 	if (g_iClientAntiSpamConnect > 0 && g_iClientAntiSpamConnectAction > 0)
 	{
 		for (int i = 0; i < MAX_CONNECTIONS; i++)
 		{
-			if (StrEqual(g_cClientConnections[i], f_sClientIP))
+			if (StrEqual(g_cClientConnections[i], cClientIP))
 			{
 				int iResult = g_iClientAntiSpamConnectAction;
 				bool bActions[KACR_Action_Count];
@@ -263,7 +263,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 		{
 			if (g_cClientConnections[i][0] == '\0')
 			{
-				strcopy(g_cClientConnections[i], 64, f_sClientIP);
+				strcopy(g_cClientConnections[i], 64, cClientIP);
 				CreateTimer(view_as<float>(g_iClientAntiSpamConnect), Client_AntiSpamConnectTimer, i);
 				
 				break;
@@ -294,7 +294,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 			
 		if (bActions[KACR_ActionID_TimeBan] || bActions[KACR_ActionID_ServerBan] || bActions[KACR_ActionID_ServerTimeBan] || bActions[KACR_ActionID_ServerTimeBan] || bActions[KACR_ActionID_Kick]) // All of theese do also kick the Client so its equvivalent to refusing him
 		{
-			char f_sName[64], f_cChar;
+			char f_sName[MAX_NAME_LENGTH], f_cChar;
 			int f_iSize;
 			bool f_bWhiteSpace = true;
 			
@@ -351,8 +351,8 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 /*
 * Tests whether the Clients Name is good or bad
 *
-* @param iClient		Client UID.
-* @return				True if the Name is Valid, False if not
+* @param iClient	Client UID.
+* @return			True if the Name is Valid, False if not
 */
 /*bool CheckClientName(int iCLient) // TODO: Implement this to outsource the Client_OnClientConnect Checks
 {
@@ -364,7 +364,7 @@ public void OnClientSettingsChanged(iClient)
 	if (!g_bClientEnable || !g_iClientNameProtect || IsFakeClient(iClient))
 		return;
 		
-	char f_sName[64];
+	char f_sName[MAX_NAME_LENGTH];
 	int f_iSize;
 	bool f_bWhiteSpace = true;
 	
@@ -374,7 +374,7 @@ public void OnClientSettingsChanged(iClient)
 	
 	if (f_iSize == 0) // Blank Name
 	{
-		char cIP[64];
+		char cIP[32];
 		GetClientIP(iClient, cIP, sizeof(cIP));
 		KACR_Kick(iClient, KACR_CHANGENAME);
 		KACR_Log(false, "'%L'<%s> was kicked for having a blank Name (unconnected)", iClient, cIP);

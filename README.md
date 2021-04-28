@@ -8,6 +8,7 @@ Requires:
 
 Optional:
 - Sourcebans++
+- SB-MaterialAdmin
 - Sourcebans 2.X (V1 is unsupported)
 - [ASteambot](https://github.com/Arkarr/SourcemodASteambot)
 - [Updater](https://forums.alliedmods.net/showthread.php?t=169095)
