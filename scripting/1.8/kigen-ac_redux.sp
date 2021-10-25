@@ -5,8 +5,9 @@
 
 //- Compiler Settings -//
 
-#pragma newdecls optional
 #pragma dynamic 655360 // 2560kb // 29.5.20 - 1780996(1.8)-1827984(1.10) bytes required - I know this MUCH for a Plugin, but do mind that this is nothing compared to only 1 GB of Memory!
+#pragma semicolon true
+#pragma newdecls optional
 
 #define DEBUG // Debugging for nightly Builds TODO
 
@@ -70,7 +71,7 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 #define KACR_ActionID_ServerBan 3
 #define KACR_ActionID_ServerTimeBan 4
 #define KACR_ActionID_Kick 5
-#define KACR_ActionID_Crash 6
+#define KACR_ActionID_Exploit 6
 #define KACR_ActionID_ReportSB 7
 #define KACR_ActionID_ReportAdmins 8
 #define KACR_ActionID_ReportSteamAdmins 9
@@ -127,8 +128,8 @@ public Plugin myinfo =
 #include "kigen-ac_redux/rcon.sp"			// RCON Module
 #include "kigen-ac_redux/security.sp"		// Server Security Module
 #include "kigen-ac_redux/status.sp"			// Status Module
+// #include "kigen-ac_redux/update.sp"			// Update Module // TODO: .ref Update
 #include "kigen-ac_redux/stocks.sp"			// Stocks Module
-
 
 //- Plugin, Native Config Functions -//
 
@@ -142,10 +143,6 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] cError, iMaxSize
 	//- Sourcebans++ -//
 	MarkNativeAsOptional("SBPP_BanPlayer");
 	MarkNativeAsOptional("SBPP_ReportPlayer");
-	//- SB Material Admin -//
-	//MarkNativeAsOptional("MAOffBanPlayer");
-	//MarkNativeAsOptional("MABanPlayer");
-	//MarkNativeAsOptional("MALog");
 	//- Sourcebans 2.X -//
 	MarkNativeAsOptional("SBBanPlayer");
 	MarkNativeAsOptional("SB_ReportPlayer");
@@ -176,6 +173,7 @@ public void OnPluginStart()
 	Eyetest_OnPluginStart();
 	RCON_OnPluginStart();
 	Trans_OnPluginStart();
+	// Update_OnPluginStart(); // TODO: .ref Update
 	
 	//- Get server language -//
 	char f_sLang[8];
@@ -202,7 +200,7 @@ public void OnPluginStart()
 	 KACR_Log(false, "[Warning] You are running an early Version of Kigen AC Redux, please be aware that it may not run stable");
 	 
 	 RegAdminCmd("kacr_debug_action", Debug_Action_Cmd, ADMFLAG_ROOT, "For debugging purposes only! Usage: kacr_debug_action <Client ID> <Action ID>");
-	 RegAdminCmd("kacr_debug_arrays", Debug_Arrays_CMD, ADMFLAG_ROOT, "For debugging purposes only! Prints some internal Arrays and DataMaps"); 
+	 RegAdminCmd("kacr_debug_arrays", Debug_Arrays_Cmd, ADMFLAG_ROOT, "For debugging purposes only! Prints some internal Arrays and DataMaps"); 
 	#endif
 }
 
@@ -264,8 +262,8 @@ public void OnAllPluginsLoaded()
 	if (LibraryExists("sourcebans"))
 		g_bSourceBans = true;
 		
-		KACR_CheckSBSystems();
-		
+	KACR_CheckSBSystems();
+	
 	if (LibraryExists("ASteambot"))
 	{
 		ASteambot_RegisterModule("KACR");
@@ -358,59 +356,6 @@ public void OnLibraryRemoved(const char[] cName)
 		g_bSourceIRC = false;
 		IRC_CleanUp();
 	}
-}
-
-
-//- Updater -//
-
-public Action Updater_OnPluginDownloading()
-{
-	KACR_Log(false, "[Info] Update found, downloading it now...");
-	return Plugin_Continue;
-}
-
-public Updater_OnPluginUpdated() // TODO: Report to Admins once the Translations changed
-{
-	if (FileExists("addons/sourcemod/configs/plugin_settings.cfg"))
-	{
-		Handle hKV = KvizCreateFromFile("Plugins", "addons/sourcemod/configs/plugin_settings.cfg");
-		char cKVEntry[8];
-		bool bIncluded; // Is KACR or every Plugin set to reload once updated?
-		
-		//- Global Settings -//
-		KvizGetStringExact(hKV, cKVEntry, sizeof(cKVEntry), "*.lifetime");
-		if (StrEqual(cKVEntry, "mapsync"))
-			bIncluded = true;
-			
-		//- KACR specific Settings -//
-		KvizGetStringExact(hKV, cKVEntry, sizeof(cKVEntry), "kigen-ac_redux.lifetime");
-		if (StrEqual(cKVEntry, "mapsync"))
-			bIncluded = true;
-			
-		else if (StrEqual(cKVEntry, "lifetime")) // Just to be sure
-			bIncluded = false;
-			
-		//- Set the Plugin to reload on Mapchange -//
-		if (!bIncluded) // Not Set to reload on mapsync, changing that now!
-		{
-			if (KvizSetString(hKV, "mapsync", "kigen-ac_redux.lifetime") && KvizToFile(hKV, "plugin_settings.cfg", "kigen-ac_redux.lifetime"))
-			{
-				KACR_Log(false, "[Info] Writing 'plugin_settings.cfg' to automatically reload KACR when updated on Mapchange");
-				KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange"); // Included, KACR will reload on Mapchange
-			}
-			
-			else
-				KACR_Log(false, "[Warning] Couldent write 'plugin_settings.cfg', KACR will update on the next Restart"); // We could reload ourself, but this would interrupt the Protection and thats what we do not want to happen
-		}
-		
-		else // Included, KACR will reload on Mapchange
-			KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange");
-			
-		KvizClose(hKV);
-	}
-	
-	else // Default Settings, KACR will reload on Mapchange
-		KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange");
 }
 
 
@@ -596,7 +541,7 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	
  	if (!g_bAuthorized[iTarget] || g_bIsFake[iTarget])
  	{
- 		ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] The specified Client is not valid")
+ 		ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] The specified Client is not valid");
  		return Plugin_Handled;
  	}
  	
@@ -622,7 +567,7 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
  	if (bActions[KACR_ActionID_Kick])
  		StrCat(cActionsTaken, sizeof(cActionsTaken), "Kick, ");
  		
- 	if (bActions[KACR_ActionID_Crash])
+ 	if (bActions[KACR_ActionID_Exploit])
  		StrCat(cActionsTaken, sizeof(cActionsTaken), "Crash, ");
  		
  	if (bActions[KACR_ActionID_ReportSB])
@@ -653,7 +598,7 @@ public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, c
 
 // TODO: BUG: last reported isent correct
 #if defined DEBUG
- Action Debug_Arrays_CMD(const iCallingClient, const iArgs) // This is ugly, but it does the Job
+ Action Debug_Arrays_Cmd(const iCallingClient, const iArgs) // This is ugly, but it does the Job
  {
  	ReplyToCommand(iCallingClient, "[Debug][Kigen AC Redux] Printing some Array/DataMap Entrys:");
  	//

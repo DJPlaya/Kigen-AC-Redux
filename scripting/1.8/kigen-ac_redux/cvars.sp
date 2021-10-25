@@ -409,7 +409,7 @@ public Action CVars_PeriodicTimer(Handle timer, any client)
 	
 	if (g_iSize < 1)
 	{
-		KACR_Log(false, "[Warning] Nothing in the ConVar List")
+		KACR_Log(false, "[Warning] Nothing in the ConVar List");
 		CreateTimer(10.0, CVars_PeriodicTimer, client);
 		return Plugin_Stop;
 	}
@@ -457,7 +457,7 @@ public Action CVars_ReplyTimer(Handle timer, any userid)
 		
 		if (g_iSize < 1)
 		{
-			KACR_Log(false, "[Warning] Nothing in the ConVar List")
+			KACR_Log(false, "[Warning] Nothing in the ConVar List");
 			CreateTimer(10.0, CVars_PeriodicTimer, client);
 			return Plugin_Stop;
 		}

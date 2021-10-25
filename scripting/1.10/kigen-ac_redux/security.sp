@@ -37,7 +37,7 @@ public void Security_OnPluginStart()
 	// Hooks
 	
 	HookConVarChange(g_hCVar_SecurityCVars, ConVarChanged_Security_CVars);
-	HookConVarChange(g_hCVar_SecurityEntities, ConVarChanged_Security_Entities)
+	HookConVarChange(g_hCVar_SecurityEntities, ConVarChanged_Security_Entities);
 	
 	g_hCVar_sv_cheats = FindConVar("sv_cheats");
 	if (g_hCVar_sv_cheats == INVALID_HANDLE)

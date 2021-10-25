@@ -23,7 +23,7 @@ public void Status_OnPluginStart()
 	RegAdminCmd("kacr_status", Status_Cmd, ADMFLAG_GENERIC, "Reports KACR's Status");
 	
 	if (g_bSourceIRC)
-		IRC_RegAdminCmd("kacr_status", Status_Cmd_SourceIRC, ADMFLAG_GENERIC, "Reports KACR's Status"); // Possible BUG with the Name?? Keep this in Mind
+		IRC_RegAdminCmd("kacr_status", Status_SourceIRC_Cmd, ADMFLAG_GENERIC, "Reports KACR's Status"); // Possible BUG with the Name?? Keep this in Mind
 }
 
 Status_Register(const char[] cName, const char[] cStatus)
@@ -73,7 +73,7 @@ public Action Status_Cmd(const iClient, const iArgs) // #ref 805739 but with Tra
 	return Plugin_Handled;
 }
 
-public Action Status_Cmd_SourceIRC(const char[] cNickname, const iArgs) // #ref 805739 but without Translations
+public Action Status_SourceIRC_Cmd(const char[] cNickname, const iArgs) // #ref 805739 but without Translations
 {
 	Handle hBuffer;
 	char cTemp1[64], cTemp2[64];

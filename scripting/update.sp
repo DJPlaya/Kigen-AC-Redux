@@ -1,12 +1,8 @@
 // Copyright (C) 2018-now KACR Contributers
 // This File is Licensed under GPLv3, see 'Licenses/License_KACR.txt' for Details
 
-// Update Checks to be done here
-
-//- Global Variables -//
-
-int iFocus; // Who used the command?
-
+// TODO: Check version before downloading with an web query
+// TODO Uncomment lines with: .ref Update
 
 //- Plugin Functions -//
 
@@ -14,32 +10,34 @@ Update_OnPluginStart()
 {
 	RegAdminCmd("kacr_update", Update_Command, ADMFLAG_ROOT, "Forces KACR to check for Updates");
 	
-	CreateTimer(360, Update_Timer);
+	CreateTimer(360.0, Update_Timer);
+	
+	//- Reset Load Params to Default -//
 }
 
 public Action Update_Command(const iClient, const iArgs)
 {
-	iFocus = iClient;
+	ReplyToCommand(iClient, "[Kigen AC Redux] Checking for Updates, this may take a Minute...");
 	
 	switch (Update_Validate())
 	{
 		case 0: // Up To Date
-			ReplyToCommand(iFocus, "[KACR] i am allready up to Date");
+			ReplyToCommand(iClient, "[Kigen AC Redux] i am allready up to Date");
 			
 		case 1: // Failed to Update
-		
+			ReplyToCommand(iClient, "[Kigen AC Redux] Failed to download Update");
+			
 		case 2: // Updated Succesfully
 		{
-			CopyFile
-			KACR_Log("[Info] Succesfully updated to Version ###TODO###");
-			ReplyToCommand(iFocus, "[Info][KACR] Succesfully updated to Version ###TODO###");
+			KACR_Log("[Info] Succesfully updated KACR, activating next Mapchange");
+			ReplyToCommand(iClient, "[Kigen AC Redux] Succesfully updated KACR, activating next Mapchange");
 		}
 	}
 	
 	if(!RemoveDir("addons/sourcemod/data/KACR/Update"))
 	{
 		KACR_Log("[Error] Failed to delete Temp Data, you should delete 'addons/sourcemod/data/KACR/Update' manually");
-		ReplyToCommand(iFocus, "[Error][Kigen-AC_Redux] Failed to delete Temp Data, you should delete 'addons/sourcemod/data/KACR/Update' manually");
+		ReplyToCommand(iClient, "[Kigen AC Redux] Failed to delete Temp Data, you should delete 'addons/sourcemod/data/KACR/Update' manually");
 	}
 	
 	return Plugin_Handled;
@@ -47,51 +45,57 @@ public Action Update_Command(const iClient, const iArgs)
 
 public Update_Timer(Handle hTimer)
 {
-	iFocus = 0; // The Timer executes all 6 Hours, the Chances are super low that exactly before that Time, someone used the Update Command
-	if(!Update_Validate())
+	Update_Validate();
 }
 
 
 /*
-* Checks if the currently installed Version matches the latest one
+* Checks if the currently installed Version matches the latest one and updates if not so
 * 
 * @return	0 = UpToDate, 1 = Failed to Update, 2 = Updated
 */
 int Update_Validate()
 {
-	if(!Update_Download())
-	{
-		KACR_Log("[Error] Failed to download Update");
-		ReplyToCommand(iFocus, "[Error] Failed to download Update");
+	if(!Update_Download()) // Failed
 		return 1; // Valid, no further Actions taken
+		
+	char cBuffer1[PLATFORM_MAX_PATH], cBuffer2[PLATFORM_MAX_PATH], cPluginPath[PLATFORM_MAX_PATH];
+	
+	GetPluginFilename(INVALID_HANDLE, cBuffer1, PLATFORM_MAX_PATH);
+	Format(cPluginPath, PLATFORM_MAX_PATH, "addons/sourcemod/plugins/%s", cBuffer1);
+	System2_GetFileCRC32(cBuffer2, cBuffer1, PLATFORM_MAX_PATH); // Reuse of cBuffer1
+	
+	if (!System2_GetFileCRC32("addons/sourcemod/data/KACR/Update/kigen-ac_redux.smx", cBuffer2, PLATFORM_MAX_PATH)) // Reuse of cBuffer2
+	{
+		KACR_Log(false, "[Error] Failed to Update, Downloaded File could not be verified");
+		return 1;
 	}
 	
-	char cBuffer1[PLATFORM_MAX_PATH], cBuffer2[PLATFORM_MAX_PATH], cBuffer3[PLATFORM_MAX_PATH]; // TODO: Optimize this Mess!
-	System2_GetFileCRC32("addons/sourcemod/data/KACR/Update/kigen-ac_redux.smx", cBuffer1, PLATFORM_MAX_PATH);
-	
-	GetPluginFilename(INVALID_HANDLE, cBuffer2, PLATFORM_MAX_PATH);
-	Format(cBuffer3, PLATFORM_MAX_PATH, "addons/sourcemod/plugins/%s", cBuffer2);
-	System2_GetFileCRC32(cBuffer3, cBuffer2, PLATFORM_MAX_PATH);
-	
-	if(StrEqual(cBuffer1, cBuffer2)) // Identical
-		return true;
-		
-	else // Not
+	if(StrEqual(cBuffer1, cBuffer2)) // Identical Files
 		return 0;
+		
+	else // Not UpToDate, Updating now
+	{
+		if(Update_Install(cPluginPath))
+			return 2;
+			
+		else
+			return 1;
+	}
 }
 
 /*
 * Downloads the latest Version
 * Dont forget to delete that Dir once you dont need it anymore
 * 
-* @return			True if the Download was succesfull
+* @return	True if the Download was succesfull
 */
-Update_Download() // TODO: reply to command?
+bool Update_Download()
 {
 	// System2_Check7ZIP() // Nah, for that small size??
 	// TODO: LOOP
 	
-	System2FTPRequest ftpRequest = new System2FTPRequest(FtpResponseCallback, "ftp://example.com/test.txt")
+	System2FTPRequest ftpRequest = new System2FTPRequest(FtpResponseCallback, "ftp://#.#/open/KACR/Update/#/kigen-ac_redux.smx")
 	ftpRequest.SetPort(21);
 	ftpRequest.SetAuthentication("username", "password");
 	ftpRequest.SetProgressCallback(FtpProgressCallback);
@@ -101,8 +105,7 @@ Update_Download() // TODO: reply to command?
 	
 	if(Failed)
 	{
-		KACR_Log("[Error] Failed to Update KACR");
-		ReplyToCommand(iFocus, "[Error][KACR] Failed to Update KACR");
+		KACR_Log("[Error] Failed to Download a Update");
 		return false;
 	}
 	
@@ -116,7 +119,7 @@ FtpProgressCallback(System2FTPRequest hRequest, int dlTotal, int dlNow);
 	{
 		char cFile[PLATFORM_MAX_PATH];
 		request.GetInputFile(cFile, sizeof(cFile));
-		PrintToServer("[Info][KACR] Downloaded File '%s'(%i mb) with %imb/sec", cFile, dlTotal * 1000000, dlNow * 1000000);
+		PrintToServer("[Info][KACR] Downloading File '%s'(%iMB) with %iMB/sec", cFile, dlTotal * 1048576, dlNow * 1048576);
 	}
 }
 
@@ -125,8 +128,8 @@ FtpResponseCallback(bool bSuccess, const char[] cError, System2FTPRequest hReque
 	if (bSuccess)
 	{
 		char cFile[PLATFORM_MAX_PATH];
-		request.GetInputFile(cFile, sizeof(cFile));
-		PrintToServer("[Info][KACR] Succesfully downloaded File '%s'(%iMB) with an average of %iMB/Sec", cFile, response.DownloadSize * 1048576, response.DownloadSpeed * 1048576);
+		hRequest.GetInputFile(cFile, sizeof(cFile));
+		PrintToServer("[Info][KACR] Succesfully downloaded File '%s'(%iMB) with an average of %iMB/Sec", cFile, hResponse.DownloadSize * 1048576, hResponse.DownloadSpeed * 1048576);
 	}
 	
 	else
@@ -134,4 +137,82 @@ FtpResponseCallback(bool bSuccess, const char[] cError, System2FTPRequest hReque
 		PrintToServer("[Error][KACR] Downloading File '%s' got aborted with Error '%s'", cFile, cError);
 		KACR_Log("[Error] Downloading File '%s' got aborted with Error '%s'", cFile, cError);
 	}
+}
+
+/*
+* Installs the Update by replacing the File and registering the Plugin Restart on Mapchange.
+*
+* @param	cPluginPath	Full Plugin Path to update to.
+* return	True if the Download was succesfull
+*/
+bool Update_Install(char cPluginPath[PLATFORM_MAX_PATH])
+{
+	if (RenameFile(cPluginPath, "addons/sourcemod/data/KACR/Update/kigen-ac_redux.smx"))
+	{
+		Update_InitPluginReload();
+		return true;
+	}
+	
+	else // Failed
+	{
+		KACR_Log(false, "[Error] Failed to replace Plugin File in order to update");
+		return false;
+	}
+}
+
+Update_InitPluginReload()
+{
+	if (FileExists("addons/sourcemod/configs/plugin_settings.cfg"))
+	{
+		Handle hKV = KvizCreateFromFile("Plugins", "addons/sourcemod/configs/plugin_settings.cfg");
+		char cKVEntry[8];
+		bool bIncluded; // Is KACR or every Plugin set to reload once updated?
+		
+		//- Global Settings -//
+		KvizGetStringExact(hKV, cKVEntry, sizeof(cKVEntry), "*.lifetime");
+		if (StrEqual(cKVEntry, "mapsync"))
+			bIncluded = true;
+			
+		//- KACR specific Settings -//
+		KvizGetStringExact(hKV, cKVEntry, sizeof(cKVEntry), "kigen-ac_redux.lifetime");
+		if (StrEqual(cKVEntry, "mapsync"))
+			bIncluded = true;
+			
+		else if (StrEqual(cKVEntry, "lifetime")) // Just to be sure
+			bIncluded = false;
+			
+		//- Set the Plugin to reload on Mapchange -//
+		if (!bIncluded) // Not Set to reload on mapsync, changing that now!
+		{
+			if (KvizSetString(hKV, "mapsync", "kigen-ac_redux.lifetime") && KvizToFile(hKV, "plugin_settings.cfg", "kigen-ac_redux.lifetime"))
+			{
+				KACR_Log(false, "[Info] Writing 'plugin_settings.cfg' to automatically reload KACR when updated on Mapchange");
+				KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange"); // Included, KACR will reload on Mapchange
+			}
+			
+			else // Failed
+				KACR_Log(false, "[Warning] Couldent write 'plugin_settings.cfg', KACR will update on the next Restart"); // We could reload ourself, but this would interrupt the Protection and thats what we do not want to happen
+		}
+		
+		else // Included, KACR will reload on Mapchange
+			KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange");
+			
+		KvizClose(hKV);
+	}
+	
+	else // Default Settings, KACR will reload on Mapchange
+		KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange");
+}
+
+//- GoD-Tony Updater -//
+
+public Action Updater_OnPluginDownloading()
+{
+	KACR_Log(false, "[Info] Update found, downloading it now...");
+	return Plugin_Continue;
+}
+
+public void Updater_OnPluginUpdated() // TODO: Report to Admins once the Translations changed
+{
+	Update_InitPluginReload();
 }

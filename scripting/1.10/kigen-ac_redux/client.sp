@@ -238,10 +238,10 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 				int iResult = g_iClientAntiSpamConnectAction;
 				bool bActions[KACR_Action_Count];
 				KACR_ActionCheck(iResult, bActions);
-				if(bActions[KACR_ActionID_Crash] || bActions[KACR_ActionID_AskSteamAdmin]) // Not Supported
+				if(bActions[KACR_ActionID_Exploit] || bActions[KACR_ActionID_AskSteamAdmin]) // Not Supported
 				{
 					KACR_Log(false, "[Warning] 'kacr_client_antispamconnect_action' cannot be used with Action 32 or 512, running without them");
-					if(bActions[KACR_ActionID_Crash])
+					if(bActions[KACR_ActionID_Exploit])
 						iResult -= KACR_Action_Crash;
 						
 					if(bActions[KACR_ActionID_AskSteamAdmin])
@@ -277,7 +277,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 		bool bActions[KACR_Action_Count];
 		KACR_ActionCheck(iResult, bActions);
 		
-		if (bActions[KACR_ActionID_Crash]) // Not Supported
+		if (bActions[KACR_ActionID_Exploit]) // Not Supported
 		{
 			KACR_Log(false, "[Warning] 'kacr_client_nameprotect_action' cannot be used with Action 32 (Crash Client), running without them");
 			iResult -= 32;
@@ -304,7 +304,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 			if (f_iSize == 0 || f_sName[0] == '&') // Blank name or &???
 			{
 				Format(rejectmsg, size, "Please change your Name");
-				KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient) // 1 Min Time Ban
+				KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient); // 1 Min Time Ban
 				return false;
 			}
 			
@@ -320,7 +320,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 					if (f_cChar == 194 && f_sName[i] == 160)
 					{
 						Format(rejectmsg, size, "Please change your Name");
-						KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient) // 1 Min Time Ban
+						KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient); // 1 Min Time Ban
 						return false;
 					}
 				}
@@ -328,7 +328,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 				else if (f_cChar < 32)
 				{
 					Format(rejectmsg, size, "Please change your Name");
-					KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient) // 1 Min Time Ban
+					KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient); // 1 Min Time Ban
 					return false;
 				}
 			}
@@ -336,7 +336,7 @@ bool Client_OnClientConnect(iClient, char[] rejectmsg, size)
 			if (f_bWhiteSpace) // The entire Name is an Whitespace
 			{
 				Format(rejectmsg, size, "Please change your Name");
-				KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient) // 1 Min Time Ban
+				KACR_Action(iClient, iResult, 1, rejectmsg, "[KACR] '%L' tryed to connect with an invalid Name", iClient); // 1 Min Time Ban
 				return false;
 			}
 			

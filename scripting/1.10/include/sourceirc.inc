@@ -62,7 +62,7 @@ public __pl_sourceirc_SetNTVOptional()
  * @return				An Action value.  Not handling the command
  *						means that SourceIRC will report it as "Unknown Command."
  */
-typedef IRCCmd = function Action(const char[] nick, int args)
+typedef IRCCmd = function Action(const char[] nick, int args);
 
 /**
  * Called when an IRC event is fired.
