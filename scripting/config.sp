@@ -4,7 +4,8 @@
 // New Module with an KV based Configuration System
 // This Module may can carry other Config Systems, or display them in a better way
 
-// TODO: Create KV File based Config System, Support DB Based storage
+// TODO: Create KV File based Config System
+// TODO: precreate profile0 for default values and avoid changes
 
 #define KACR_SETTINGS_COUNT 32; // TODO
 
@@ -13,23 +14,24 @@ StringMap g_hConfig[KACR_SETTINGS_COUNT]; // Configuration Cache, y=ConfigID, x=
 /* # copy Layout
 
 Profile1.Pausereports
+#Profile1.Prefix - Prefix shown before Messages from this Plugin - '[Kigen AC Redux] '
 
 Profile1.Client.Enable
-Profile1.Client.AntirejoinEnable
-Profile1.Client.NameprotectAction
-Profile1.Client.Antispamconnect.Enable
-Profile1.Client.Antispamconnect.Action
+Profile1.Client.AntiRejoinEnable
+Profile1.Client.NameProtectAction
+Profile1.Client.AntiSpamConnect.Enable
+Profile1.Client.AntiSpamConnect.Action
 
 Profile1.Commands.Enable
-Profile1.Commands.Spamlimit
+Profile1.Commands.SpamLimit
 
 Profile1.CVars.Enable
 
 Profile1.Eyetest.Enable
 Profile1.Eyetest.Action
-Profile1.Eyetest.AntiwallhackEnable
+Profile1.Eyetest.AntiWallhackEnable
 
-Profile1.Rcon.CrashpreventionEnable
+Profile1.Rcon.CrashPreventionEnable
 
 Profile1.Security.Cvars
 Profile1.Security.Entities
@@ -38,10 +40,16 @@ Profile1.Security.Entities
 Profile1.Debug
 
 */
+Handle g_hCVar_ConfigProfile;
+int g_iConfigProfile;
 
 
 public Config_OnPluginStart()
 {
+	g_hCVar_ConfigProfile = CreateConVar("kacr_config_profile", "0", "Configuration Profile to use for KACR. Please mind that all other Settings are stored in 'data/KACR/Config.kv.cfg' (0 = Use Default Values)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
+	
+	// TODO just one CVar for setting the Profile, write information in cvar description about the actual location of the settings
+	
 	//TODO
 	RegAdminCmd("kacr_config_reload", Config_Reload_Cmd, ADMFLAG_GENERIC, "Reload the KeyValue Configuration File");
 	RegAdminCmd("kacr_config", Config_Cmd, ADMFLAG_ROOT, "Use with an Settings Path to view or adjust the Setting (Usage: kacr_config <Path> <Value to set or nothing to view its current Value>)"
@@ -53,16 +61,22 @@ Config_LoadConfig()
 {
 	if (!FileExists("addons/sourcemod/data/KACR/Config.kv.cfg"))
 	{
-		KACR_Log(false, "[Info] No Configuration File found, a new one got created using default Values");
-		Handle hKV = KvizCreate() // TODO create KV entrys
+		KeyValues hKV = new KeyValues("Variables");
+		KvizCreate() // TODO create KV entrys
 		if(!KvizSetUInt64())
 			KACR_Log(false, "[Error] Couldent create first Config Entry")
 			return Plugin_Handled;
+			
+		KACR_Log(false, "[Info] No Configuration File found, a new one got created using default Values");
 	}
 	
 	else
 	{
-		Handle hKV = KvizCreateFromFile("Plugins", "addons/sourcemod/data/KACR/Config.kv.cfg");
+		ImportFromFile()
+		Handle hKV;
+		if (!hKV.ImportFromFile("addons/sourcemod/data/KACR/Config.kv.cfg"))
+			KACR_Log(true, "[Critical] couldent read Settings from 'addons/sourcemod/data/KACR/Config.kv.cfg'")
+		
 		char cKVEntry[8];
 		//TODO
 			
@@ -73,6 +87,30 @@ Config_LoadConfig()
 	}
 	
 	// TODO: Include File Error Check and recreation
+}
+
+Config_GetKV(char cKey[]) // Get
+{
+	char cOutput[64];
+	
+	if (!KvGetString(g_hKV cKey, cOutput, sizeof(cOutput))
+	{
+		KACR_Log(false, "[Error] Failed to get KV Entry");
+		return false; // Failed
+	}
+	
+	return cOutput; // Success
+}
+
+Config_SetKV(char cKey[], char cKey[]) // Set
+{
+	if (!KvSetString(g_hKV, cKey, cValue))
+	{
+		KACR_Log(false, "[Error] Failed to set KV Entry");
+		return false; // Failed
+	}
+	
+	return true; // Success
 }
 
 
@@ -92,33 +130,18 @@ Config_Cmd(iClient, iArgs)
 		return Plugin_Handled;
 	}
 	
-	char cPath[64], cValue[256];
+	char cKey[64], cValue[256];
 	
-	GetCmdArg(1, cPath, sizeof(cPath));
+	GetCmdArg(1, cKey, sizeof(cKey));
 	GetCmdArg(2, cValue, sizeof(cValue));
-	switch(view_as<bool>(cValue))
+	
+	if(!view_as<bool>(cValue)) // View/Get
+		ReplyToCommand(iClient, "[Kigen AC Redux] The Value of '%s' is: %s", cKey, Config_GetKV(cValue));
+		
+	else
 	{
-		case 0: // View/Get
-		{
-			char cOutput[64];
-			if (!KvizGetUInt64(g_hKV, cOutput, "Error", cPath))
-				ReplyToCommand("[Kigen AC Redux] Couldent find the given Index: %s", cPath);
-				
-			else
-				ReplyToCommand(iClient, "[Kigen AC Redux] Config Value: %s", cOutput);
-		}
-		
-		case 1: // Set
-		{
-			char cOutput[64];
-			
-			if (!KvizGetString(g_hKV, cOutput, "Error", cPath))
-				ReplyToCommand("[Kigen AC Redux] Couldent find the given Index: %s", cPath);
-			
-		}
-		
-		default:
-			ReplyToCommand(iClient, "[Kigen AC Redux] Usage: kacr_config <Config Path> <Value to set or nothing to view the current Value>");
+		Config_SetKV(cKey, cValue);
+		ReplyToCommand(iClient, "[Kigen AC Redux] The Value of '%s' was set to: %s", cKey, cValue);
 	}
 	
 	return Plugin_Handled;

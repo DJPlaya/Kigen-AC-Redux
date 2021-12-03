@@ -341,7 +341,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 		
 		else
 		{
-			KACR_Log(false, "[Warning] An SourceBans Ban was called but SB isent installed, applying Server Ban instead");
+			KACR_Log(false, "[Warning] An SourceBans Ban was called but it isent installed, applying Server Ban instead");
 			if(!BanClient(iClient, 0, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR")) // 1 Day
 				KACR_Log(false, "[Error] Failed to Server Ban Client '%L', after an SB Ban also failed", iClient);
 				
@@ -412,7 +412,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 		
 		else
 		{
-			KACR_Log(false, "[Warning] An Sourcebans Time Ban was called but SB isent installed, applying Server Time Ban instead");
+			KACR_Log(false, "[Warning] An Sourcebans Time Ban was called but isent running, applying Server Time Ban instead");
 			if(!BanClient(iClient, iTime, BANFLAG_AUTHID, cReason2, cUserReason2, "KACR"))
 				KACR_Log(false, "[Error] Failed to Server Time Ban Client '%L', after an SB Ban also failed", iClient);
 				
@@ -450,14 +450,14 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 	
 	if (bActions[KACR_ActionID_Exploit]) // 32 - Crash Client
 	{
-		if (!g_bInGame[iClient]) // Client not Ingame
+		if (!g_bInGame[iClient]) // Error Check: Client not Ingame
 		{
 			KACR_Log(false, "[Warning] An Client Crash was called but the Target Client isn't In-Game, kicking him instead");
 			if(!KickClient(iClient, cUserReason2))
 				KACR_Log(false, "[Error] Failed to kick Client '%L', after crashing him got aborted", iClient);	
 		}
 		
-		else if (!g_bMapStarted) // Map is changing
+		else if (!g_bMapStarted) // Error Check: Map is changing
 		{
 			KACR_Log(false, "[Warning] An Client Crash was called but the Client cant be crashed while the Map is still changing, kicking him instead"); // TODO: Replace with an Timed re-run of the KACR_Action Function
 			if(!KickClient(iClient, cUserReason2))
@@ -499,7 +499,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			SB_ReportPlayer(iClient, iClient, cReason2); // TODO: Edit SBPP so the reporter can be the server(0) like in the webpanel and submit to github
 			
 		else
-			KACR_Log(false, "[Error] Tried to Report an Player to Sourcebans but it isent installed");
+			KACR_Log(false, "[Error] An Sourcebans Action was called but it isent running");
 	} // End of Action
 	
 	if (bActions[KACR_ActionID_ReportAdmins]) // 128 - Report to online Admins
@@ -523,7 +523,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 		}
 		
 		else
-			KACR_Log(false, "[Error] Tried to Use ASteambot but it isent running");
+			KACR_Log(false, "[Error] An ASteambot Action was called but it isent running");
 	} // End of Action
 	
 	if (bActions[KACR_ActionID_AskSteamAdmin]) // 512 - Ask an Steam User over ASteambot for Advice
@@ -531,8 +531,8 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 		/*if(g_bASteambot) TODO
 		{
 			if(ASteambot_IsConnected())
-			{ // 8.10.19 - 632 Chars, 900 is max so we can actually Send all in one MSG
-	KACR_PrintToSteamAdmins("[KACR] Reporting Client '%L' for doing '%s'\n[KACR] Which Action should be taken for this Client?\n[KACR] Options available:\n[KACR] 0 - Dont do anything\n[KACR] 1 - Ban (SB & SB++)\n[KACR] 2 - Time Ban (SB & SB++)\n[KACR] 4 - Server Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 16 - Kick\n[KACR] 32 - Crash Client\n[KACR] 64 - Report to SB\n[KACR] 128 - Report to online Admins\n[KACR] 256 - Tell Admins on Steam about the Violation\n[KACR] 1024 - Log to File\n[KACR] 2048 - Tell about the Violation using SourceIRC[KACR] --------------------[KACR] Enter any Number from above to call an Action\n[KACR] You can also add up the Numbers to call multiply Actions"); // I know this is ugly, but i swear, there was no other Way, \n is a line breaker
+			{ // 19.11.21 - 640 Chars, 900 is max so we can actually Send all in one MSG
+	KACR_PrintToSteamAdmins("[KACR] Reporting Client '%L' for doing '%s'\n[KACR] Which Action should be taken for this Client?\n[KACR] Options available:\n[KACR] 0 - Dont do anything\n[KACR] 1 - Ban (SB & SB++)\n[KACR] 2 - Time Ban (SB & SB++)\n[KACR] 4 - Server Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 16 - Kick\n[KACR] 32 - Crash Client\n[KACR] 64 - Report to SB\n[KACR] 128 - Report to online Admins\n[KACR] 256 - Tell Admins on Steam about the Violation\n[KACR] 1024 - Log to File\n[KACR] 2048 - Tell about the Violation using SourceIRC[KACR] --------------------[KACR] Enter any Number from above to call an Action\n[KACR] You can also add up the Numbers to call multiply Actions at once"); // I know this is ugly, but i swear, this is the most efficient Way, \n is a line breaker
 			
 			// TODO: Ask if to display Actions
 			// TODO: Warning, we must make this multithread! Else multiply reports could Result in the Plugin going weird
@@ -543,7 +543,8 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 		}
 		
 		else
-			KACR_Log(false, "[Error] Tried to Use ASteambot but it isent running");*/
+			KACR_Log(false, "[Error] An ASteambot Action was called but it isent running");
+			*/
 	} // End of Action
 	
 	if (bActions[KACR_ActionID_Log]) // 1024 - Log to File
@@ -594,13 +595,19 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			IRC_MsgFlaggedChannels("kacr_reports", "[KACR] Reporting Client '%L' for doing '%s'", iClient, cReason2); // Flag: kacr_reports
 			
 		else
-			KACR_Log(false, "[Error] Tried to Report an Player to SourceIRC but it isent installed");
+			KACR_Log(false, "[Error] An SourceIRC Action was called but it isent running");
 	} // End of Action
 	
 	/*
 	if (bActions[KACR_ActionID_AskIRCAdmin]) // 4096 - Ask on an IRC Channel for Advice
 	{
-		IRC_MsgFlaggedChannels("kacr_advice", const String:format[], any:...); // Flag: kacr_advice
+		if (g_bSourceIRC)
+			IRC_MsgFlaggedChannels("kacr_advice", const String:format[], any:...); // Flag: kacr_advice
+			
+			[KACR] Reporting Client '%L' for doing '%s'\n[KACR] Which Action should be taken for this Client?\n[KACR] Options available:\n[KACR] 0 - Dont do anything\n[KACR] 1 - Ban (SB & SB++)\n[KACR] 2 - Time Ban (SB & SB++)\n[KACR] 4 - Server Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 16 - Kick\n[KACR] 32 - Crash Client\n[KACR] 64 - Report to SB\n[KACR] 128 - Report to online Admins\n[KACR] 256 - Tell Admins on Steam about the Violation\n[KACR] 1024 - Log to File\n[KACR] 2048 - Tell about the Violation using SourceIRC[KACR] --------------------[KACR] Enter any Number from above to call an Action\n[KACR] You can also add up the Numbers to call multiply Actions at once
+			
+		else
+			KACR_Log(false, "[Error] An SourceIRC Action was called but it isent running");
 	} // End of Action
 	
 	if (bActions[KACR_ActionID_ReportCallAdmin // 8192 - Report using CallAdmin

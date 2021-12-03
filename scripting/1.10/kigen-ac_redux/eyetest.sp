@@ -160,7 +160,7 @@ public void ConVarChanged_Eyetest_AntiWall(Handle convar, const char[] oldValue,
 		if (!LibraryExists("sdkhooks"))
 		{
 			Status_Report(g_iAntiWHStatus, KACR_NOSDKHOOK);
-			KACR_Log(false, "[Critical] SDKHooks is not running, cannot enable Anti-Wall");
+			KACR_Log(false, "[Error] SDKHooks is not running, cannot enable Anti-Wall");
 			SetConVarInt(convar, 0);
 			return;
 		}

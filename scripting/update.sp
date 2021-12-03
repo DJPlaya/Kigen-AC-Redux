@@ -4,6 +4,7 @@
 // TODO: Check version before downloading with an web query
 // TODO Uncomment lines with: .ref Update
 
+
 //- Plugin Functions -//
 
 Update_OnPluginStart()
@@ -203,6 +204,7 @@ Update_InitPluginReload()
 	else // Default Settings, KACR will reload on Mapchange
 		KACR_Log(false, "[Info] Update successful, KACR will load the Update next Mapchange");
 }
+
 
 //- GoD-Tony Updater -//
 
