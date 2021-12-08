@@ -11,7 +11,7 @@
 //- Global Variables -//
 
 
-Handle g_hCVar_Client_Enable, g_hCVar_ClientAntiRespawn, g_hCVar_Client_NameProtect_Action, g_hCVar_Client_AntiSpamConnect, g_hCVar_Client_AntiSpamConnect_Action;
+ConVar g_hCVar_Client_Enable, g_hCVar_ClientAntiRespawn, g_hCVar_Client_NameProtect_Action, g_hCVar_Client_AntiSpamConnect, g_hCVar_Client_AntiSpamConnect_Action;
 bool g_bClientEnable, g_bClientAntiRespawn;
 int g_iClientNameProtect, g_iClientAntiSpamConnect, g_iClientAntiSpamConnectAction; 
 
@@ -27,12 +27,12 @@ bool g_bClientMapStarted;
 public void Client_OnPluginStart()
 {
 	g_hCVar_Client_Enable = AutoExecConfig_CreateConVar("kacr_client_enable", "1", "Enable the Client Protection Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
-	g_bClientEnable = GetConVarBool(g_hCVar_Client_Enable);
+	g_bClientEnable = g_hCVar_Client_Enable.BoolValue;
 	
 	if (g_hGame == Engine_CSS || g_hGame == Engine_CSGO)
 	{
 		g_hCVar_ClientAntiRespawn = AutoExecConfig_CreateConVar("kacr_client_antirejoin", "1", "This will prevent Clients from leaving the Game and then rejoining to Respawn", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
-		g_bClientAntiRespawn = GetConVarBool(g_hCVar_ClientAntiRespawn);
+		g_bClientAntiRespawn = g_hCVar_ClientAntiRespawn.BoolValue;
 		
 		g_hClientSpawned = new StringMap();
 		
@@ -47,12 +47,12 @@ public void Client_OnPluginStart()
 	}
 	
 	g_hCVar_Client_NameProtect_Action = AutoExecConfig_CreateConVar("kacr_client_nameprotect_action", "1040", "Action(s) to take when someone has an invalid Name, Time Bans will be 1 min. Protects the Server from Crashes and Hacks", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
-	g_iClientNameProtect = GetConVarInt(g_hCVar_Client_NameProtect_Action);
+	g_iClientNameProtect = g_hCVar_Client_NameProtect_Action.IntValue;
 	//
 	g_hCVar_Client_AntiSpamConnect = AutoExecConfig_CreateConVar("kacr_client_antispamconnect", "15", "Seconds to prevent Someone from reestablishing a Connection. This will also set the Time for 'kacr_client_antispamconnect_action', Round down to whole Minutes (0 = Disabled)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 120.0);
-	g_iClientAntiSpamConnect = GetConVarInt(g_hCVar_Client_AntiSpamConnect);
+	g_iClientAntiSpamConnect = g_hCVar_Client_AntiSpamConnect.IntValue;
 	g_hCVar_Client_AntiSpamConnect_Action = AutoExecConfig_CreateConVar("kacr_client_antispamconnect_action", "1032", "Action(s) to take when someone does Spam Connect, Bantimes will be set with 'kacr_client_antispamconnect'", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
-	g_iClientAntiSpamConnectAction = GetConVarInt(g_hCVar_Client_AntiSpamConnect_Action);
+	g_iClientAntiSpamConnectAction = g_hCVar_Client_AntiSpamConnect_Action.IntValue;
 	
 	if (g_bClientEnable)
 	{
@@ -82,10 +82,10 @@ public void Client_OnPluginStart()
 		g_iClientNameProtectStatus = Status_Register(KACR_CLIENTNAMEPROTECT, KACR_DISABLED);
 	}
 	
-	HookConVarChange(g_hCVar_Client_Enable, ConVarChanged_Client_Enable);
-	HookConVarChange(g_hCVar_Client_NameProtect_Action, ConVarChanged_Client_NameProtectAction);
-	HookConVarChange(g_hCVar_Client_AntiSpamConnect, ConVarChanged_Client_AntiSpamConnect);
-	HookConVarChange(g_hCVar_Client_AntiSpamConnect_Action, ConVarChanged_Client_AntiSpamConnectAction);
+	g_hCVar_Client_Enable.AddChangeHook(ConVarChanged_Client_Enable);
+	g_hCVar_Client_NameProtect_Action.AddChangeHook(ConVarChanged_Client_NameProtectAction);
+	g_hCVar_Client_AntiSpamConnect.AddChangeHook(ConVarChanged_Client_AntiSpamConnect);
+	g_hCVar_Client_AntiSpamConnect_Action.AddChangeHook(ConVarChanged_Client_AntiSpamConnectAction);
 	
 	RegConsoleCmd("autobuy", Client_Autobuy);
 }
@@ -421,9 +421,9 @@ public void OnClientSettingsChanged(iClient)
 
 //- ConVar Hooks -//
 
-public void ConVarChanged_Client_Enable(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_Enable(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bClientEnable = GetConVarBool(hConVar);
+	g_bClientEnable = hConVar.BoolValue;
 	if (g_bClientEnable)
 	{
 		Status_Report(g_iClientStatus, KACR_ON);
@@ -453,9 +453,9 @@ public void ConVarChanged_Client_Enable(Handle hConVar, const char[] cOldValue, 
 	}
 }
 
-public void ConVarChanged_Client_AntiRespawn(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_AntiRespawn(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bClientAntiRespawn = GetConVarBool(hConVar);
+	g_bClientAntiRespawn = hConVar.BoolValue;
 	if (g_bClientEnable)
 	{
 		if (g_bClientAntiRespawn)
@@ -467,9 +467,9 @@ public void ConVarChanged_Client_AntiRespawn(Handle hConVar, const char[] cOldVa
 }
 
 
-public void ConVarChanged_Client_NameProtectAction(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_NameProtectAction(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_iClientNameProtect = GetConVarInt(hConVar);
+	g_iClientNameProtect = hConVar.IntValue;
 	if (g_bClientEnable)
 	{
 		if (g_iClientNameProtect)
@@ -480,12 +480,12 @@ public void ConVarChanged_Client_NameProtectAction(Handle hConVar, const char[] 
 	}
 }
 
-public void ConVarChanged_Client_AntiSpamConnect(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_AntiSpamConnect(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_iClientAntiSpamConnect = GetConVarInt(hConVar);
+	g_iClientAntiSpamConnect = hConVar.IntValue;
 }
 
-public void ConVarChanged_Client_AntiSpamConnectAction(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Client_AntiSpamConnectAction(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_iClientAntiSpamConnectAction = GetConVarInt(hConVar);
+	g_iClientAntiSpamConnectAction = hConVar.IntValue;
 }

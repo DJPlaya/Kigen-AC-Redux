@@ -15,7 +15,7 @@ New Module, Fix exploits and abusable stuff
 
 //- Global Variables -//
 
-Handle g_hCVar_SecurityCVars, g_hCVar_SecurityEntities, g_hCVar_sv_cheats, g_hCVar_sv_allowupload;
+ConVar g_hCVar_SecurityCVars, g_hCVar_SecurityEntities, g_hCVar_sv_cheats, g_hCVar_sv_allowupload;
 
 bool g_bSecurityCVars, g_bSecurityEntities, g_bSecurityCVars_sv_cheats, g_bSecurityCVars_sv_allowupload;
 
@@ -36,8 +36,8 @@ public void Security_OnPluginStart()
 		
 	// Hooks
 	
-	HookConVarChange(g_hCVar_SecurityCVars, ConVarChanged_Security_CVars);
-	HookConVarChange(g_hCVar_SecurityEntities, ConVarChanged_Security_Entities);
+	g_hCVar_SecurityCVars.AddChangeHook(ConVarChanged_Security_CVars);
+	g_hCVar_SecurityEntities.AddChangeHook(ConVarChanged_Security_Entities);
 	
 	g_hCVar_sv_cheats = FindConVar("sv_cheats");
 	if (g_hCVar_sv_cheats == INVALID_HANDLE)
@@ -64,12 +64,12 @@ public void Security_OnGameFrame()
 	if (g_bSecurityCVars)
 	{
 		if (g_bSecurityCVars_sv_cheats)
-			if (GetConVarInt(g_hCVar_sv_cheats) != 0)
-				SetConVarInt(g_hCVar_sv_cheats, 0);
+			if (g_hCVar_sv_cheats.IntValue != 0)
+				g_hCVar_sv_cheats.IntValue = 0;
 				
 		if (g_bSecurityCVars_sv_allowupload)
-			if (GetConVarInt(g_hCVar_sv_allowupload) != 0)
-				SetConVarInt(g_hCVar_sv_allowupload, 0);
+			if (g_hCVar_sv_allowupload.IntValue != 0)
+				g_hCVar_sv_allowupload.IntValue = 0;
 	}
 }
 
@@ -79,13 +79,13 @@ public void Security_OnConfigsExecuted() // This dosent belong into cvars becaus
 		return;
 		
 	// Prevent Speeds
-	Handle hVar1 = FindConVar("sv_max_usercmd_future_ticks"); // Prevent Speedhacks
-	if (hVar1) // != INVALID_HANDLE
+	ConVar hConVar = FindConVar("sv_max_usercmd_future_ticks"); // Prevent Speedhacks
+	if (hConVar) // != INVALID_HANDLE
 	{
-		if (GetConVarInt(hVar1) > 8)// The Value of 1 is outdated, CSS and CSGO do have 8 as default Value - 5.20 // (GetConVarInt(hVar1) != 1) // TODO: Replace with 'hVar1.IntValue != 1' once we dropped legacy Support
+		if (hConVar.IntValue > 8)// The Value of 1 is outdated, CSS and CSGO do have 8 as default Value - 5.20
 		{
-			KACR_Log(false, "[Info] 'sv_max_usercmd_future_ticks' was set to '%i' which is a risky Value, re-setting it to its default '8'", GetConVarInt(hVar1)); // TODO: Replace with 'hVar1.IntValue' once we dropped legacy Support
-			SetConVarInt(hVar1, 8); // TODO: Replace with 'hVar1.SetInt(...)' once we dropped legacy Support
+			KACR_Log(false, "[Info] 'sv_max_usercmd_future_ticks' was set to '%i' which is a risky Value, re-setting it to its default '8'", hConVar.IntValue);
+			hConVar.IntValue = 8;
 		}
 	}
 }
@@ -103,12 +103,12 @@ public void Security_OnEntityCreated(iEntity, const char[] cClassname)
 
 //- ConVar Hooks -//
 
-public void ConVarChanged_Security_CVars(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Security_CVars(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bSecurityCVars = GetConVarBool(hConVar);
+	g_bSecurityCVars = hConVar.BoolValue;
 }
 
-public void ConVarChanged_Security_Entities(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
+public void ConVarChanged_Security_Entities(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bSecurityEntities = GetConVarBool(hConVar);
+	g_bSecurityEntities = hConVar.BoolValue;
 }

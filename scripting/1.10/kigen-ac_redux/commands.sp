@@ -5,7 +5,8 @@
 
 //- Global Variables -//
 
-Handle g_hg_iSongCountReset, g_hCVar_Cmds_Enable, g_hCVar_Cmds_Spam;
+ConVar g_hCVar_Cmds_Enable, g_hCVar_Cmds_Spam;
+Handle g_hg_iSongCountReset;
 StringMap g_hBlockedCmds, g_hIgnoredCmds;
 
 #if defined DEBUG
@@ -23,13 +24,13 @@ bool g_bCmds_Enabled = true;
 public void Commands_OnPluginStart()
 {
 	g_hCVar_Cmds_Enable = AutoExecConfig_CreateConVar("kacr_cmds_enable", "1", "If the Commands Module of KACR is enabled", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
-	g_bCmds_Enabled = GetConVarBool(g_hCVar_Cmds_Enable);
+	g_bCmds_Enabled = g_hCVar_Cmds_Enable.BoolValue;
 	
 	g_hCVar_Cmds_Spam = AutoExecConfig_CreateConVar("kacr_cmds_spam", "30", "Amount of Commands in one Second before kick. 0 to disable", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 120.0);
-	g_iCmdSpam = GetConVarInt(g_hCVar_Cmds_Spam);
+	g_iCmdSpam = g_hCVar_Cmds_Spam.IntValue;
 	
-	HookConVarChange(g_hCVar_Cmds_Enable, ConVarChanged_Cmds_Enable);
-	HookConVarChange(g_hCVar_Cmds_Spam, ConVarChanged_Cmds_Spam);
+	g_hCVar_Cmds_Enable.AddChangeHook(ConVarChanged_Cmds_Enable);
+	g_hCVar_Cmds_Spam.AddChangeHook(ConVarChanged_Cmds_Spam);
 	
 	// Setup Debug logging Path
 	#if defined DEBUG
@@ -546,7 +547,7 @@ public Action Commands_SpamCheck(iClient, args)
 
 //- Timers -//
 
-public Action Commands_g_iSongCountReset(Handle timer, any args)
+public Action Commands_g_iSongCountReset(Timer timer, any args)
 {
 	if (!g_bCmds_Enabled)
 	{
@@ -563,9 +564,9 @@ public Action Commands_g_iSongCountReset(Handle timer, any args)
 
 //- ConVar Hooks -//
 
-public void ConVarChanged_Cmds_Enable(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Cmds_Enable(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	bool f_bEnabled = GetConVarBool(convar);
+	bool f_bEnabled = convar.BoolValue;
 	if (f_bEnabled == g_bCmds_Enabled)
 		return;
 		
@@ -596,9 +597,9 @@ public void ConVarChanged_Cmds_Enable(Handle convar, const char[] oldValue, cons
 	}
 }
 
-public void ConVarChanged_Cmds_Spam(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Cmds_Spam(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	g_iCmdSpam = GetConVarInt(convar);
+	g_iCmdSpam = convar.IntValue;
 	
 	if (!g_bCmds_Enabled)
 		Status_Report(g_iCmdSpamStatus, KACR_DISABLED);

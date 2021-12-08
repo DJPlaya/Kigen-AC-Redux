@@ -46,8 +46,9 @@
 
 //- Global Variables -//
 
-Handle g_hCVar_CVars_Enable, g_hConVarArray;
+ConVar g_hCVar_CVars_Enable;
 Handle g_hCurrentQuery[MAXPLAYERS + 1], g_hReplyTimer[MAXPLAYERS + 1], g_hPeriodicTimer[MAXPLAYERS + 1];
+Handle g_hConVarArray;
 StringMap g_hCVar_Index;
 
 char g_cQueryResult[][] =  { "Okay", "Not found", "Not valid", "Protected" };
@@ -62,15 +63,16 @@ bool g_bCVarsEnabled = true;
 
 public void CVars_OnPluginStart()
 {
-	Handle f_hConCommand, hConVar;
+	ConVar hConVar;
+	Handle f_hConCommand;
 	char f_sName[64];
 	bool f_bIsCommand;
 	int f_iFlags;
 	
 	g_hCVar_CVars_Enable = AutoExecConfig_CreateConVar("kacr_cvars_enable", "1", "Enable the CVar checking Module", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
-	g_bCVarsEnabled = GetConVarBool(g_hCVar_CVars_Enable);
+	g_bCVarsEnabled = g_hCVar_CVars_Enable.BoolValue;
 	
-	HookConVarChange(g_hCVar_CVars_Enable, ConVarChanged_CVars_Enable);
+	g_hCVar_CVars_Enable.AddChangeHook(ConVarChanged_CVars_Enable);
 	
 	g_hConVarArray = CreateArray(64);
 	g_hCVar_Index = new StringMap();
@@ -175,7 +177,7 @@ public void CVars_OnPluginStart()
 					continue;
 					
 				CVars_ReplicateConVar(hConVar);
-				HookConVarChange(hConVar, CVars_Replicate);
+				hConVar.AddChangeHook(CVars_Replicate);
 			}
 		}
 		
@@ -478,13 +480,13 @@ public Action CVars_ReplyTimer(Handle timer, any userid)
 	return Plugin_Stop;
 }
 
-public void CVars_ReplicateTimer(any hConVar)
+public void CVars_ReplicateTimer(ConVar hConVar)
 {
 	char f_sName[64];
 	
-	GetConVarName(hConVar, f_sName, sizeof(f_sName));
-	if (g_bCVarsEnabled && StrEqual(f_sName, "sv_cheats") && GetConVarInt(hConVar) != 0) // TODO: This does not belong here #43
-		SetConVarInt(hConVar, 0);
+	hConVar.GetName(f_sName, sizeof(f_sName));
+	if (g_bCVarsEnabled && StrEqual(f_sName, "sv_cheats") && hConVar.IntValue != 0) // TODO: This does not belong here #43
+		hConVar.IntValue = 0;
 		
 	CVars_ReplicateConVar(hConVar);
 }
@@ -636,7 +638,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 		GetArrayString(hConVar, CELL_VALUE, cValue, sizeof(cValue));
 		
 	else
-		GetConVarString(hTemp, cValue, sizeof(cValue));
+		GetConVarString(hTemp, cValue, sizeof(cValue)); // view_as<ConVar>(hTemp).GetString(cValue, sizeof(cValue)); Nah, Screw it ^^
 		
 	if (iCompType == COMP_BOUND)
 		fValue2 = GetArrayCell(hConVar, CELL_VALUE2);
@@ -859,11 +861,11 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 
 //- ConVar Hooks -//
 
-public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] newvalue)
+public void CVars_Replicate(ConVar hConVar, const char[] oldvalue, const char[] newvalue)
 {
 	Handle f_hCVarIndex, f_hTimer;
 	char f_sName[64];
-	GetConVarName(convar, f_sName, sizeof(f_sName));
+	hConVar.GetName(f_sName, sizeof(f_sName));
 	if (g_hCVar_Index.GetValue(f_sName, f_hCVarIndex))
 	{
 		f_hTimer = GetArrayCell(f_hCVarIndex, CELL_CHANGED);
@@ -874,12 +876,12 @@ public void CVars_Replicate(Handle convar, const char[] oldvalue, const char[] n
 		SetArrayCell(f_hCVarIndex, CELL_CHANGED, f_hTimer);
 	}
 	
-	RequestFrame(CVars_ReplicateTimer, convar); // CreateTimer(0.1, CVars_ReplicateTimer, convar); // The delay is so that nothing interferes with the replication
+	RequestFrame(CVars_ReplicateTimer, convar);
 }
 
-public void ConVarChanged_CVars_Enable(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_CVars_Enable(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	g_bCVarsEnabled = GetConVarBool(convar);
+	g_bCVarsEnabled = convar.BoolValue;
 	if (g_bCVarsEnabled)
 		Status_Report(g_iCVarsStatus, KACR_ON);
 		
@@ -903,9 +905,9 @@ public void ConVarChanged_CVars_Enable(Handle convar, const char[] oldValue, con
 */
 bool CVars_AddCVar(char[] f_sName, f_iComparisonType, iAction, const char[] cValue, float fValue2, f_iImportance, const char cAlternative[] = "")
 {
-	Handle hConVar, hArray;
+	Handle hArray;
 	
-	hConVar = FindConVar(f_sName);
+	Handle hConVar = FindConVar(f_sName); // TODO: Supposed to be ConVar
 	if (hConVar != INVALID_HANDLE && (GetConVarFlags(hConVar) & FCVAR_REPLICATED) && (f_iComparisonType == COMP_EQUAL || f_iComparisonType == COMP_STRING))
 		f_iComparisonType = COMP_EQUAL;
 		
@@ -957,7 +959,7 @@ bool CVars_AddCVar(char[] f_sName, f_iComparisonType, iAction, const char[] cVal
 
 stock bool CVars_RemoveCVar(char[] f_sName)
 {
-	Handle hConVar;
+	ConVar hConVar;
 	int f_iIndex;
 	
 	if (!g_hCVar_Index.GetValue(f_sName, hConVar))
@@ -1043,11 +1045,11 @@ stock CVars_CreateNewOrder()
 	CloseHandle(f_hPNormal);
 }
 
-stock CVars_ReplicateConVar(Handle hConVar)
+stock CVars_ReplicateConVar(ConVar hConVar)
 {
 	char cCVarName[64], cValue[64];
-	GetConVarName(hConVar, cCVarName, sizeof(cCVarName));
-	GetConVarString(hConVar, cValue, sizeof(cValue));
+	hConVar.GetName(cCVarName, sizeof(cCVarName));
+	hConVar.GetString(cValue, sizeof(cValue));
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (g_bConnected[i])
@@ -1055,7 +1057,7 @@ stock CVars_ReplicateConVar(Handle hConVar)
 			if (!IsClientConnected(i) || IsFakeClient(i))
 				OnClientDisconnect(i);
 				
-			else if (!SendConVarValue(i, hConVar, cValue))
+			else if (! hConVar.ReplicateToClient(i, cValue))
 				continue; // KACR_Log(false, "'%L' failed to accept replication of '%s' (Value: %s)", i, cCVarName, cValue); // This happens if the netchan isn't created yet, cvars will replicate once it is created.
 		}
 	}

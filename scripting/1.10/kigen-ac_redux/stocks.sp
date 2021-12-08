@@ -749,9 +749,8 @@ Action KACR_Exploit_Crash_CSGO_Timer(Handle hTimer, DataPack hData) // BUG: hTim
 	char cReason[256];
 	int iClient;
 	
-	ReadPackString(hData, cReason, sizeof(cReason)); // hData.ReadString(cReason, sizeof(cReason) // TODO: Replace once we dropped legacy support
-	view_as<float>(iClient) = ReadPackFloat(hData); // view_as<float>(iClient) = ReadFloat(hData) // TODO: Replace once we dropped legacy support
-	
+	hData.ReadString(cReason, sizeof(cReason));
+	view_as<float>(iClient) = hData.ReadFloat();
 	//- Crash Client -//
 	Handle hSayText = StartMessageOne("SayText2", iClient);
 	
@@ -777,7 +776,7 @@ Action Exploit_Crash_CSGO_ErrorCheck(Handle hTimer, DataPack hData) // BUG: hTim
 	int iClient;
 	
 	hData.ReadString(cReason, sizeof(cReason));
-	view_as<float>(iClient) = ReadPackFloat(hData); //view_as<float>(iClient) = ReadFloat(hData); // TODO: Replace once we dropped legacy support
+	view_as<float>(iClient) = hData.ReadFloat();
 	hData.Close();
 	
 	if(g_bConnected[iClient])
@@ -805,8 +804,8 @@ Action KACR_Exploit_CrashNumb_CSS(Handle hTimer, DataPack hData)
 	int iClient;
 	
 	hData.ReadString(cReason, sizeof(cReason));
-	view_as<float>(iClient) = ReadPackFloat(hData); //view_as<float>(iClient) = ReadFloat(hData); // TODO: Replace once we dropped legacy support
-	bool bNumb = ReadPackCell(hData); // Make Numb instead of Crash
+	view_as<float>(iClient) = hData.ReadFloat();
+	bool bNumb = hData.ReadCell(); // Make Numb instead of Crash
 	hData.Close();
 	
 	Event hEvent = CreateEvent("player_disconnect", true);

@@ -20,7 +20,6 @@
 #define REQUIRE_EXTENSIONS
 #include <smlib_kacr> // Copyright (C) SMLIB Contributors // This Include is licensed under GPLv3, see 'Licenses/License_SMLIB.txt' for Details
 #include <autoexecconfig_kacr> // Copyright (C) 2013-2017 Impact // This Include is licensed under GPLv3, see 'Licenses/License_AutoExecConfig.txt' for Details
-#include <kvizzle> // No Copyright Information found, developed by F2 > https://forums.alliedmods.net/member.php?u=48818
 #undef REQUIRE_PLUGIN
 #include <updater_kacr> // No Copyright Information found, developed by God-Tony > https://forums.alliedmods.net/member.php?u=6136
 #include <materialadmin> // Copyright (C) SB-MaterialAdmin Contributors // This Include is licensed under GPLv3, see 'Licenses/GPLv3.txt' for Details
@@ -96,7 +95,8 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 //- Global Variables -//
 
 Handle g_hValidateTimer[MAXPLAYERS + 1];
-Handle g_hClearTimer, g_hCVar_Version, g_hCVar_PauseReports;
+Handle g_hClearTimer;
+ConVar g_hCVar_Version, g_hCVar_PauseReports;
 EngineVersion g_hGame;
 StringMap g_hCLang[MAXPLAYERS + 1];
 StringMap g_hSLang, g_hDenyArray;
@@ -189,10 +189,10 @@ public void OnPluginStart()
 	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_UNLOGGED | FCVAR_DEMO | FCVAR_PROTECTED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "unlogged" - Because changes of this CVar dosent need to be logged, "demo" - So we get saved to Demos for later potential Cheat Analysis, "protected" - So no one can abuse Bugs in old Versions or bypass Limits set by CVars
 	
 	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "120", "Once a cheating Player has been Reported/Logged, wait this many Seconds before reporting/logging him again. (0 = Always do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 3600.0);
-	g_iPauseReports = 60 * GetConVarInt(g_hCVar_PauseReports);
+	g_iPauseReports = 60 * g_hCVar_PauseReports.IntValue;
 	
-	HookConVarChange(g_hCVar_Version, ConVarChanged_Version); // Made, so no one touches the Version
-	HookConVarChange(g_hCVar_PauseReports, ConVarChanged_PauseReports);
+	g_hCVar_Version.AddChangeHook(ConVarChanged_Version); // Made, so no one touches the Version
+	g_hCVar_PauseReports.AddChangeHook(ConVarChanged_PauseReports);
 	
 	KACR_PrintTranslatedToServer(KACR_LOADED);
 	
@@ -505,12 +505,12 @@ public Action KACR_ClearTimer(Handle hTimer)
 public void ConVarChanged_Version(Handle hCvar, const char[] cOldValue, const char[] cNewValue)
 {
 	if (!StrEqual(cNewValue, PLUGIN_VERSION))
-		SetConVarString(g_hCVar_Version, PLUGIN_VERSION);
+		g_hCVar_Version.SetString(PLUGIN_VERSION);
 }
 
 public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_iPauseReports = 60 * GetConVarInt(g_hCVar_PauseReports); // Mins to Seconds
+	g_iPauseReports = 60 * g_hCVar_PauseReports.IntValue; // Mins to Seconds
 }
 
 

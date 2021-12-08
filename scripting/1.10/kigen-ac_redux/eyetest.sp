@@ -11,11 +11,12 @@
 
 //- Global Variables -//
 
-Handle g_hEyeTimer, g_hCVar_Eyetest_Enable, g_hCVar_AntiWall, g_hCVar_EyetestAction;
+Handle g_hEyeTimer;
+ConVar g_hCVar_AntiWall, g_hCVar_EyetestAction;
 float g_vClientPos[MAXPLAYERS + 1][3], g_vClientEye[MAXPLAYERS + 1][3];
 int g_iVelOff, g_iBaseVelOff, g_iEyeStatus, g_iAntiWHStatus, g_iEyetestAction;
 int g_iWeaponOwner[MAX_ENTITIES];
-bool g_bEyeEnabled, g_bAntiWall, g_bAntiWallDisabled = true;
+bool g_bAntiWall, g_bAntiWallDisabled = true;
 bool g_bIsVisible[MAXPLAYERS + 1][MAXPLAYERS + 1];
 bool g_bShouldProcess[MAXPLAYERS + 1], g_bHooked[MAXPLAYERS + 1];
 
@@ -26,30 +27,28 @@ public void Eyetest_OnPluginStart()
 {
 	if(g_hGame == Engine_CSGO || g_hGame == Engine_CSS || g_hGame == Engine_Insurgency || g_hGame == Engine_Left4Dead2 || g_hGame == Engine_HL2DM)
 	{
-		g_hCVar_Eyetest_Enable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "1", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 		g_hCVar_EyetestAction = AutoExecConfig_CreateConVar("kacr_eyes_action", "1025", "Action(s) to take when someone does uses Aimbots, Time Bans will be 2 Weeks", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
 		g_hCVar_AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "1", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 	}
 	
 	else // We dont know the Game, so we disable the Eyecheck by default
 	{
-		g_hCVar_Eyetest_Enable = AutoExecConfig_CreateConVar("kacr_eyes_enable", "0", "Enable the Eye Test detection Routine", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 		g_hCVar_EyetestAction = AutoExecConfig_CreateConVar("kacr_eyes_action", "1040", "Action(s) to take when someone does uses Aimbots, Time Bans will be 2 Weeks", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0);
 		g_hCVar_AntiWall = AutoExecConfig_CreateConVar("kacr_eyes_antiwall", "0", "Enable Anti-Wallhack", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 1.0);
 	}
-	g_iEyetestAction = GetConVarInt(g_hCVar_EyetestAction);
+	g_iEyetestAction = g_hCVar_EyetestAction.IntValue;
 	
-	ConVarChanged_Eyetest_Enable(g_hCVar_Eyetest_Enable, "", "");
-	HookConVarChange(g_hCVar_Eyetest_Enable, ConVarChanged_Eyetest_Enable);
+	ConVarChanged_Eyetest_Action(g_hCVar_EyetestAction, "", "");
+	g_hCVar_EyetestAction.AddChangeHook(ConVarChanged_Eyetest_Action);
 	
-	if (g_bEyeEnabled) // TODO: Replace g_bEyeEnabled with g_hCVar_EyetestAction
+	if (g_iEyetestAction > 0)
 		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_ON);
 		
 	else
 		g_iEyeStatus = Status_Register(KACR_EYEMOD, KACR_OFF);
 		
 	ConVarChanged_Eyetest_AntiWall(g_hCVar_AntiWall, "", "");
-	HookConVarChange(g_hCVar_AntiWall, ConVarChanged_Eyetest_AntiWall);
+	g_hCVar_AntiWall.AddChangeHook(ConVarChanged_Eyetest_AntiWall);
 	
 	g_bAntiWallDisabled = false;
 	g_iAntiWHStatus = Status_Register(KACR_ANTIWH, KACR_OFF);
@@ -99,7 +98,7 @@ public void Eyetest_OnClientPutInServer(client)
 
 public Action Eyetest_Timer(Handle timer) // TODO #36: This Check is only useful for very simpel Aimbots that do aim at targets that are out of the regular Players Aim
 {
-	if (!g_bEyeEnabled)
+	if (g_iEyetestAction <= 0)
 	{
 		g_hEyeTimer = INVALID_HANDLE;
 		return Plugin_Stop;
@@ -130,17 +129,17 @@ public Action Eyetest_Timer(Handle timer) // TODO #36: This Check is only useful
 
 //- ConVar Hooks -//
 
-public void ConVarChanged_Eyetest_Enable(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Eyetest_Action(Handle convar, const char[] oldValue, const char[] newValue)
 {
-	g_bEyeEnabled = GetConVarBool(convar);
+	g_iEyetestAction = StringToInt(newValue);
 	
-	if (g_bEyeEnabled && g_hEyeTimer == INVALID_HANDLE)
+	if (g_iEyetestAction > 0 && g_hEyeTimer == INVALID_HANDLE)
 	{
 		g_hEyeTimer = CreateTimer(0.5, Eyetest_Timer, _, TIMER_REPEAT);
 		Status_Report(g_iEyeStatus, KACR_ON);
 	}
 	
-	else if (!g_bEyeEnabled && g_hEyeTimer != INVALID_HANDLE)
+	else if (g_iEyetestAction <= 0 && g_hEyeTimer != INVALID_HANDLE)
 	{
 		CloseHandle(g_hEyeTimer);
 		// g_hEyeTimer = INVALID_HANDLE; // Not needed?
@@ -148,9 +147,9 @@ public void ConVarChanged_Eyetest_Enable(Handle convar, const char[] oldValue, c
 	}
 }
 
-public void ConVarChanged_Eyetest_AntiWall(Handle convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_Eyetest_AntiWall(ConVar hConVar, const char[] oldValue, const char[] newValue)
 {
-	bool f_bEnabled = GetConVarBool(convar);
+	bool f_bEnabled = hConVar.BoolValue;
 	
 	if (f_bEnabled == g_bAntiWall)
 		return;
@@ -161,7 +160,7 @@ public void ConVarChanged_Eyetest_AntiWall(Handle convar, const char[] oldValue,
 		{
 			Status_Report(g_iAntiWHStatus, KACR_NOSDKHOOK);
 			KACR_Log(false, "[Error] SDKHooks is not running, cannot enable Anti-Wall");
-			SetConVarInt(convar, 0);
+			hConVar.IntValue = 0;
 			return;
 		}
 		

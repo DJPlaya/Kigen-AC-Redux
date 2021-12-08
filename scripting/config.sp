@@ -40,7 +40,7 @@ Profile1.Security.Entities
 Profile1.Debug
 
 */
-Handle g_hCVar_ConfigProfile;
+ConVar g_hCVar_ConfigProfile;
 int g_iConfigProfile;
 
 
