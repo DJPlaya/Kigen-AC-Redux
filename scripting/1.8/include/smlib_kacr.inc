@@ -1,5 +1,5 @@
 #if defined _smlib_included
-	#endinput
+ #endinput
 #endif
 #define _smlib_included
 

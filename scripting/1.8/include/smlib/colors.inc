@@ -19,7 +19,7 @@ enum ChatColorSubjectType
 	ChatColorSubjectType_undefined	= -1,
 	ChatColorSubjectType_world		= 0
 	// Anything higher is a specific team
-}
+};
 
 enum ChatColorInfo
 {
@@ -43,7 +43,7 @@ enum ChatColor
 	ChatColor_Green,
 	ChatColor_Olivegreen,
 	ChatColor_Black
-}
+};
 
 static String:chatColorTags[][] = {
 	"N",	// Normal

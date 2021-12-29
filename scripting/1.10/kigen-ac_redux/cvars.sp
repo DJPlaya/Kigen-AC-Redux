@@ -861,7 +861,7 @@ public void CVars_QueryCallback(QueryCookie cookie, client, ConVarQueryResult re
 
 //- ConVar Hooks -//
 
-public void CVars_Replicate(ConVar hConVar, const char[] oldvalue, const char[] newvalue)
+public void CVars_Replicate(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
 	Handle f_hCVarIndex, f_hTimer;
 	char f_sName[64];
@@ -876,12 +876,12 @@ public void CVars_Replicate(ConVar hConVar, const char[] oldvalue, const char[] 
 		SetArrayCell(f_hCVarIndex, CELL_CHANGED, f_hTimer);
 	}
 	
-	RequestFrame(CVars_ReplicateTimer, convar);
+	RequestFrame(CVars_ReplicateTimer, hConVar);
 }
 
-public void ConVarChanged_CVars_Enable(ConVar convar, const char[] oldValue, const char[] newValue)
+public void ConVarChanged_CVars_Enable(ConVar hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_bCVarsEnabled = convar.BoolValue;
+	g_bCVarsEnabled = hConVar.BoolValue;
 	if (g_bCVarsEnabled)
 		Status_Report(g_iCVarsStatus, KACR_ON);
 		

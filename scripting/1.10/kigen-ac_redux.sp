@@ -159,10 +159,9 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] cError, iMaxSize
 
 public void OnPluginStart()
 {
+	//- Pre Module Init -//
 	g_hDenyArray = new StringMap();
 	g_hGame = GetEngineVersion(); // Identify the game
-	
-	AutoExecConfig_SetFile("Kigen-AC_Redux"); // Set which file to write Cvars to
 	
 	//- Module Calls -//
 	Status_OnPluginStart();
@@ -175,7 +174,8 @@ public void OnPluginStart()
 	Trans_OnPluginStart();
 	// Update_OnPluginStart(); // TODO: .ref Update
 	
-	//- Get server language -//
+	//- Init -//
+	// Get server language
 	char f_sLang[8];
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
 	if (!g_hLanguages.GetValue(f_sLang, g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
@@ -183,8 +183,8 @@ public void OnPluginStart()
 		
 	g_hClearTimer = CreateTimer(14400.0, KACR_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
-	AutoExecConfig_ExecuteFile(); // Execute the Config
-	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
+	//- ConVars -//
+	AutoExecConfig_SetFile("Kigen-AC_Redux"); // Set which file to write Cvars to
 	
 	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_UNLOGGED | FCVAR_DEMO | FCVAR_PROTECTED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "unlogged" - Because changes of this CVar dosent need to be logged, "demo" - So we get saved to Demos for later potential Cheat Analysis, "protected" - So no one can abuse Bugs in old Versions or bypass Limits set by CVars
 	
@@ -194,7 +194,11 @@ public void OnPluginStart()
 	g_hCVar_Version.AddChangeHook(ConVarChanged_Version); // Made, so no one touches the Version
 	g_hCVar_PauseReports.AddChangeHook(ConVarChanged_PauseReports);
 	
-	KACR_PrintTranslatedToServer(KACR_LOADED);
+	AutoExecConfig_ExecuteFile(); // Execute the Config
+	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
+	
+	//- Post ConVar Init -//
+	KACR_PrintTranslatedToServer(KACR_LOADED); // Succesfully loaded
 	
 	#if defined DEBUG
 	 KACR_Log(false, "[Warning] You are running an early Version of Kigen AC Redux, please be aware that it may not run stable");

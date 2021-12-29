@@ -547,7 +547,7 @@ public Action Commands_SpamCheck(iClient, args)
 
 //- Timers -//
 
-public Action Commands_g_iSongCountReset(Timer timer, any args)
+public Action Commands_g_iSongCountReset(Handle timer, any args)
 {
 	if (!g_bCmds_Enabled)
 	{
