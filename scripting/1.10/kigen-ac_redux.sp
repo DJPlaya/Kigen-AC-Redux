@@ -128,7 +128,7 @@ public Plugin myinfo =
 #include "kigen-ac_redux/rcon.sp"			// RCON Module
 #include "kigen-ac_redux/security.sp"		// Server Security Module
 #include "kigen-ac_redux/status.sp"			// Status Module
-// #include "kigen-ac_redux/update.sp"			// Update Module // TODO: .ref Update
+// #include "kigen-ac_redux/update.sp"		// Update Module // TODO: .ref Update
 #include "kigen-ac_redux/stocks.sp"			// Stocks Module
 
 //- Plugin, Native Config Functions -//
@@ -187,15 +187,16 @@ public void OnPluginStart()
 	AutoExecConfig_SetFile("Kigen-AC_Redux"); // Set which file to write Cvars to
 	
 	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_UNLOGGED | FCVAR_DEMO | FCVAR_PROTECTED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "unlogged" - Because changes of this CVar dosent need to be logged, "demo" - So we get saved to Demos for later potential Cheat Analysis, "protected" - So no one can abuse Bugs in old Versions or bypass Limits set by CVars
-	
 	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "120", "Once a cheating Player has been Reported/Logged, wait this many Seconds before reporting/logging him again. (0 = Always do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 3600.0);
-	g_iPauseReports = 60 * g_hCVar_PauseReports.IntValue;
 	
-	g_hCVar_Version.AddChangeHook(ConVarChanged_Version); // Made, so no one touches the Version
-	g_hCVar_PauseReports.AddChangeHook(ConVarChanged_PauseReports);
+	ConVarChanged_PauseReports(g_hCVar_PauseReports, "", "120"); // Var int using the ConVars default Value
 	
 	AutoExecConfig_ExecuteFile(); // Execute the Config
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
+	
+	//- Hooks -//
+	g_hCVar_Version.AddChangeHook(ConVarChanged_Version); // Made, so no one touches the Version
+	g_hCVar_PauseReports.AddChangeHook(ConVarChanged_PauseReports);
 	
 	//- Post ConVar Init -//
 	KACR_PrintTranslatedToServer(KACR_LOADED); // Succesfully loaded

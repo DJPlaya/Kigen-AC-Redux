@@ -260,6 +260,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 	KACR_ActionCheck(iAction, bActions);
 	
 	if (g_iPauseReports) // 0 = Disabled
+	{
 		if (bActions[KACR_ActionID_ReportSB] || bActions[KACR_ActionID_ReportAdmins] || bActions[KACR_ActionID_ReportSteamAdmins] || bActions[KACR_ActionID_AskSteamAdmin] || bActions[KACR_ActionID_Log] || bActions[KACR_ActionID_ReportIRC]) // We have an Array so we do not call the Actions toooo often, we do not want to spam the Logs nor the Admins nor SB with Reports
 		{
 			if (RoundToNearest(GetTickedTime()) - g_iLastCheatReported[iClient] < g_iPauseReports) // #ref 395723
@@ -286,7 +287,8 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			else
 				g_iLastCheatReported[iClient] = RoundToNearest(GetTickedTime()); // BUG: We do not calculate with the Case that KACR_Action does fail, but thats fine
 		}
-		
+	}
+	
 	//- Reported Reasons -//
 	char cReason2[256], cUserReason2[256];
 	VFormat(cReason2, sizeof(cReason2), cReason, 4);

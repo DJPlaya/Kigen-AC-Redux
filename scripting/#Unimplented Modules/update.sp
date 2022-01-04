@@ -9,14 +9,14 @@
 
 Update_OnPluginStart()
 {
-	RegAdminCmd("kacr_update", Update_Command, ADMFLAG_ROOT, "Forces KACR to check for Updates");
+	RegAdminCmd("kacr_update", Update_Cmd, ADMFLAG_ROOT, "Forces KACR to check for Updates");
 	
 	CreateTimer(360.0, Update_Timer);
 	
 	//- Reset Load Params to Default -//
 }
 
-public Action Update_Command(const iClient, const iArgs)
+public Action Update_Cmd(const iClient, const iArgs)
 {
 	ReplyToCommand(iClient, "[Kigen AC Redux] Checking for Updates, this may take a Minute...");
 	

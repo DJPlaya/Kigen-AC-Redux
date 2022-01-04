@@ -226,7 +226,7 @@ public void CVars_OnClientDisconnect(client)
 
 //- Admin Commands -//
 
-public Action CVars_CmdStatus(iCmdCaller, args)
+public Action CVars_CmdStatus(const iCmdCaller, const args)
 {
 	if (iCmdCaller && !IsClientInGame(iCmdCaller))
 		return Plugin_Handled;
@@ -234,7 +234,7 @@ public Action CVars_CmdStatus(iCmdCaller, args)
 	Handle hTemp;
 	char cIP[64], cCVarName[64];
 	
-	for (int iClients = 1; iClients <= MaxClients; iClients++)
+	for (int iClients = 1; iClients <= MaxClients; iClients++) // Check All Clients
 	if (g_bInGame[iClients])
 	{
 		GetClientIP(iClients, cIP, sizeof(cIP));
@@ -262,7 +262,7 @@ public Action CVars_CmdStatus(iCmdCaller, args)
 	return Plugin_Handled;
 }
 
-public Action CVars_CmdAddCVar(client, args)
+public Action CVars_CmdAddCVar(const client, const args)
 {
 	if (args != 4 && args != 5)
 	{
@@ -353,7 +353,7 @@ public Action CVars_CmdAddCVar(client, args)
 	return Plugin_Handled;
 }
 
-public Action CVars_CmdRemCVar(iClient, args)
+public Action CVars_CmdRemCVar(const iClient, const args)
 {
 	if (args != 1)
 	{
