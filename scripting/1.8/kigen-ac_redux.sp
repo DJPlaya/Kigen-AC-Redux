@@ -25,6 +25,7 @@
 #include <materialadmin> // Copyright (C) SB-MaterialAdmin Contributors // This Include is licensed under GPLv3, see 'Licenses/GPLv3.txt' for Details
 #include <ASteambot> // Copyright (C) ASteamBot Contributors // This Include is licensed under The MIT License, see 'Licenses/License_ASteambot.txt' for Details
 #include <sourceirc> // Copyright (C) Azelphur and SourceIRC Contributers // This Include is licensed under GPLv3, see 'Licenses/License_SourceIRC.txt' for Details
+#include <calladmin> // Copyright (C) 2013-2018 Impact, dordnung // This Include is licensed under GPLv3, see 'Licenses/License_SourceIRC.txt' for Details
 #define REQUIRE_PLUGIN
 
 
@@ -63,7 +64,7 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 #endif
 
 // Action Defines
-#define KACR_Action_Count 13 // 18.11.19 - 12+1 carryed
+#define KACR_Action_Count 15 // 14.1.2022 - 14+1 carryed
 
 #define KACR_ActionID_Ban 1
 #define KACR_ActionID_TimeBan 2
@@ -77,6 +78,8 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 #define KACR_ActionID_AskSteamAdmin 10
 #define KACR_ActionID_Log 11
 #define KACR_ActionID_ReportIRC 12
+#define KACR_ActionID_AskIRCAdmin 13
+#define KACR_ActionID_ReportCallAdmin 14
 
 #define KACR_Action_Ban 1
 #define KACR_Action_TimeBan 2
@@ -90,6 +93,8 @@ native int AddTargetsToMenu2(Handle menu, int source_client, int flags); // TODO
 #define KACR_Action_AskSteamAdmin 512
 #define KACR_Action_Log 1024
 #define KACR_Action_ReportIRC 2048
+#define KACR_Action_AskIRCAdmin 4096
+#define KACR_Action_ReportCallAdmin 8192
 
 
 //- Global Variables -//
@@ -101,12 +106,12 @@ EngineVersion g_hGame;
 StringMap g_hCLang[MAXPLAYERS + 1];
 StringMap g_hSLang, g_hDenyArray;
 
-int g_iLastCheatReported[MAXPLAYERS + 1] = -3600; // This is for per Frame/Timed AC Checks, we do not want to spam the Log nor the Admins with Reports, so we save the last Time Someone was reported. We do set this to -3600 (1h), so the Time Check works properly even if the Server just has started #ref 395723
-int g_iPauseReports; // Wait this long till we report/log a Client again
+int g_iLastCheatReported[MAXPLAYERS + 1] = -3600; // This is for per Frame/Timed AC Checks, we do not want to spam the Log nor the Admins with Reports, so we save the last Time in Seconds Someone was reported. We do set this to -3600 (1h), so the Time Check works properly even if the Server just has started #ref 395723
+int g_iPauseReports; // Wait this many Seconds long till we report/log a Client again
 
 // Its more Resource efficient to store the data instead of grabbing it over and over again
 bool g_bConnected[MAXPLAYERS + 1], g_bAuthorized[MAXPLAYERS + 1], g_bInGame[MAXPLAYERS + 1], g_bIsAdmin[MAXPLAYERS + 1], g_bIsFake[MAXPLAYERS + 1];
-bool g_bSourceBansPP, g_bSBMaterialAdmin, g_bSourceBans, g_bASteambot, g_bSourceIRC, g_bMapStarted;
+bool g_bSourceBansPP, g_bSBMaterialAdmin, g_bSourceBans, g_bASteambot, g_bSourceIRC, g_bCallAdmin, g_bMapStarted;
 
 public Plugin myinfo = 
 {
@@ -128,7 +133,7 @@ public Plugin myinfo =
 #include "kigen-ac_redux/rcon.sp"			// RCON Module
 #include "kigen-ac_redux/security.sp"		// Server Security Module
 #include "kigen-ac_redux/status.sp"			// Status Module
-// #include "kigen-ac_redux/update.sp"			// Update Module // TODO: .ref Update
+// #include "kigen-ac_redux/update.sp"		// Update Module // TODO: .ref Update
 #include "kigen-ac_redux/stocks.sp"			// Stocks Module
 
 //- Plugin, Native Config Functions -//
@@ -159,10 +164,9 @@ public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] cError, iMaxSize
 
 public void OnPluginStart()
 {
+	//- Pre Module Init -//
 	g_hDenyArray = new StringMap();
 	g_hGame = GetEngineVersion(); // Identify the game
-	
-	AutoExecConfig_SetFile("Kigen-AC_Redux"); // Set which file to write Cvars to
 	
 	//- Module Calls -//
 	Status_OnPluginStart();
@@ -175,7 +179,8 @@ public void OnPluginStart()
 	Trans_OnPluginStart();
 	// Update_OnPluginStart(); // TODO: .ref Update
 	
-	//- Get server language -//
+	//- Init -//
+	// Get server language
 	char f_sLang[8];
 	GetLanguageInfo(GetServerLanguage(), f_sLang, sizeof(f_sLang));
 	if (!g_hLanguages.GetValue(f_sLang, g_hSLang)) // If we can't find the server's Language revert to English. - Kigen
@@ -183,18 +188,23 @@ public void OnPluginStart()
 		
 	g_hClearTimer = CreateTimer(14400.0, KACR_ClearTimer, _, TIMER_REPEAT); // Clear the Deny Array every 4 hours.
 	
+	//- ConVars -//
+	AutoExecConfig_SetFile("Kigen-AC_Redux"); // Set which file to write Cvars to
+	
+	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_UNLOGGED | FCVAR_DEMO | FCVAR_PROTECTED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "unlogged" - Because changes of this CVar dosent need to be logged, "demo" - So we get saved to Demos for later potential Cheat Analysis, "protected" - So no one can abuse Bugs in old Versions or bypass Limits set by CVars
+	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "120", "Once a cheating Player has been Reported/Logged, wait this many Seconds before reporting/logging him again (0 = Always do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 3600.0);
+	
+	ConVarChanged_PauseReports(g_hCVar_PauseReports, "", "120"); // Var int using the ConVars default Value
+	
 	AutoExecConfig_ExecuteFile(); // Execute the Config
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
 	
-	g_hCVar_Version = CreateConVar("kacr_version", PLUGIN_VERSION, "KACR Plugin Version (do not touch)", FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_UNLOGGED | FCVAR_DEMO | FCVAR_PROTECTED); // "notify" - So that we appear on Server Tracking Sites, "sponly" because we do not want Chat Messages about this CVar caused by "notify", "unlogged" - Because changes of this CVar dosent need to be logged, "demo" - So we get saved to Demos for later potential Cheat Analysis, "protected" - So no one can abuse Bugs in old Versions or bypass Limits set by CVars
-	
-	g_hCVar_PauseReports = AutoExecConfig_CreateConVar("kacr_pausereports", "120", "Once a cheating Player has been Reported/Logged, wait this many Seconds before reporting/logging him again. (0 = Always do Report/Log)", FCVAR_DONTRECORD | FCVAR_UNLOGGED | FCVAR_PROTECTED, true, 0.0, true, 3600.0);
-	g_iPauseReports = 60 * g_hCVar_PauseReports.IntValue;
-	
+	//- Hooks -//
 	g_hCVar_Version.AddChangeHook(ConVarChanged_Version); // Made, so no one touches the Version
 	g_hCVar_PauseReports.AddChangeHook(ConVarChanged_PauseReports);
 	
-	KACR_PrintTranslatedToServer(KACR_LOADED);
+	//- Post ConVar Init -//
+	KACR_PrintTranslatedToServer(KACR_LOADED); // Succesfully loaded
 	
 	#if defined DEBUG
 	 KACR_Log(false, "[Warning] You are running an early Version of Kigen AC Redux, please be aware that it may not run stable");
@@ -262,7 +272,7 @@ public void OnAllPluginsLoaded()
 	if (LibraryExists("sourcebans"))
 		g_bSourceBans = true;
 		
-	KACR_CheckSBSystems();
+	KACR_CheckSBSystems(); // Check if multiple SB Systems are installed and report if so
 	
 	if (LibraryExists("ASteambot"))
 	{
@@ -272,6 +282,9 @@ public void OnAllPluginsLoaded()
 	
 	if (LibraryExists("sourceirc"))
 		g_bSourceIRC = true;
+		
+	if (LibraryExists("calladmin"))
+		g_bCallAdmin = true;
 		
 	//- Module Calls -//
 	Commands_OnAllPluginsLoaded();
@@ -306,19 +319,19 @@ public void OnLibraryAdded(const char[] cName)
 	if (StrEqual(cName, "sourcebans++", false))
 	{
 		g_bSourceBansPP = true;
-		KACR_CheckSBSystems();
+		KACR_CheckSBSystems(); // Check if multiple SB Systems are installed and report if so
 	}
 	
 	else if (LibraryExists("materialadmin")) // SB-Material Admin
 	{
 		g_bSBMaterialAdmin = true;
-		KACR_CheckSBSystems();
+		KACR_CheckSBSystems(); // Check if multiple SB Systems are installed and report if so
 	}
 	
 	else if (StrEqual(cName, "sourcebans", false))
 	{
 		g_bSourceBans = true;
-		KACR_CheckSBSystems();
+		KACR_CheckSBSystems(); // Check if multiple SB Systems are installed and report if so
 	}
 	
 	else if (StrEqual(cName, "ASteambot", false) && !g_bASteambot) // Check so we do not register twice
@@ -329,6 +342,9 @@ public void OnLibraryAdded(const char[] cName)
 	
 	else if (StrEqual(cName, "sourceirc", false))
 		g_bSourceIRC = true;
+		
+	else if (StrEqual(cName, "calladmin", false))
+		g_bCallAdmin = true;
 		
 	#if !defined DEBUG
 	 else if (LibraryExists("updater"))
@@ -356,6 +372,9 @@ public void OnLibraryRemoved(const char[] cName)
 		g_bSourceIRC = false;
 		IRC_CleanUp();
 	}
+	
+	else if (StrEqual(cName, "calladmin", false))
+		g_bCallAdmin = false;
 }
 
 
@@ -510,7 +529,7 @@ public void ConVarChanged_Version(Handle hCvar, const char[] cOldValue, const ch
 
 public void ConVarChanged_PauseReports(Handle hConVar, const char[] cOldValue, const char[] cNewValue)
 {
-	g_iPauseReports = 60 * g_hCVar_PauseReports.IntValue; // Mins to Seconds
+	g_iPauseReports = g_hCVar_PauseReports.IntValue;
 }
 
 

@@ -28,14 +28,14 @@ public Action KACR_Cmd(const iClient, const iArgs)
 	// int g_i
 	int iCountedReports;
 	for (int iCount = 1; iCount <= MaxClients; iCount++)
-		if(g_iLastCheatReported[iCount] != -3600) // We check if someone is Authorized too incase // Default Time(1h)
+		if(g_iLastCheatReported[iCount] != -3600) // We check if someone is Authorized too in case // Default Time(1h)
 			iCountedReports++;
 			ReplyToCommand(iClient, "'%N' was last reported %i Seconds ago", iCount, (RoundToNearest(GetTickedTime()) - g_iLastCheatReported[iClient]));
 			
 	Format(cBuffer, sizeof(cBuffer))
-	AddMenuItem(hMenu, "", "Reports"); // Show Active Warnings or Messages here
+	AddMenuItem(hMenu, "Show Last Reports", "Reports"); // TODO: Show Active Warnings or Messages here
 	AddMenuItem(hMenu, "kacr_status", "Status");
-	AddMenuItem(hMenu, "", "");
+	AddMenuItem(hMenu, "Show Management WebUI", "WebUI");
 	AddMenuItem(hMenu, "", "");
 	AddMenuItem(hMenu, "", "");
 	
@@ -49,7 +49,7 @@ public int KACR_Menu(Menu hMenu, MenuAction hAction, const iClient, iItemNum)
 {
 	if (iItemNum == MenuAction_End)
 		CloseHandle(menu);
-	
+		
 	if (iItemNum == MenuAction_Select)
 	{
 		
@@ -64,7 +64,7 @@ public int KACR_Menu(Menu hMenu, MenuAction hAction, const iClient, iItemNum)
 			
 			case 1:
 				Status_Cmd(iClient);
-			
+				
 			case 2:
 			
 			case 3:

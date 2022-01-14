@@ -227,13 +227,15 @@ KACR_Log(const bool bBreak, const char[] cText, any ...)
 * 4 - Server Ban (banned_user.cfg)
 * 8 - Server Time Ban (banned_user.cfg) // TODO: Add Option to set the Time
 * 16 - Kick
-* 32 - Crash Client (CSGO only for now)
+* 32 - Exploit
 * 64 - Report to SB
 * 128 - Report to online Admins
-* 256 - Tell Admins on Steam about the Violation
+* 256 - Report to Admins on Steam
 * // TODO:512 - Ask an Steam User for Advice
 * 1024 - Log to File
-* // TODO:2048 - Tell about the Violation using SourceIRC
+* 2048 - Report using SourceIRC
+* // TODO:4096 - Ask on an IRC Channel for Advice
+* 8192 - Report to CallAdmin
 *
 * @param iClient		Client UID.
 * @param iAction		What todo with the Client.
@@ -260,6 +262,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 	KACR_ActionCheck(iAction, bActions);
 	
 	if (g_iPauseReports) // 0 = Disabled
+	{
 		if (bActions[KACR_ActionID_ReportSB] || bActions[KACR_ActionID_ReportAdmins] || bActions[KACR_ActionID_ReportSteamAdmins] || bActions[KACR_ActionID_AskSteamAdmin] || bActions[KACR_ActionID_Log] || bActions[KACR_ActionID_ReportIRC]) // We have an Array so we do not call the Actions toooo often, we do not want to spam the Logs nor the Admins nor SB with Reports
 		{
 			if (RoundToNearest(GetTickedTime()) - g_iLastCheatReported[iClient] < g_iPauseReports) // #ref 395723
@@ -286,6 +289,12 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			else
 				g_iLastCheatReported[iClient] = RoundToNearest(GetTickedTime()); // BUG: We do not calculate with the Case that KACR_Action does fail, but thats fine
 		}
+	}
+	
+	//- Grab IP if needed-//
+	char cClientIP[64];
+	if (bActions[KACR_ActionID_TimeBan] && iTime < 5 || bActions[KACR_ActionID_Log])
+		GetClientIP(iClient, cClientIP, sizeof(cClientIP));
 		
 	//- Reported Reasons -//
 	char cReason2[256], cUserReason2[256];
@@ -381,9 +390,8 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			
 			else // Bantime under 5 mins
 			{
-				char cSteamID[16], cClientIP[64], cName[MAX_NAME_LENGTH];
+				char cSteamID[16], cName[MAX_NAME_LENGTH];
 				GetClientAuthId(iClient, AuthId_Steam3, cSteamID, 16);
-				GetClientIP(iClient, cClientIP, sizeof(cClientIP));  // Maybe merge this in the Head of the Function ref. 568203
 				GetClientName(iClient, cName, sizeof(cName));
 				
 				if (!MAOffBanPlayer(iClient, MA_BAN_STEAM, cSteamID, cClientIP, cName, iTime, cReason2))
@@ -448,7 +456,7 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			OnClientDisconnect(iClient); // Needed, will be executed in the main File
 	} // End of Action
 	
-	if (bActions[KACR_ActionID_Exploit]) // 32 - Crash Client
+	if (bActions[KACR_ActionID_Exploit]) // 32 - Exploit
 	{
 		if (!g_bInGame[iClient]) // Error Check: Client not Ingame
 		{
@@ -549,9 +557,6 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 	
 	if (bActions[KACR_ActionID_Log]) // 1024 - Log to File
 	{
-		char cClientIP[64];
-		GetClientIP(iClient, cClientIP, sizeof(cClientIP)); // Maybe merge this in the Head of the Function ref. 568203
-		
 		KACR_Log(false, "Logging Client '%L<%s>' for doing '%s'", iClient, cClientIP, cReason2);
 		
 		if (bActions[KACR_ActionID_Ban]) // 1 - Ban (SB++, SB-MA & SB)
@@ -582,40 +587,53 @@ KACR_Action(const iClient, const iAction, const iTime, const char[] cUserReason,
 			KACR_Log(false, "Logging Action 256: Reportet Client '%L<%s>' to all Steam Admins", iClient, cClientIP);
 			
 		if (bActions[KACR_ActionID_AskSteamAdmin]) // 512 - Ask an Steam User over ASteambot for Advice
-			KACR_Log(false, "Logging Action 512: Asked on Steam what todo with Client '%L<%s>'", iClient, cClientIP);
+			KACR_Log(false, "Logging Action 512: Asked on Steam what todo with Client: %L<%s>", iClient, cClientIP);
 			
 		if (bActions[KACR_ActionID_ReportIRC]) // 2048 - Tell about the Violation using SourceIRC
 			KACR_Log(false, "Logging Action 2048: Reportet Client '%L<%s>' to the specified IRC Channels", iClient, cClientIP);
 			
+		if (bActions[KACR_ActionID_AskIRCAdmin]) // 4096 - Ask on an IRC Channel for Advice
+			KACR_Log(false, "Logging Action 4096: Asked on specified IRC Channels what todo with Client: %L<%s>", iClient, cClientIP);
+			
+		if (bActions[KACR_ActionID_ReportCallAdmin]) // 8192 - Report to CallAdmin
+			KACR_Log(false, "Logging Action 8192: Reportet Client '%L<%s>' to CallAdmin", iClient, cClientIP);
 	} // End of Action
 	
 	if (bActions[KACR_ActionID_ReportIRC]) // 2048 - Tell about the Violation using SourceIRC
 	{
 		if (g_bSourceIRC)
-			IRC_MsgFlaggedChannels("kacr_reports", "[KACR] Reporting Client '%L' for doing '%s'", iClient, cReason2); // Flag: kacr_reports
+			IRC_MsgFlaggedChannels("kacr_reports", "[KACR] Reporting Client '%L<%s>' for doing '%s'", iClient, cReason2); // Flag: kacr_reports
 			
 		else
 			KACR_Log(false, "[Error] An SourceIRC Action was called but it isent running");
 	} // End of Action
 	
-	/*
+	
 	if (bActions[KACR_ActionID_AskIRCAdmin]) // 4096 - Ask on an IRC Channel for Advice
 	{
+		
 		if (g_bSourceIRC)
+		{
+			/*
 			IRC_MsgFlaggedChannels("kacr_advice", const String:format[], any:...); // Flag: kacr_advice
 			
 			[KACR] Reporting Client '%L' for doing '%s'\n[KACR] Which Action should be taken for this Client?\n[KACR] Options available:\n[KACR] 0 - Dont do anything\n[KACR] 1 - Ban (SB & SB++)\n[KACR] 2 - Time Ban (SB & SB++)\n[KACR] 4 - Server Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 8 - Server Time Ban (banned_ip.cfg or banned_user.cfg)\n[KACR] 16 - Kick\n[KACR] 32 - Crash Client\n[KACR] 64 - Report to SB\n[KACR] 128 - Report to online Admins\n[KACR] 256 - Tell Admins on Steam about the Violation\n[KACR] 1024 - Log to File\n[KACR] 2048 - Tell about the Violation using SourceIRC[KACR] --------------------[KACR] Enter any Number from above to call an Action\n[KACR] You can also add up the Numbers to call multiply Actions at once
-			
+			*/
+		}
+		
 		else
 			KACR_Log(false, "[Error] An SourceIRC Action was called but it isent running");
+		
 	} // End of Action
 	
-	if (bActions[KACR_ActionID_ReportCallAdmin // 8192 - Report using CallAdmin
+	if (bActions[KACR_ActionID_ReportCallAdmin]) // 8192 - Report to CallAdmin
 	{
 		if(g_bCallAdmin)
 			CallAdmin_ReportClient(REPORTER_CONSOLE, iClient, cReason2);
+			
+		else
+			KACR_Log(false, "[Error] An CallAdmin Action was called but it isent running");
 	} // End of Action
-	*/
 }
 
 /*
@@ -630,114 +648,107 @@ void KACR_ActionCheck(iAction, bool bActions[KACR_Action_Count]) // I wish i wou
 {
 	loop
 	{
-		if(iAction < KACR_Action_ReportIRC)
-			if(iAction < KACR_Action_Log)
-				if(iAction < KACR_Action_AskSteamAdmin)
-					if(iAction < KACR_Action_ReportSteamAdmins)
-						if(iAction < KACR_Action_ReportAdmins)
-							if(iAction < KACR_Action_ReportSB)
-								if(iAction < KACR_Action_Crash)
-									if(iAction < KACR_Action_Kick)
-										if(iAction < KACR_Action_ServerTimeBan)
-											if(iAction < KACR_Action_ServerBan)
-												if(iAction < KACR_Action_TimeBan)
-													if(iAction < KACR_Action_Ban) // == 0, negative Values would be strange // 0 - Nothin
-														break;
+		if(iAction < KACR_Action_ReportCallAdmin)
+			if(iAction < KACR_Action_AskIRCAdmin)
+				if(iAction < KACR_Action_ReportIRC)
+					if(iAction < KACR_Action_Log)
+						if(iAction < KACR_Action_AskSteamAdmin)
+							if(iAction < KACR_Action_ReportSteamAdmins)
+								if(iAction < KACR_Action_ReportAdmins)
+									if(iAction < KACR_Action_ReportSB)
+										if(iAction < KACR_Action_Crash)
+											if(iAction < KACR_Action_Kick)
+												if(iAction < KACR_Action_ServerTimeBan)
+													if(iAction < KACR_Action_ServerBan)
+														if(iAction < KACR_Action_TimeBan)
+															if(iAction < KACR_Action_Ban) // == 0, negative Values would be strange // 0 - Nothin
+																break;
+																
+															else // == 1 // 1 - 1 - Ban (SB & SB++)
+															{
+																bActions[KACR_ActionID_Ban] = true;
+																iAction -= KACR_Action_Ban;
+															}
+															
+														else // 2 - 2 - Time Ban (SB & SB++)
+														{
+															bActions[KACR_ActionID_TimeBan] = true;
+															iAction -= KACR_Action_TimeBan;
+														}
 														
-													else // == 1 // 1 - 1 - Ban (SB & SB++)
+													else // 4 - 3 - Server Ban (banned_ip.cfg or banned_user.cfg)
 													{
-														bActions[KACR_ActionID_Ban] = true;
-														iAction -= KACR_Action_Ban;
+														bActions[KACR_ActionID_ServerBan] = true;
+														iAction -= KACR_Action_ServerBan;
 													}
 													
-												else // 2 - 2 - Time Ban (SB & SB++)
+												else // 8 - 4 - Server Time Ban
 												{
-													bActions[KACR_ActionID_TimeBan] = true;
-													iAction -= KACR_Action_TimeBan;
+													bActions[KACR_ActionID_ServerTimeBan] = true;
+													iAction -= KACR_Action_ServerTimeBan;
 												}
 												
-											else // 4 - 3 - Server Ban (banned_ip.cfg or banned_user.cfg)
+											else // 16 - 5 - Kick
 											{
-												bActions[KACR_ActionID_ServerBan] = true;
-												iAction -= KACR_Action_ServerBan;
+												bActions[KACR_ActionID_Kick] = true;
+												iAction -= KACR_Action_Kick;
 											}
 											
-										else // 8 - 4 - Server Time Ban
+										else // 32 - 6 - Crash Client
 										{
-											bActions[KACR_ActionID_ServerTimeBan] = true;
-											iAction -= KACR_Action_ServerTimeBan;
+											bActions[KACR_ActionID_Exploit] = true;
+											iAction -= KACR_Action_Crash;
 										}
 										
-									else // 16 - 5 - Kick
+									else // 64 - 7 - Report to SB
 									{
-										bActions[KACR_ActionID_Kick] = true;
-										iAction -= KACR_Action_Kick;
+										bActions[KACR_ActionID_ReportSB] = true;
+										iAction -= KACR_Action_ReportSB;
 									}
 									
-								else // 32 - 6 - Crash Client
+								else // 128 - 8 - Report to online Admins
 								{
-									bActions[KACR_ActionID_Exploit] = true;
-									iAction -= KACR_Action_Crash;
+									bActions[KACR_ActionID_ReportAdmins] = true;
+									iAction -= KACR_Action_ReportAdmins;
 								}
 								
-							else // 64 - 7 - Report to SB
+							else // 256 - 9 - Tell Admins on Steam about the Violation
 							{
-								bActions[KACR_ActionID_ReportSB] = true;
-								iAction -= KACR_Action_ReportSB;
+								bActions[KACR_ActionID_ReportSteamAdmins] = true;
+								iAction -= KACR_Action_ReportSteamAdmins;
 							}
 							
-						else // 128 - 8 - Report to online Admins
+						else // 512 - 10 - Ask an Steam User over ASteambot for Advice
 						{
-							bActions[KACR_ActionID_ReportAdmins] = true;
-							iAction -= KACR_Action_ReportAdmins;
+							bActions[KACR_ActionID_AskSteamAdmin] = true;
+							iAction -= KACR_Action_AskSteamAdmin;
 						}
 						
-					else // 256 - 9 - Tell Admins on Steam about the Violation
+					else // 1024 - 11 - Log to File
 					{
-						bActions[KACR_ActionID_ReportSteamAdmins] = true;
-						iAction -= KACR_Action_ReportSteamAdmins;
+						bActions[KACR_ActionID_Log] = true;
+						iAction -= KACR_Action_Log;
 					}
 					
-				else // 512 - 10 - Ask an Steam User over ASteambot for Advice
+				else // 2048 - 12 - Tell about the Violation using SourceIRC
 				{
-					bActions[KACR_ActionID_AskSteamAdmin] = true;
-					iAction -= KACR_Action_AskSteamAdmin;
+					bActions[KACR_ActionID_ReportIRC] = true;
+					iAction -= KACR_Action_ReportIRC;
 				}
 				
-			else // 1024 - 11 - Log to File
+			else // 4096 - 13 - Ask on an IRC Channel for Advice
 			{
-				bActions[KACR_ActionID_Log] = true;
-				iAction -= KACR_Action_Log;
+				bActions[KACR_ActionID_AskIRCAdmin] = true;
+				iAction -= KACR_Action_AskIRCAdmin;
 			}
 			
-		else // 2048 - 12 - Tell about the Violation using SourceIRC
+		else // 8192 - 14 - Report to CallAdmin
 		{
-			bActions[KACR_ActionID_ReportIRC] = true;
-			iAction -= KACR_Action_ReportIRC;
+			bActions[KACR_ActionID_ReportCallAdmin] = true;
+			iAction -= KACR_Action_ReportCallAdmin;
 		}
 	}
 }
-/* TODO: Needs to be integrated into SP
-y = 0
-x = 0
-list = []
-sumx = 151324
-while(sumx > 0):
-    if(sumx%2 == 0):
-        list.insert(x, 0)
-        sumx = (sumx/2)
-        x = x+1
-    elif(sumx==1):
-        list.insert(x, 1)
-        break
-    elif(sumx%2 == 1):
-        list.insert(x, 1)
-        sumx = ((sumx-1)/2)
-        x = x+1
-    sumx = int(sumx)
-print(list)
-#x= index, y = 0 or 1
-*/
 
 /*
 * Lets a Client Crash, this Exploit requires UserMessages, currently only proved to work in CSGO (12.6.2020)
