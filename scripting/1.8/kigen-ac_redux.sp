@@ -126,7 +126,7 @@ public void OnPluginStart()
 	f_hTemp = FindConVar("sv_max_usercmd_future_ticks");
 	if (f_hTemp != INVALID_HANDLE)
 		SetConVarInt(f_hTemp, 1);
-	
+		
 	AutoExecConfig_ExecuteFile(); // Execute the Config
 	AutoExecConfig_CleanFile(); // Cleanup the Config (slow process)
 	
@@ -208,7 +208,7 @@ public void OnPluginEnd()
 		CloseHandle(g_hClearTimer);
 }
 
-//- Map Functions -//
+//- Map Hooks -//
 
 public void OnMapStart()
 {
@@ -225,7 +225,7 @@ public void OnMapEnd()
 	// RCON_OnMap(); // Currently unused
 }
 
-//- Client Functions -//
+//- Client Hooks -//
 
 public bool OnClientConnect(client, char[] rejectmsg, size)
 {
