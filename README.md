@@ -1,16 +1,16 @@
 # Kigen Anti Cheat Redux
 ### Project Status: Maintained, Rolling Release
-SMAC and KAC are outdated, VAC dosent do its Job, NoCheatz-4 is discontinued and Community Projects are often small or unstable.  
-KACR is aimed to be a failsafe universal Security and Anti Cheat Solution for all common Source based Games.  
+
+KACR is aimed to be a failsafe universal security and anti-cheat Solution for all common Source based games.  
 #
 Requires:
-- SourceMod 1.8 or higher (kigen-ac_redux is for 1.10, kigen-ac_redux_legacy for 1.8/1.9)
+- SourceMod 1.8 or higher (kigen-ac_redux is for 1.12, kigen-ac_redux_legacy for previous version)
 
 Optional:
 - Sourcebans++
 - Sourcebans 2.X (V1 isent supported)
 
-Official supported Games:
+Official supported games:
 - Counter-Strike: Global Offensive
 - Team Fortress 2
 - Counter-Strike: Source
@@ -18,10 +18,13 @@ Official supported Games:
 - Insurgency
 - Day of Defeat: Source
 - Half-Life 2: Deathmatch
-#### KACR should work on most Source 2007+ Engine Game
+#### KACR should work on most games using the Source 2007 engine or newer
+#### Source 2 games like Counter-Strike 2 [wont be supported](https://wiki.alliedmods.net/Introduction_to_SourceMod_Plugins#Will_SourceMod_support_Source_2.3F_Will_plugins_for_existing_games_continue_to_work_if_they_are_ported.3F)
 #
-Since i havent implemented an Updater yet, watch this Project on GitHub so you will be informed about Updates. 
-![How to watch](https://help.github.com/assets/images/help/repository/repo-actions-watch.png)
+Since i havent implemented an updater yet, watch this project on GitHub so you will be informed about updates. 
 #
-If you want to help you can Contribute to the Project by submitting Code, Bugs, False-Positives, Wiki Entrys and Translations.
-Information on how to submit Code, Wiki Entrys and Translations can be found in CONTRIBUTING.md
+If you want to help you can contribute to the project by submitting code, bugs, false-positives, wiki entrys and translations.
+Information on how to submit code, wiki entrys and translations can be found in the CONTRIBUTING.md file.
+
+Credits:
+-AutoExecConfig from Impact
